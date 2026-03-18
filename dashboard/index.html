@@ -709,6 +709,64 @@
             grid-column: 1 / -1;
         }
 
+        /* Custom Vault Dropdown */
+        .custom-dropdown-selected {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            transition: border-color 0.2s;
+        }
+        .custom-dropdown-selected:hover { border-color: var(--accent-cyan); }
+        .custom-dropdown-selected .dropdown-arrow {
+            color: var(--text-tertiary);
+            transition: transform 0.2s;
+        }
+        .custom-dropdown.open .dropdown-arrow { transform: rotate(180deg); }
+        .custom-dropdown-options {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0; right: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 100;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        .custom-dropdown.open .custom-dropdown-options { display: block; }
+        .custom-dropdown-option {
+            padding: 10px 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            transition: background 0.15s;
+        }
+        .custom-dropdown-option:hover { background: rgba(0, 212, 255, 0.08); }
+        .custom-dropdown-option.active {
+            background: rgba(0, 212, 255, 0.12);
+            border-left: 2px solid var(--accent-cyan);
+        }
+        .custom-dropdown-option .opt-addr {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+        .custom-dropdown-option .opt-meta {
+            font-size: 0.78rem;
+            color: var(--text-tertiary);
+        }
+
         /* Vault Controls Status Bar */
         .vault-status-bar {
             background: var(--bg-card);
@@ -1512,15 +1570,21 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     <div id="app-section">
         <div class="app-container">
             <!-- Vault Selector -->
+            <select id="vaultSelect" style="display:none;" onchange="selectVault(this.value)">
+                <option value="">Select a vault...</option>
+            </select>
             <div id="vaultSelectorWrap" style="display:none;">
                 <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:1rem;">
-                    <select id="vaultSelect" onchange="selectVault(this.value)" style="flex:1;background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);padding:10px 14px;border-radius:10px;font-size:0.9rem;font-family:inherit;cursor:pointer;outline:none;">
-                        <option value="">Select a vault...</option>
-                    </select>
+                    <div class="custom-dropdown" style="flex:1;position:relative;">
+                        <div id="dropdownSelected" class="custom-dropdown-selected" onclick="toggleVaultDropdown()">
+                            <span id="dropdownLabel">Select a vault...</span>
+                            <span class="dropdown-arrow">▾</span>
+                        </div>
+                        <div id="dropdownOptions" class="custom-dropdown-options"></div>
+                    </div>
                     <button class="btn btn-outline btn-sm" onclick="showCreateVault()" style="white-space:nowrap;">+ New Vault</button>
                 </div>
             </div>
-            <!-- hidden elements for card list compatibility -->
             <div id="vaultCardList" style="display:none;"></div>
 
             <!-- Create Vault -->
@@ -1614,7 +1678,7 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
 
                 <!-- Row 3: Lido ETH Staking (full width, Lido-branded) -->
                 <div class="lido-section">
-                    <h3>Lido ETH Staking</h3>
+                    <h3 style="display:flex;align-items:center;gap:0.5rem;"><img src="https://s2.coinmarketcap.com/static/img/coins/200x200/8085.png" alt="Lido" style="width:24px;height:24px;border-radius:50%;" /> Lido ETH Staking</h3>
                     <div class="lido-subtitle">Earn ~3.5% APY. Yield accrues automatically via stETH rebase.</div>
                     <div class="staking-stats">
                         <div class="staking-stat">
@@ -1969,6 +2033,28 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     // ==========================================
     // VAULT MANAGEMENT
     // ==========================================
+    function toggleVaultDropdown() {
+        document.querySelector('.custom-dropdown').classList.toggle('open');
+    }
+
+    function selectVaultOption(addr, label) {
+        document.getElementById('dropdownLabel').textContent = label;
+        document.querySelector('.custom-dropdown').classList.remove('open');
+        // Update hidden select and trigger vault load
+        document.getElementById('vaultSelect').value = addr;
+        selectVault(addr);
+        // Update active state
+        document.querySelectorAll('.custom-dropdown-option').forEach(el => {
+            el.classList.toggle('active', el.dataset.vault === addr);
+        });
+    }
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+        const dd = document.querySelector('.custom-dropdown');
+        if (dd && !dd.contains(e.target)) dd.classList.remove('open');
+    });
+
     async function loadUserVaults() {
         if (!factoryContract || !userAddress) return;
         try {
@@ -1977,25 +2063,40 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
             select.innerHTML = '<option value="">Select a vault...</option>';
 
             if (vaults.length > 0) {
+                const optionsContainer = document.getElementById('dropdownOptions');
+                let optionsHtml = '';
+
                 for (const addr of vaults) {
                     const opt = document.createElement('option');
                     opt.value = addr;
-                    // Show address + try to get token count
-                    let label = addr.slice(0, 6) + '...' + addr.slice(-4);
+                    let shortAddr = addr.slice(0, 6) + '...' + addr.slice(-4);
+                    let meta = '';
                     try {
                         const vc = new ethers.Contract(addr, VAULT_ABI, provider);
                         const tokens = await vc.getTokens();
-                        label += ` (${tokens.length} token${tokens.length !== 1 ? 's' : ''})`;
+                        meta = `${tokens.length} token${tokens.length !== 1 ? 's' : ''}`;
                     } catch(_) {}
+                    let label = shortAddr + (meta ? ` (${meta})` : '');
                     opt.textContent = label;
                     select.appendChild(opt);
+
+                    optionsHtml += `<div class="custom-dropdown-option" data-vault="${addr}" onclick="selectVaultOption('${addr}', '${label}')">
+                        <span class="opt-addr">${shortAddr}</span>
+                        <span class="opt-meta">${meta}</span>
+                    </div>`;
                 }
+                optionsContainer.innerHTML = optionsHtml;
+
                 document.getElementById('vaultSelectorWrap').style.display = 'block';
                 document.getElementById('createVaultCard').style.display = 'none';
 
                 // Auto-select first vault
-                select.value = vaults[0];
-                await selectVault(vaults[0]);
+                const firstAddr = vaults[0];
+                const firstLabel = select.options[1]?.textContent || firstAddr.slice(0,6) + '...';
+                select.value = firstAddr;
+                document.getElementById('dropdownLabel').textContent = firstLabel;
+                document.querySelector(`.custom-dropdown-option[data-vault="${firstAddr}"]`)?.classList.add('active');
+                await selectVault(firstAddr);
             }
         } catch (err) {
             console.error('Failed to load vaults:', err);
