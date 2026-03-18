@@ -78,9 +78,10 @@ contract AgentVaultTest is Test {
         vm.prank(owner);
         vault.stakeETH{value: 5 ether}(false);
 
-        assertEq(vault.balanceOf(address(wstETHMock)), 5 ether);
-        assertTrue(vault.supportedTokens(address(wstETHMock)));
-        assertEq(vault.stakedPrincipal(), 0); // not yield-only
+        // stETH is deposited (not wstETH)
+        assertEq(vault.balanceOf(address(stETH)), 5 ether);
+        assertTrue(vault.supportedTokens(address(stETH)));
+        assertEq(vault.stakedPrincipal(), 5 ether); // always recorded
     }
 
     function test_stakeETH_yieldOnly() public {
@@ -89,10 +90,11 @@ contract AgentVaultTest is Test {
 
         assertEq(vault.stakedPrincipal(), 10 ether);
         assertTrue(vault.yieldOnly());
-        assertEq(vault.availableYield(), 0); // no yield yet
+        assertEq(vault.pendingYield(), 0); // no yield yet
+        assertEq(vault.spendableYield(), 0);
     }
 
-    function test_yieldOnly_agentCanSpendOnlyYield() public {
+    function test_yieldOnly_harvestAndSpend() public {
         // Create vault with ETH-scale limits
         vm.prank(owner);
         address vAddr = factory.createVault(agent, 10 ether, 5 ether);
@@ -102,24 +104,56 @@ contract AgentVaultTest is Test {
         vm.prank(owner);
         yVault.stakeETH{value: 10 ether}(true);
 
-        // Agent tries to spend — no yield yet, should fail
+        // Agent tries to spend — no harvested yield, should fail
         vm.prank(agent);
         vm.expectRevert(AgentVault.ExceedsBudget.selector);
-        yVault.spend(address(wstETHMock), recipient, 0.1 ether);
+        yVault.spend(address(stETH), recipient, 0.1 ether);
 
-        // Simulate yield: mint extra wstETH to vault
-        wstETHMock.mint(address(yVault), 0.5 ether);
+        // Simulate stETH rebase: mint extra stETH to vault (this is what Lido does)
+        stETH.mint(address(yVault), 0.5 ether);
 
-        // Now agent can spend yield
-        assertEq(yVault.availableYield(), 0.5 ether);
+        // Yield exists but not harvested yet
+        assertEq(yVault.pendingYield(), 0.5 ether);
+        assertEq(yVault.spendableYield(), 0);
+
+        // Agent still can't spend (not harvested)
+        vm.prank(agent);
+        vm.expectRevert(AgentVault.ExceedsBudget.selector);
+        yVault.spend(address(stETH), recipient, 0.1 ether);
+
+        // Harvest yield (anyone can call, once per day)
+        vm.warp(block.timestamp + 1 days);
+        yVault.harvestYield();
+
+        // Now agent can spend harvested yield
+        assertEq(yVault.spendableYield(), 0.5 ether);
 
         vm.prank(agent);
-        yVault.spend(address(wstETHMock), recipient, 0.3 ether, "Paid from yield");
+        yVault.spend(address(stETH), recipient, 0.3 ether, "Paid from staking yield");
 
-        assertEq(wstETHMock.balanceOf(recipient), 0.3 ether);
-        assertEq(yVault.availableYield(), 0.2 ether);
+        assertEq(stETH.balanceOf(recipient), 0.3 ether);
+        assertEq(yVault.spendableYield(), 0.2 ether);
         // Principal untouched
         assertEq(yVault.stakedPrincipal(), 10 ether);
+    }
+
+    function test_harvestYield_oncePerDay() public {
+        vm.prank(owner);
+        vault.stakeETH{value: 10 ether}(true);
+
+        stETH.mint(address(vault), 0.1 ether);
+        vm.warp(block.timestamp + 1 days);
+        vault.harvestYield();
+
+        // Try to harvest again same day — should fail
+        stETH.mint(address(vault), 0.1 ether);
+        vm.expectRevert("Already harvested today");
+        vault.harvestYield();
+
+        // Next day — should work
+        vm.warp(block.timestamp + 1 days);
+        vault.harvestYield();
+        assertEq(vault.spendableYield(), 0.2 ether);
     }
 
     function test_yieldOnly_ownerCanWithdrawPrincipal() public {
@@ -130,7 +164,7 @@ contract AgentVaultTest is Test {
         vault.withdrawPrincipal(5 ether);
 
         assertEq(vault.stakedPrincipal(), 5 ether);
-        assertEq(wstETHMock.balanceOf(owner), 5 ether);
+        assertEq(stETH.balanceOf(owner), 5 ether);
     }
 
     function test_yieldOnly_normalTokensUnaffected() public {
@@ -317,21 +351,21 @@ contract AgentVaultTest is Test {
         assertEq(vault.balanceOf(address(usdc)), 0);
     }
 
-    function test_fullFlow_stakeETH_agentSpendsWstETH() public {
+    function test_fullFlow_stakeETH_agentSpendsStETH() public {
         // Create vault with ETH-scale limits
         vm.prank(owner);
         address vAddr = factory.createVault(agent, 10 ether, 5 ether);
         AgentVault ethVault = AgentVault(vAddr);
 
-        // Owner stakes ETH → wstETH
+        // Owner stakes ETH → stETH (not yield-only, agent can spend all)
         vm.prank(owner);
         ethVault.stakeETH{value: 10 ether}(false);
 
-        // Agent spends wstETH
+        // Agent spends stETH
         vm.prank(agent);
-        ethVault.spend(address(wstETHMock), recipient, 0.5 ether, "Paid for compute");
+        ethVault.spend(address(stETH), recipient, 0.5 ether, "Paid for compute");
 
-        assertEq(wstETHMock.balanceOf(recipient), 0.5 ether);
-        assertEq(ethVault.balanceOf(address(wstETHMock)), 9.5 ether);
+        assertEq(stETH.balanceOf(recipient), 0.5 ether);
+        assertEq(ethVault.balanceOf(address(stETH)), 9.5 ether);
     }
 }

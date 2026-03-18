@@ -79,6 +79,7 @@ contract AgentVault {
     event LimitsUpdated(uint256 dailyLimit, uint256 perTxLimit);
     event WhitelistUpdated(address indexed addr, bool status);
     event Paused(bool paused);
+    event YieldHarvested(uint256 amount, uint256 totalSpendable);
 
     // --- Expense Reports ---
     struct Expense {
@@ -115,12 +116,15 @@ contract AgentVault {
     mapping(address => uint256) public totalSpent;
 
     // Lido integration (optional, set to 0x0 if not needed)
-    address public immutable stETH;
-    address public immutable wstETH;
+    address public immutable stETH;     // stETH is a rebase token — balance grows as yield accrues
+    address public immutable wstETH;    // kept for compatibility
 
-    // Yield-only mode for staked ETH
-    uint256 public stakedPrincipal;     // wstETH amount locked as principal
-    bool public yieldOnly;              // if true, agent can only spend yield from wstETH
+    // Yield tracking for staked ETH (stETH)
+    uint256 public stakedPrincipal;     // stETH amount recorded at deposit (doesn't grow)
+    uint256 public harvestedYield;      // stETH yield claimed via harvestYield()
+    uint256 public yieldSpent;          // stETH yield already spent by agent
+    uint256 public lastHarvestTime;     // timestamp of last harvest
+    bool public yieldOnly;              // if true, agent can only spend harvested yield from stETH
 
     // Uniswap (optional)
     address public immutable swapRouter;
@@ -187,52 +191,68 @@ contract AgentVault {
         emit Deposited(msg.sender, token, amount);
     }
 
-    /// @notice Stake ETH via Lido → get wstETH in the vault
-    /// @param _yieldOnly If true, agent can only spend yield (principal is locked)
+    /// @notice Stake ETH via Lido → stETH stays in vault, yield accrues via rebase
+    /// @param _yieldOnly If true, agent can only spend harvested yield (principal locked)
     function stakeETH(bool _yieldOnly) external payable onlyOwner nonReentrant {
         if (msg.value == 0) revert ZeroAmount();
-        require(stETH != address(0) && wstETH != address(0), "Lido not configured");
+        require(stETH != address(0), "Lido not configured");
 
-        // ETH → stETH
+        // ETH → stETH (stETH is rebase token, balance grows over time)
         uint256 stETHBefore = IERC20(stETH).balanceOf(address(this));
         ILido(stETH).submit{value: msg.value}(address(0));
         uint256 stETHReceived = IERC20(stETH).balanceOf(address(this)) - stETHBefore;
 
-        // stETH → wstETH
-        IERC20(stETH).safeApprove(wstETH, 0);
-        IERC20(stETH).safeApprove(wstETH, stETHReceived);
-        uint256 wstETHBefore = IERC20(wstETH).balanceOf(address(this));
-        IWstETH(wstETH).wrap(stETHReceived);
-        uint256 wstETHReceived = IERC20(wstETH).balanceOf(address(this)) - wstETHBefore;
+        stakedPrincipal += stETHReceived;
 
-        // Record principal if yield-only mode
         if (_yieldOnly) {
-            stakedPrincipal += wstETHReceived;
             yieldOnly = true;
         }
 
-        _addToken(wstETH);
-        emit StakedETH(msg.sender, msg.value, wstETHReceived, _yieldOnly);
+        _addToken(stETH);
+        emit StakedETH(msg.sender, msg.value, stETHReceived, _yieldOnly);
     }
 
     // =============================================
-    // VIEW: Yield from staking
+    // YIELD: Harvest & track
     // =============================================
 
-    /// @notice Available yield from staked ETH (wstETH balance minus locked principal)
-    function availableYield() public view returns (uint256) {
-        if (wstETH == address(0)) return 0;
-        uint256 balance = IERC20(wstETH).balanceOf(address(this));
-        if (balance <= stakedPrincipal) return 0;
-        return balance - stakedPrincipal;
+    /// @notice Unharvested yield = stETH balance growth since principal was recorded
+    function pendingYield() public view returns (uint256) {
+        if (stETH == address(0)) return 0;
+        uint256 balance = IERC20(stETH).balanceOf(address(this));
+        uint256 principal = stakedPrincipal;
+        // Available = total stETH - principal - yield already harvested but not yet spent
+        uint256 accountedFor = principal + (harvestedYield - yieldSpent);
+        if (balance <= accountedFor) return 0;
+        return balance - accountedFor;
     }
 
-    /// @notice Owner can withdraw staked principal
+    /// @notice Harvest accrued yield — callable once per day by anyone
+    /// @dev Makes yield available for the agent to spend
+    function harvestYield() external nonReentrant {
+        require(stETH != address(0), "No staking active");
+        require(block.timestamp >= lastHarvestTime + 1 days, "Already harvested today");
+
+        uint256 pending = pendingYield();
+        require(pending > 0, "No yield to harvest");
+
+        harvestedYield += pending;
+        lastHarvestTime = block.timestamp;
+
+        emit YieldHarvested(pending, harvestedYield - yieldSpent);
+    }
+
+    /// @notice How much harvested yield the agent can still spend
+    function spendableYield() public view returns (uint256) {
+        return harvestedYield - yieldSpent;
+    }
+
+    /// @notice Owner can withdraw staked principal (stETH)
     function withdrawPrincipal(uint256 amount) external onlyOwner nonReentrant {
         if (amount > stakedPrincipal) revert ExceedsBudget();
         stakedPrincipal -= amount;
-        IERC20(wstETH).safeTransfer(owner, amount);
-        emit Withdrawn(owner, wstETH, amount);
+        IERC20(stETH).safeTransfer(owner, amount);
+        emit Withdrawn(owner, stETH, amount);
     }
 
     /// @notice Owner toggles yield-only mode
@@ -371,9 +391,9 @@ contract AgentVault {
         if (amount == 0) revert ZeroAmount();
         if (!supportedTokens[token]) revert TokenNotSupported();
 
-        // If yield-only mode is on and this is wstETH, can only spend yield
-        if (yieldOnly && token == wstETH) {
-            if (amount > availableYield()) revert ExceedsBudget();
+        // If yield-only mode is on and this is stETH, can only spend harvested yield
+        if (yieldOnly && token == stETH) {
+            if (amount > spendableYield()) revert ExceedsBudget();
         } else {
             if (amount > IERC20(token).balanceOf(address(this))) revert ExceedsBudget();
         }
@@ -387,6 +407,12 @@ contract AgentVault {
     function _recordSpend(address token, address to, uint256 amount, string memory reason) internal {
         dailySpent[token][block.timestamp / 1 days] += amount;
         totalSpent[token] += amount;
+
+        // Track yield spent for stETH in yield-only mode
+        if (yieldOnly && token == stETH) {
+            yieldSpent += amount;
+        }
+
         expenses.push(Expense({
             timestamp: block.timestamp,
             token: token,
