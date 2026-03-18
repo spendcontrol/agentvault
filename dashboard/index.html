@@ -1989,24 +1989,37 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     }
 
     function promptSetLimitsForToken(tokenAddr, symbol) {
-        // Check if limits already set
-        currentVaultContract.effectiveDailyLimit(tokenAddr).then(limit => {
-            if (limit > 0n) return; // already has limits
+        // Auto-fill the token limits form
+        const tokenInput = document.getElementById('inputLimitToken');
+        if (!tokenInput) return;
 
-            // Auto-fill the token limits form and scroll to it
-            document.getElementById('inputLimitToken').value = tokenAddr;
-            document.getElementById('inputTokenDailyLimit').placeholder = symbol === 'USDC' ? '100' : '0.1';
-            document.getElementById('inputTokenPerTxLimit').placeholder = symbol === 'USDC' ? '50' : '0.05';
+        tokenInput.value = tokenAddr;
 
-            // Highlight the limits section
-            const limitsSection = document.getElementById('inputLimitToken').closest('.dashboard-card');
-            if (limitsSection) {
-                limitsSection.style.border = '1px solid var(--accent-cyan)';
-                limitsSection.scrollIntoView({behavior: 'smooth', block: 'center'});
-                showToast(`Set spending limits for ${symbol} so your agent can use it.`, 'success');
-                setTimeout(() => { limitsSection.style.border = ''; }, 5000);
-            }
-        }).catch(() => {});
+        const dailyInput = document.getElementById('inputTokenDailyLimit');
+        const perTxInput = document.getElementById('inputTokenPerTxLimit');
+        if (dailyInput) dailyInput.placeholder = symbol === 'USDC' ? '100' : '0.1';
+        if (perTxInput) perTxInput.placeholder = symbol === 'USDC' ? '50' : '0.05';
+
+        // Show a prominent alert banner
+        let banner = document.getElementById('limitsAlertBanner');
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'limitsAlertBanner';
+            banner.style.cssText = 'background:linear-gradient(135deg,rgba(0,212,255,0.12),rgba(123,97,255,0.12));border:1px solid var(--accent-cyan);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;animation:fadeInUp 0.3s ease;';
+            const dashboard = document.getElementById('vaultDashboard');
+            if (dashboard) dashboard.prepend(banner);
+        }
+        banner.innerHTML = `
+            <div style="font-weight:700;font-size:1.05rem;margin-bottom:0.5rem;color:var(--accent-cyan);">⚠️ Set spending limits for ${symbol}</div>
+            <p style="color:var(--text-secondary);margin-bottom:0.75rem;line-height:1.5;">
+                You deposited ${symbol} but haven't set spending limits yet. <strong>Your agent can't spend until you set limits.</strong>
+                Scroll down to "Spending Rules" and set daily + per-tx limits for this token.
+            </p>
+            <button class="btn btn-gradient btn-sm" onclick="document.getElementById('inputLimitToken').scrollIntoView({behavior:'smooth',block:'center'});this.closest('#limitsAlertBanner').remove();">
+                Set ${symbol} Limits Now
+            </button>
+        `;
+        banner.scrollIntoView({behavior: 'smooth', block: 'start'});
     }
 
     // ==========================================
