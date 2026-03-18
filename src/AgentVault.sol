@@ -82,6 +82,7 @@ contract AgentVault {
     event AgentSpent(address indexed agent, address indexed token, address indexed to, uint256 amount, string reason);
     event AgentUpdated(address indexed oldAgent, address indexed newAgent);
     event LimitsUpdated(uint256 dailyLimit, uint256 perTxLimit);
+    event TokenLimitsUpdated(address indexed token, uint256 dailyLimit, uint256 perTxLimit);
     event WhitelistUpdated(address indexed addr, bool status);
     event Paused(bool paused);
     event YieldHarvested(uint256 amount, uint256 totalSpendable);
@@ -101,9 +102,11 @@ contract AgentVault {
     address public owner;
     address public agent;
 
-    // Spending rules (denominated in USD-equivalent via perTxLimit/dailyLimit in token amounts)
-    uint256 public dailyLimit;          // per token, max agent can spend per day
-    uint256 public perTxLimit;          // per token, max agent can spend per tx
+    // Spending rules — per token
+    mapping(address => uint256) public dailyLimit;    // token => max per day
+    mapping(address => uint256) public perTxLimit;    // token => max per tx
+    uint256 public defaultDailyLimit;                  // fallback for tokens without custom limit
+    uint256 public defaultPerTxLimit;                  // fallback for tokens without custom limit
 
     bool public paused;
 
@@ -182,8 +185,8 @@ contract AgentVault {
         stETH = _stETH;
         wstETH = _wstETH;
         swapRouter = _swapRouter;
-        dailyLimit = _dailyLimit;
-        perTxLimit = _perTxLimit;
+        defaultDailyLimit = _dailyLimit;
+        defaultPerTxLimit = _perTxLimit;
     }
 
     // =============================================
@@ -323,10 +326,30 @@ contract AgentVault {
         agent = _agent;
     }
 
-    function setLimits(uint256 _dailyLimit, uint256 _perTxLimit) external onlyOwner {
-        dailyLimit = _dailyLimit;
-        perTxLimit = _perTxLimit;
+    /// @notice Set limits for a specific token (0 = use default)
+    function setTokenLimits(address token, uint256 _dailyLimit, uint256 _perTxLimit) external onlyOwner {
+        dailyLimit[token] = _dailyLimit;
+        perTxLimit[token] = _perTxLimit;
+        emit TokenLimitsUpdated(token, _dailyLimit, _perTxLimit);
+    }
+
+    /// @notice Set default limits (used when token has no custom limits)
+    function setDefaultLimits(uint256 _dailyLimit, uint256 _perTxLimit) external onlyOwner {
+        defaultDailyLimit = _dailyLimit;
+        defaultPerTxLimit = _perTxLimit;
         emit LimitsUpdated(_dailyLimit, _perTxLimit);
+    }
+
+    /// @notice Get effective daily limit for a token
+    function effectiveDailyLimit(address token) public view returns (uint256) {
+        uint256 custom = dailyLimit[token];
+        return custom > 0 ? custom : defaultDailyLimit;
+    }
+
+    /// @notice Get effective per-tx limit for a token
+    function effectivePerTxLimit(address token) public view returns (uint256) {
+        uint256 custom = perTxLimit[token];
+        return custom > 0 ? custom : defaultPerTxLimit;
     }
 
     function setWhitelist(address addr, bool status) external onlyOwner {
@@ -361,8 +384,9 @@ contract AgentVault {
     function remainingDailyBudget(address token) public view returns (uint256) {
         uint256 today = block.timestamp / 1 days;
         uint256 spent = dailySpent[token][today];
-        if (spent >= dailyLimit) return 0;
-        return dailyLimit - spent;
+        uint256 limit = effectiveDailyLimit(token);
+        if (spent >= limit) return 0;
+        return limit - spent;
     }
 
     function expenseCount() external view returns (uint256) {
@@ -419,9 +443,9 @@ contract AgentVault {
             if (amount > IERC20(token).balanceOf(address(this))) revert ExceedsBudget();
         }
 
-        if (amount > perTxLimit) revert ExceedsPerTxLimit();
+        if (amount > effectivePerTxLimit(token)) revert ExceedsPerTxLimit();
         uint256 today = block.timestamp / 1 days;
-        if (dailySpent[token][today] + amount > dailyLimit) revert ExceedsDailyLimit();
+        if (dailySpent[token][today] + amount > effectiveDailyLimit(token)) revert ExceedsDailyLimit();
         if (whitelistEnabled && !whitelisted[to]) revert RecipientNotWhitelisted();
     }
 

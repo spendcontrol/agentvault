@@ -1447,14 +1447,14 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                     <!-- Spending Rules -->
                     <div class="dashboard-card">
                         <h3>Spending Rules</h3>
-                        <p class="card-desc">Current limits and controls for this vault's agent.</p>
+                        <p class="card-desc">Set limits per token. Agent can't exceed these — enforced by smart contract.</p>
                         <div class="rules-grid">
                             <div class="rule-item">
-                                <div class="rule-label">Daily Limit</div>
+                                <div class="rule-label">Default Daily Limit</div>
                                 <div class="rule-value" id="ruleDailyLimit">--</div>
                             </div>
                             <div class="rule-item">
-                                <div class="rule-label">Per-Tx Limit</div>
+                                <div class="rule-label">Default Per-Tx Limit</div>
                                 <div class="rule-value" id="rulePerTxLimit">--</div>
                             </div>
                             <div class="rule-item">
@@ -1466,8 +1466,30 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                                 <div id="ruleStatus">--</div>
                             </div>
                         </div>
+
+                        <!-- Per-token limits -->
+                        <div style="background: rgba(123,97,255,0.05); border: 1px solid rgba(123,97,255,0.15); border-radius: 10px; padding: 1rem; margin: 1rem 0;">
+                            <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Set limits for a specific token</div>
+                            <p class="card-desc" style="margin-bottom: 0.75rem;">Override default limits for a token. E.g. "100 USDC/day" or "0.05 WETH/tx".</p>
+                            <div class="form-group" style="margin-bottom: 0.5rem;">
+                                <label>Token Address</label>
+                                <input type="text" id="inputLimitToken" placeholder="0x... (or use a token already in vault)" />
+                            </div>
+                            <div style="display:flex; gap:0.75rem; margin-bottom: 0.75rem;">
+                                <div class="form-group" style="flex:1;">
+                                    <label>Daily Limit</label>
+                                    <input type="text" id="inputTokenDailyLimit" placeholder="100" />
+                                </div>
+                                <div class="form-group" style="flex:1;">
+                                    <label>Per-Tx Limit</label>
+                                    <input type="text" id="inputTokenPerTxLimit" placeholder="50" />
+                                </div>
+                            </div>
+                            <button class="btn btn-gradient btn-sm" onclick="setTokenLimits()">Set Token Limits</button>
+                        </div>
+
                         <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-                            <button class="btn btn-outline btn-sm" onclick="promptSetLimits()">Update Limits</button>
+                            <button class="btn btn-outline btn-sm" onclick="promptSetLimits()">Update Default Limits</button>
                             <button class="btn btn-outline btn-sm" onclick="promptWhitelist()">Manage Whitelist</button>
                             <button class="btn btn-danger btn-sm" id="pauseBtn" onclick="togglePause()">Pause Vault</button>
                         </div>
@@ -1543,7 +1565,7 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     // CONFIG
     // ==========================================
     const CONFIG = {
-        factoryAddress: '0x46D28d8A440dcBE5E78C2B6272D0E54F309b04A1',
+        factoryAddress: '0x3CD7fD713FECddC697370035ca1cBee118B32256',
         chainId: 84532,
         chainIdHex: '0x14a34',
         rpcUrl: 'https://sepolia.base.org',
@@ -1586,7 +1608,12 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
         'function perTxLimit() view returns (uint256)',
         'function paused() view returns (bool)',
         'function setAgent(address)',
-        'function setLimits(uint256, uint256)',
+        'function setDefaultLimits(uint256, uint256)',
+        'function setTokenLimits(address, uint256, uint256)',
+        'function effectiveDailyLimit(address) view returns (uint256)',
+        'function effectivePerTxLimit(address) view returns (uint256)',
+        'function defaultDailyLimit() view returns (uint256)',
+        'function defaultPerTxLimit() view returns (uint256)',
         'function setPaused(bool)',
         'function setWhitelist(address, bool)',
         'function setWhitelistEnabled(bool)',
@@ -1788,8 +1815,8 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                 principal, pending, spendable, isYieldOnly
             ] = await Promise.all([
                 vc.getTokens(),
-                vc.dailyLimit(),
-                vc.perTxLimit(),
+                vc.defaultDailyLimit(),
+                vc.defaultPerTxLimit(),
                 vc.agent(),
                 vc.paused(),
                 vc.stakedPrincipal().catch(() => 0n),
@@ -2021,18 +2048,43 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
         }
     }
 
+    async function setTokenLimits() {
+        const tokenAddr = document.getElementById('inputLimitToken').value.trim();
+        const daily = document.getElementById('inputTokenDailyLimit').value.trim();
+        const perTx = document.getElementById('inputTokenPerTxLimit').value.trim();
+        if (!ethers.isAddress(tokenAddr) || !daily || !perTx) {
+            showToast('Enter token address and both limits.', 'error');
+            return;
+        }
+        try {
+            const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, provider);
+            const decimals = await tokenContract.decimals();
+            const tx = await currentVaultContract.setTokenLimits(
+                tokenAddr,
+                ethers.parseUnits(daily, decimals),
+                ethers.parseUnits(perTx, decimals)
+            );
+            showToast('Setting token limits...', 'success');
+            await tx.wait();
+            showToast('Token limits set!', 'success');
+            await refreshDashboard();
+        } catch (err) {
+            showToast('Failed: ' + (err.reason || err.message), 'error');
+        }
+    }
+
     async function promptSetLimits() {
-        const dailyLimit = prompt('New daily limit (tokens):');
-        const perTxLimit = prompt('New per-tx limit (tokens):');
+        const dailyLimit = prompt('New default daily limit (in token units):');
+        const perTxLimit = prompt('New default per-tx limit (in token units):');
         if (!dailyLimit || !perTxLimit) return;
         try {
-            const tx = await currentVaultContract.setLimits(
+            const tx = await currentVaultContract.setDefaultLimits(
                 ethers.parseUnits(dailyLimit, 18),
                 ethers.parseUnits(perTxLimit, 18)
             );
-            showToast('Updating limits...', 'success');
+            showToast('Updating default limits...', 'success');
             await tx.wait();
-            showToast('Limits updated!', 'success');
+            showToast('Default limits updated!', 'success');
             await refreshDashboard();
         } catch (err) {
             showToast('Failed: ' + (err.reason || err.message), 'error');
