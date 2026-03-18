@@ -1447,42 +1447,42 @@ cast send <span class="code-var">$VAULT</span> \
 
                     <div class="app-cards">
                         <div class="app-card">
-                            <div class="label">Your Deposit (Locked)</div>
+                            <div class="label">Balance</div>
                             <div class="value" id="principal">--</div>
-                            <div class="sub">wstETH — agent can't touch this</div>
+                            <div class="sub"><span class="vault-token-symbol">TOKEN</span> — current vault balance</div>
                         </div>
                         <div class="app-card">
-                            <div class="label">Agent's Budget</div>
+                            <div class="label">Available Budget</div>
                             <div class="value" id="yield">--</div>
-                            <div class="sub">wstETH — earned from staking yield</div>
+                            <div class="sub"><span class="vault-token-symbol">TOKEN</span> — agent can spend now</div>
                         </div>
                         <div class="app-card">
                             <div class="label">Agent Has Spent</div>
                             <div class="value" id="spent">--</div>
-                            <div class="sub">wstETH — total all time</div>
+                            <div class="sub"><span class="vault-token-symbol">TOKEN</span> — total all time</div>
                         </div>
                         <div class="app-card">
                             <div class="label">Left Today</div>
                             <div class="value" id="dailyLeft">--</div>
-                            <div class="sub">wstETH — resets every 24h</div>
+                            <div class="sub"><span class="vault-token-symbol">TOKEN</span> — resets every 24h</div>
                         </div>
                     </div>
 
                     <!-- Owner Controls -->
                     <div class="app-section" id="ownerControls">
-                        <h2>Fund Your Vault</h2>
+                        <h2>Deposit <span class="vault-token-symbol">TOKEN</span></h2>
                         <p style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6; font-size: 0.9rem;">
-                            Deposit ETH below. It auto-stakes via Lido and starts generating yield for your agent. The more ETH you stake, the bigger the agent's budget.
+                            Deposit tokens into the vault. The agent can spend within the limits you set. You can withdraw anytime.
                         </p>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Amount (ETH)</label>
-                                <input type="number" id="depositETHAmount" placeholder="0.1" step="0.01">
+                                <label>Amount (<span class="vault-token-symbol">TOKEN</span>)</label>
+                                <input type="number" id="depositTokenAmount" placeholder="100" step="0.01">
                             </div>
-                            <button class="btn btn-success" onclick="depositETHToVault()" style="height:44px;">Deposit ETH</button>
+                            <button class="btn btn-success" onclick="depositToVault()" style="height:44px;">Approve & Deposit</button>
                         </div>
                         <p style="color: var(--text-tertiary); font-size: 0.75rem; margin-bottom: 1.5rem;">
-                            Auto-stakes via Lido (~3.5% APY). 10 ETH ≈ $30/month budget for your agent.
+                            Requires an ERC20 approve transaction followed by the deposit.
                         </p>
 
                         <h2 style="margin-top: 1.5rem;">Spending Rules</h2>
@@ -1537,7 +1537,7 @@ cast send <span class="code-var">$VAULT</span> \
                         <h2>Next Step: Connect Your Agent</h2>
                         <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.7;">
                             Your vault is live and funded. Now your AI agent needs to know how to use it.
-                            The agent will call the vault contract to check its budget and spend yield.
+                            The agent will call the vault contract to check its budget and spend tokens.
                             Here's how to set it up depending on what kind of agent you run:
                         </p>
 
@@ -1573,9 +1573,9 @@ cast send <span class="code-var">$VAULT</span> \
                         <div style="background: rgba(123,97,255,0.04); border: 1px solid rgba(123,97,255,0.12); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
                             <div style="font-weight: 600; margin-bottom: 0.75rem; color: var(--accent-purple);">What your agent can do:</div>
                             <div style="display: grid; gap: 0.4rem; color: var(--text-secondary); font-size: 0.9rem;">
-                                <div><code style="color: var(--accent-cyan);">check_budget()</code> — see how much yield is available to spend</div>
-                                <div><code style="color: var(--accent-cyan);">spend(to, amount)</code> — send wstETH from yield to any address</div>
-                                <div><code style="color: var(--accent-cyan);">spend_and_swap(token, amount)</code> — swap yield to USDC via Uniswap, then pay</div>
+                                <div><code style="color: var(--accent-cyan);">check_budget()</code> — see how much budget is available to spend</div>
+                                <div><code style="color: var(--accent-cyan);">spend(to, amount, reason)</code> — send tokens to any address with a reason</div>
+                                <div><code style="color: var(--accent-cyan);">spend_and_swap(token, amount)</code> — swap vault token to another via Uniswap, then pay</div>
                                 <div><code style="color: var(--accent-cyan);">get_history()</code> — see all past transactions</div>
                             </div>
                         </div>
@@ -1592,7 +1592,7 @@ cast send <span class="code-var">$VAULT</span> \
                                 <span style="position: absolute; right: 12px; top: 12px; color: var(--text-tertiary); font-size: 0.75rem;">click to copy</span>
                             </div>
                             <p style="color: var(--text-tertiary); font-size: 0.78rem; margin-top: 0.5rem;">
-                                The skill file teaches your agent everything — what the vault is, how to check budget, spend, swap, and the rules to follow.
+                                The skill file teaches your agent everything — what the vault is, how to check budget, spend, swap, and the rules to follow. Works with any ERC20 token.
                             </p>
                         </div>
 
@@ -1612,9 +1612,9 @@ cast send <span class="code-var">$VAULT</span> \
 
 {
   <span class="code-string">"mcpServers"</span>: {
-    <span class="code-string">"yieldvault"</span>: {
+    <span class="code-string">"agentvault"</span>: {
       <span class="code-string">"command"</span>: <span class="code-string">"node"</span>,
-      <span class="code-string">"args"</span>: [<span class="code-string">"/path/to/yieldvault/mcp-server/index.js"</span>],
+      <span class="code-string">"args"</span>: [<span class="code-string">"/path/to/agentvault/mcp-server/index.js"</span>],
       <span class="code-string">"env"</span>: {
         <span class="code-string">"VAULT_ADDRESS"</span>: <span class="code-string">"<span class="vault-addr-placeholder">0xYourVault</span>"</span>,
         <span class="code-string">"AGENT_PRIVATE_KEY"</span>: <span class="code-string">"0xYourAgentPrivateKey"</span>,
@@ -1625,9 +1625,9 @@ cast send <span class="code-var">$VAULT</span> \
 }
 
 <span class="code-comment"># Your agent will automatically get these tools:
-#   check_budget  → see available yield and daily remaining
-#   spend         → send wstETH to any address
-#   spend_and_swap → swap yield to USDC via Uniswap
+#   check_budget  → see available budget and daily remaining
+#   spend         → send tokens to any address with a reason
+#   spend_and_swap → swap vault token to another via Uniswap
 #   get_history   → view past transactions
 #   get_vault_info → vault config and status
 #
@@ -1636,7 +1636,7 @@ cast send <span class="code-var">$VAULT</span> \
                             </div>
                             <div class="code-block" id="agentCode-agent-python">
 <pre><span class="code-comment"># 1. Install the SDK</span>
-pip install yieldvault
+pip install agentvault
 
 <span class="code-comment"># 2. Set environment variables</span>
 export VAULT_ADDRESS="<span class="vault-addr-placeholder">0xYourVault</span>"
@@ -1644,7 +1644,7 @@ export AGENT_PRIVATE_KEY="0xYourAgentPrivateKey"
 export RPC_URL="https://sepolia.base.org"
 
 <span class="code-comment"># 3. In your agent's code:</span>
-<span class="code-keyword">from</span> yieldvault <span class="code-keyword">import</span> VaultClient
+<span class="code-keyword">from</span> agentvault <span class="code-keyword">import</span> VaultClient
 
 client = VaultClient(
     rpc_url=os.environ[<span class="code-string">"RPC_URL"</span>],
@@ -1654,12 +1654,12 @@ client = VaultClient(
 
 <span class="code-comment"># Check how much budget the agent has</span>
 budget = client.check_budget()
-print(f<span class="code-string">"Available: {budget['available_yield']} wei"</span>)
+print(f<span class="code-string">"Available: {budget['available_budget']}"</span>)
 
-<span class="code-comment"># Spend yield to pay for something</span>
-tx = client.spend(to_address=<span class="code-string">"0xServiceAddress"</span>, amount_wei=<span class="code-number">1000000000000000</span>)
+<span class="code-comment"># Spend tokens to pay for something</span>
+tx = client.spend(to_address=<span class="code-string">"0xServiceAddress"</span>, amount_wei=<span class="code-number">1000000000000000</span>, reason=<span class="code-string">"API credits"</span>)
 
-<span class="code-comment"># Or swap yield to USDC first, then pay</span>
+<span class="code-comment"># Or swap vault token to USDC, then pay</span>
 tx = client.spend_and_swap(
     token_out=<span class="code-string">"0xUSDC_ADDRESS"</span>,
     fee=<span class="code-number">3000</span>,
@@ -1672,26 +1672,26 @@ tx = client.spend_and_swap(
 <pre><span class="code-comment"># If you use Claude Code, OpenClaw, Cursor, or any LLM agent,
 # just paste this into your agent's system prompt or context:</span>
 
-You have access to a YieldVault on Base Sepolia.
+You have access to an AgentVault on Base Sepolia.
 Your vault address: <span class="vault-addr-placeholder">0xYourVault</span>
 Your wallet private key is in the AGENT_PRIVATE_KEY env variable.
 RPC: https://sepolia.base.org
 
-To manage your budget, use the YieldVault Python SDK:
-  pip install yieldvault
+To manage your budget, use the AgentVault Python SDK:
+  pip install agentvault
 
-  from yieldvault import VaultClient
+  from agentvault import VaultClient
   client = VaultClient(rpc_url, vault_address, agent_key)
 
 Available commands:
-  client.check_budget()     → how much yield you can spend
-  client.spend(to, amount)  → send wstETH to an address
-  client.spend_and_swap()   → swap yield to USDC via Uniswap
-  client.get_history()      → your past transactions
+  client.check_budget()              → how much you can spend
+  client.spend(to, amount, reason)   → send tokens to an address
+  client.spend_and_swap()            → swap vault token via Uniswap
+  client.get_history()               → your past transactions
 
 Rules:
-  - You can ONLY spend yield (profit from staking), never the principal
-  - Daily limit and per-tx limit are enforced by the smart contract
+  - You can ONLY spend within daily and per-tx limits
+  - Limits are enforced by the smart contract
   - If you exceed limits, the transaction will revert
   - Check budget before every spend</pre>
                             </div>
@@ -1701,17 +1701,18 @@ Rules:
 <span class="code-var">AGENT_KEY</span>=<span class="code-string">"0xYourAgentPrivateKey"</span>
 <span class="code-var">RPC</span>=<span class="code-string">"https://sepolia.base.org"</span>
 
-<span class="code-comment"># Check available budget (yield)</span>
-cast call $VAULT <span class="code-string">"availableYield()(uint256)"</span> --rpc-url $RPC
+<span class="code-comment"># Check available budget</span>
+cast call $VAULT <span class="code-string">"availableBudget()(uint256)"</span> --rpc-url $RPC
 
 <span class="code-comment"># Check daily budget remaining</span>
 cast call $VAULT <span class="code-string">"remainingDailyBudget()(uint256)"</span> --rpc-url $RPC
 
-<span class="code-comment"># Agent spends 0.001 wstETH from yield</span>
+<span class="code-comment"># Agent spends tokens with a reason</span>
 cast send $VAULT \
-  <span class="code-string">"spend(address,uint256)"</span> \
+  <span class="code-string">"spend(address,uint256,string)"</span> \
   0xRecipientAddress \
   1000000000000000 \
+  <span class="code-string">"API credits"</span> \
   --private-key $AGENT_KEY \
   --rpc-url $RPC
 
@@ -1723,8 +1724,8 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
                         <div style="background: rgba(0,200,83,0.04); border: 1px solid rgba(0,200,83,0.12); border-radius: var(--radius-md); padding: 1rem; margin-top: 1.25rem;">
                             <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--green);">That's it!</div>
                             <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-                                Once your agent has the vault address and its private key, it can autonomously check its budget and spend yield.
-                                You'll see every transaction in the Activity Log above. The agent can never exceed the limits you set or touch your principal.
+                                Once your agent has the vault address and its private key, it can autonomously check its budget and spend tokens.
+                                You'll see every transaction in the Activity Log above. The agent can never exceed the limits you set.
                             </div>
                         </div>
                     </div>
@@ -1744,8 +1745,7 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
     // CONFIG
     // ========================================================================
     const CONFIG = {
-        factoryAddress: '0x6b764f0A9Cf90F467B3791Bb40935f6bDcC0fDf0',
-        wstETHAddress: '0x93e3F6F081F0f5bef1EF9CD42D7924E258e8073B',
+        factoryAddress: '',
         chainId: 84532,
         rpcUrl: 'https://sepolia.base.org',
         explorerUrl: 'https://sepolia.basescan.org'
@@ -1755,7 +1755,7 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
     // ABIs
     // ========================================================================
     const FACTORY_ABI = [
-        'function createVault(address agent, uint256 dailyLimit, uint256 perTxLimit) returns (address)',
+        'function createVault(address agent, address token, uint256 dailyLimit, uint256 perTxLimit) returns (address)',
         'function getVaultsByOwner(address owner) view returns (address[])',
         'function getVaultsByAgent(address agent) view returns (address[])',
         'function totalVaults() view returns (uint256)'
@@ -1763,34 +1763,39 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
 
     const VAULT_ABI = [
         'function deposit(uint256 amount)',
-        'function depositETH() payable',
+        'function withdraw(uint256 amount)',
         'function spend(address to, uint256 amount)',
+        'function spend(address to, uint256 amount, string reason)',
         'function spendAndSwap(address tokenOut, uint24 fee, uint256 amountIn, uint256 amountOutMinimum, address to) returns (uint256)',
-        'function availableYield() view returns (uint256)',
+        'function spendAndSwap(address tokenOut, uint24 fee, uint256 amountIn, uint256 amountOutMinimum, address to, string reason) returns (uint256)',
+        'function availableBudget() view returns (uint256)',
         'function remainingDailyBudget() view returns (uint256)',
         'function getStats() view returns (uint256, uint256, uint256, uint256, uint256)',
-        'function principalWstETH() view returns (uint256)',
-        'function totalYieldSpent() view returns (uint256)',
+        'function totalDeposited() view returns (uint256)',
+        'function totalSpent() view returns (uint256)',
         'function owner() view returns (address)',
         'function agent() view returns (address)',
+        'function token() view returns (address)',
         'function dailyLimit() view returns (uint256)',
         'function perTxLimit() view returns (uint256)',
         'function paused() view returns (bool)',
+        'function expenseCount() view returns (uint256)',
         'function setAgent(address)',
         'function setLimits(uint256, uint256)',
         'function setPaused(bool)',
         'function setWhitelist(address, bool)',
         'function setWhitelistEnabled(bool)',
-        'function withdrawPrincipal(uint256)',
-        'event YieldWithdrawn(address indexed agent, address indexed to, uint256 amount, string reason)',
-        'event YieldSwapped(address indexed agent, address indexed tokenOut, uint256 amountIn, uint256 amountOut, address indexed to)',
-        'event Deposited(address indexed owner, uint256 ethAmount, uint256 wstETHReceived)'
+        'event AgentSpent(address indexed agent, address indexed to, uint256 amount, string reason)',
+        'event AgentSwapped(address indexed agent, address indexed tokenOut, uint256 amountIn, uint256 amountOut, address indexed to, string reason)',
+        'event Deposited(address indexed owner, uint256 amount)'
     ];
 
     const ERC20_ABI = [
         'function approve(address spender, uint256 amount) returns (bool)',
         'function balanceOf(address) view returns (uint256)',
-        'function allowance(address owner, address spender) view returns (uint256)'
+        'function allowance(address owner, address spender) view returns (uint256)',
+        'function symbol() view returns (string)',
+        'function decimals() view returns (uint8)'
     ];
 
     // ========================================================================
@@ -1798,12 +1803,15 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
     // ========================================================================
     let provider, signer, account;
     let currentVault = null;
+    let currentTokenSymbol = 'TOKEN';
+    let currentTokenDecimals = 18;
 
     // ========================================================================
     // HELPERS
     // ========================================================================
-    function fmt(wei) {
-        const val = Number(wei) / 1e18;
+    function fmt(wei, decimals) {
+        const d = decimals !== undefined ? decimals : currentTokenDecimals;
+        const val = Number(wei) / Math.pow(10, d);
         return val < 0.0001 ? '0' : val.toFixed(4);
     }
     function short(addr) {
@@ -1864,9 +1872,10 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
     function switchAgentTab(tab) {
         document.querySelectorAll('#agentCodeTabs .code-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('#agentCodeTabs .code-tab').forEach(t => {
-            if ((tab === 'agent-python' && t.textContent.includes('Python')) ||
-                (tab === 'agent-claude' && t.textContent.includes('Claude')) ||
-                (tab === 'agent-curl' && t.textContent.includes('curl'))) {
+            if ((tab === 'agent-mcp' && t.textContent.includes('MCP')) ||
+                (tab === 'agent-python' && t.textContent.includes('Python')) ||
+                (tab === 'agent-claude' && t.textContent.includes('LLM')) ||
+                (tab === 'agent-curl' && t.textContent.includes('Terminal'))) {
                 t.classList.add('active');
             }
         });
@@ -1942,7 +1951,7 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
     // ========================================================================
     async function connectWallet() {
         if (!window.ethereum) {
-            toast('Please install MetaMask to use YieldVault', true);
+            toast('Please install MetaMask to use AgentVault', true);
             return;
         }
         try {
@@ -2047,12 +2056,28 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
         if (copyEl) copyEl.textContent = addr;
 
         try {
-            const [principal, balance, yield_, spent, dailyLeft] = await currentVault.getStats();
+            // Read token info
+            const tokenAddr = await currentVault.token();
+            const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, provider);
+            try {
+                currentTokenSymbol = await tokenContract.symbol();
+                currentTokenDecimals = Number(await tokenContract.decimals());
+            } catch(e) {
+                currentTokenSymbol = 'TOKEN';
+                currentTokenDecimals = 18;
+            }
 
-            document.getElementById('principal').textContent = fmt(principal);
-            document.getElementById('yield').textContent = fmt(yield_);
-            document.getElementById('spent').textContent = fmt(spent);
-            document.getElementById('dailyLeft').textContent = fmt(dailyLeft);
+            // Update all token symbol displays
+            document.querySelectorAll('.vault-token-symbol').forEach(el => {
+                el.textContent = currentTokenSymbol;
+            });
+
+            const [balance, totalDeposited, totalSpent, availableBudget, remainingDaily] = await currentVault.getStats();
+
+            document.getElementById('principal').textContent = fmt(balance);
+            document.getElementById('yield').textContent = fmt(availableBudget);
+            document.getElementById('spent').textContent = fmt(totalSpent);
+            document.getElementById('dailyLeft').textContent = fmt(remainingDaily);
 
             const vaultOwner = await currentVault.owner();
             const vaultAgent = await currentVault.agent();
@@ -2073,7 +2098,7 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
 
     async function loadEvents(vaultAddr) {
         try {
-            const filter = currentVault.filters.YieldWithdrawn();
+            const filter = currentVault.filters.AgentSpent();
             const events = await currentVault.queryFilter(filter, -10000);
             const tbody = document.getElementById('eventsBody');
 
@@ -2094,7 +2119,7 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
                 row.innerHTML =
                     '<td>' + time + '</td>' +
                     '<td style="font-family:JetBrains Mono,monospace;font-size:0.8rem;">' + short(e.args[1]) + '</td>' +
-                    '<td>' + fmt(e.args[2]) + ' wstETH</td>' +
+                    '<td>' + fmt(e.args[2]) + ' ' + currentTokenSymbol + '</td>' +
                     '<td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;">' + reasonDisplay + '</td>' +
                     '<td><a href="' + CONFIG.explorerUrl + '/tx/' + e.transactionHash + '" target="_blank">View</a></td>';
                 tbody.appendChild(row);
@@ -2111,15 +2136,54 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
         document.getElementById('createVaultSection').classList.toggle('hidden');
     }
 
+    function onTokenPresetChange() {
+        const preset = document.getElementById('newTokenPreset').value;
+        const customGroup = document.getElementById('customTokenGroup');
+        if (preset === 'custom') {
+            customGroup.classList.remove('hidden');
+        } else {
+            customGroup.classList.add('hidden');
+        }
+        // Update symbol display in the form
+        const symbolMap = {
+            '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 'USDC',
+            '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2': 'WETH',
+            '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0': 'wstETH',
+            'custom': 'TOKEN'
+        };
+        const sym = symbolMap[preset] || 'TOKEN';
+        document.querySelectorAll('.create-token-symbol').forEach(el => el.textContent = sym);
+    }
+
+    function getSelectedTokenAddress() {
+        const preset = document.getElementById('newTokenPreset').value;
+        if (preset === 'custom') {
+            return document.getElementById('newTokenAddr').value;
+        }
+        return preset;
+    }
+
     async function createVault() {
         try {
             const factory = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, signer);
             const agentAddr = document.getElementById('newAgentAddr').value;
-            const daily = ethers.parseEther(document.getElementById('newDailyLimit').value);
-            const perTx = ethers.parseEther(document.getElementById('newPerTxLimit').value);
+            const tokenAddr = getSelectedTokenAddress();
+            if (!tokenAddr) {
+                toast('Please enter a token address', true);
+                return;
+            }
+
+            // Read token decimals for proper parsing
+            const rpcProvider = new ethers.JsonRpcProvider(CONFIG.rpcUrl);
+            const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, rpcProvider);
+            let decimals = 18;
+            try { decimals = Number(await tokenContract.decimals()); } catch(e) {}
+
+            const daily = ethers.parseUnits(document.getElementById('newDailyLimit').value, decimals);
+            const perTx = ethers.parseUnits(document.getElementById('newPerTxLimit').value, decimals);
 
             toast('Creating vault...');
-            const tx = await factory.createVault(agentAddr, daily, perTx);
+            const tx = await factory.createVault(agentAddr, tokenAddr, daily, perTx);
             await tx.wait();
             toast('Vault created!');
             document.getElementById('createVaultSection').classList.add('hidden');
@@ -2131,17 +2195,21 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
 
     async function depositToVault() {
         try {
-            const amount = ethers.parseEther(document.getElementById('depositAmount').value);
-            const wstETH = new ethers.Contract(CONFIG.wstETHAddress, ERC20_ABI, signer);
+            const amountStr = document.getElementById('depositTokenAmount').value;
+            if (!amountStr) { toast('Enter an amount', true); return; }
 
-            const allowance = await wstETH.allowance(account, currentVault.target);
+            const tokenAddr = await currentVault.token();
+            const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
+            const amount = ethers.parseUnits(amountStr, currentTokenDecimals);
+
+            const allowance = await tokenContract.allowance(account, currentVault.target);
             if (allowance < amount) {
-                toast('Approving wstETH...');
-                const approveTx = await wstETH.approve(currentVault.target, ethers.MaxUint256);
+                toast('Approving ' + currentTokenSymbol + '...');
+                const approveTx = await tokenContract.approve(currentVault.target, ethers.MaxUint256);
                 await approveTx.wait();
             }
 
-            toast('Depositing...');
+            toast('Depositing ' + currentTokenSymbol + '...');
             const tx = await currentVault.deposit(amount);
             await tx.wait();
             toast('Deposited!');
@@ -2151,23 +2219,10 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
         }
     }
 
-    async function depositETHToVault() {
-        try {
-            const amount = ethers.parseEther(document.getElementById('depositETHAmount').value);
-            toast('Depositing ETH...');
-            const tx = await currentVault.depositETH({ value: amount });
-            await tx.wait();
-            toast('ETH deposited and staked!');
-            await loadVault();
-        } catch (e) {
-            toast('Failed: ' + e.message, true);
-        }
-    }
-
     async function updateLimits() {
         try {
-            const daily = ethers.parseEther(document.getElementById('updateDailyLimit').value);
-            const perTx = ethers.parseEther(document.getElementById('updatePerTxLimit').value);
+            const daily = ethers.parseUnits(document.getElementById('updateDailyLimit').value, currentTokenDecimals);
+            const perTx = ethers.parseUnits(document.getElementById('updatePerTxLimit').value, currentTokenDecimals);
             toast('Updating limits...');
             const tx = await currentVault.setLimits(daily, perTx);
             await tx.wait();

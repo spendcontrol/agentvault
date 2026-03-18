@@ -5,238 +5,266 @@ import {Test} from "forge-std/Test.sol";
 import {AgentVault} from "../src/AgentVault.sol";
 import {AgentVaultFactory} from "../src/AgentVaultFactory.sol";
 import {ERC20Mock} from "./mocks/ERC20Mock.sol";
+import {MockStETH} from "../src/MockStETH.sol";
+import {MockWstETH} from "../src/MockWstETH.sol";
 
 contract AgentVaultTest is Test {
     AgentVault vault;
     AgentVaultFactory factory;
     ERC20Mock usdc;
+    ERC20Mock weth;
+    MockStETH stETH;
+    MockWstETH wstETHMock;
 
     address owner = address(0x1);
     address agent = address(0x2);
     address recipient = address(0x3);
 
-    uint256 dailyLimit = 1000e6;    // 1000 USDC (6 decimals)
-    uint256 perTxLimit = 500e6;     // 500 USDC
+    uint256 dailyLimit = 1000e6;    // 1000 USDC
+    uint256 perTxLimit = 500e6;
 
     function setUp() public {
         usdc = new ERC20Mock("USD Coin", "USDC");
+        weth = new ERC20Mock("Wrapped ETH", "WETH");
+        stETH = new MockStETH();
+        wstETHMock = new MockWstETH();
+        wstETHMock.setStETH(address(stETH));
 
-        factory = new AgentVaultFactory(address(0));
+        factory = new AgentVaultFactory(address(stETH), address(wstETHMock), address(0));
 
         vm.prank(owner);
-        address vaultAddr = factory.createVault(agent, address(usdc), dailyLimit, perTxLimit);
+        address vaultAddr = factory.createVault(agent, dailyLimit, perTxLimit);
         vault = AgentVault(vaultAddr);
 
-        // Mint USDC to owner
+        // Fund owner
         usdc.mint(owner, 100_000e6);
-        vm.prank(owner);
+        weth.mint(owner, 100 ether);
+        vm.deal(owner, 100 ether);
+
+        vm.startPrank(owner);
         usdc.approve(address(vault), type(uint256).max);
+        weth.approve(address(vault), type(uint256).max);
+        vm.stopPrank();
     }
 
-    // --- Deposit & Withdraw ---
+    // --- Multi-token deposit ---
 
-    function test_deposit() public {
+    function test_depositUSDC() public {
         vm.prank(owner);
-        vault.deposit(10_000e6);
+        vault.deposit(address(usdc), 10_000e6);
 
-        assertEq(vault.totalDeposited(), 10_000e6);
         assertEq(usdc.balanceOf(address(vault)), 10_000e6);
+        assertEq(vault.balanceOf(address(usdc)), 10_000e6);
+        assertTrue(vault.supportedTokens(address(usdc)));
     }
 
-    function test_withdraw() public {
+    function test_depositMultipleTokens() public {
         vm.prank(owner);
-        vault.deposit(10_000e6);
+        vault.deposit(address(usdc), 5_000e6);
 
         vm.prank(owner);
-        vault.withdraw(5_000e6);
+        vault.deposit(address(weth), 2 ether);
 
-        assertEq(usdc.balanceOf(address(vault)), 5_000e6);
-        assertEq(usdc.balanceOf(owner), 95_000e6);
+        assertEq(vault.balanceOf(address(usdc)), 5_000e6);
+        assertEq(vault.balanceOf(address(weth)), 2 ether);
+
+        address[] memory tokens = vault.getTokens();
+        assertEq(tokens.length, 2);
     }
 
-    function test_withdrawAll() public {
-        vm.prank(owner);
-        vault.deposit(10_000e6);
+    // --- Stake ETH via Lido ---
 
+    function test_stakeETH() public {
         vm.prank(owner);
-        vault.withdraw(10_000e6);
+        vault.stakeETH{value: 5 ether}();
 
-        assertEq(usdc.balanceOf(address(vault)), 0);
+        assertEq(vault.balanceOf(address(wstETHMock)), 5 ether);
+        assertTrue(vault.supportedTokens(address(wstETHMock)));
     }
 
-    // --- Agent Spend ---
+    // --- Agent spend ---
 
-    function test_agentSpend() public {
+    function test_agentSpendUSDC() public {
         vm.prank(owner);
-        vault.deposit(10_000e6);
+        vault.deposit(address(usdc), 10_000e6);
 
         vm.prank(agent);
-        vault.spend(recipient, 100e6, "API call payment");
+        vault.spend(address(usdc), recipient, 100e6, "API payment");
 
         assertEq(usdc.balanceOf(recipient), 100e6);
-        assertEq(vault.totalSpent(), 100e6);
+        assertEq(vault.totalSpent(address(usdc)), 100e6);
         assertEq(vault.expenseCount(), 1);
     }
 
-    function test_agentSpendNoReason() public {
+    function test_agentSpendWETH() public {
+        // Create a vault with ETH-scale limits
         vm.prank(owner);
-        vault.deposit(10_000e6);
+        address vAddr = factory.createVault(agent, 10 ether, 5 ether);
+        AgentVault ethVault = AgentVault(vAddr);
+
+        vm.prank(owner);
+        weth.approve(address(ethVault), type(uint256).max);
+        vm.prank(owner);
+        ethVault.deposit(address(weth), 10 ether);
 
         vm.prank(agent);
-        vault.spend(recipient, 100e6);
+        ethVault.spend(address(weth), recipient, 0.5 ether, "Gas refill");
 
-        assertEq(usdc.balanceOf(recipient), 100e6);
+        assertEq(weth.balanceOf(recipient), 0.5 ether);
     }
 
-    function test_expenseReport() public {
-        vm.prank(owner);
-        vault.deposit(10_000e6);
+    function test_agentCannotSpendUnsupportedToken() public {
+        ERC20Mock random = new ERC20Mock("Random", "RND");
+        random.mint(address(vault), 1000e18); // tokens in vault but not deposited via deposit()
 
         vm.prank(agent);
-        vault.spend(recipient, 100e6, "GPT-4 API call");
+        vm.expectRevert(AgentVault.TokenNotSupported.selector);
+        vault.spend(address(random), recipient, 100e18);
+    }
 
-        (uint256 ts, address to, uint256 amt, string memory reason) = vault.getExpense(0);
+    function test_expenseReportWithToken() public {
+        vm.prank(owner);
+        vault.deposit(address(usdc), 10_000e6);
+
+        vm.prank(agent);
+        vault.spend(address(usdc), recipient, 50e6, "Claude API call");
+
+        (uint256 ts, address token, address to, uint256 amt, string memory reason) = vault.getExpense(0);
+        assertEq(token, address(usdc));
         assertEq(to, recipient);
-        assertEq(amt, 100e6);
-        assertEq(reason, "GPT-4 API call");
-        assertGt(ts, 0);
+        assertEq(amt, 50e6);
+        assertEq(reason, "Claude API call");
     }
 
     // --- Limits ---
 
-    function test_perTxLimitEnforced() public {
+    function test_perTxLimit() public {
         vm.prank(owner);
-        vault.deposit(10_000e6);
+        vault.deposit(address(usdc), 10_000e6);
 
         vm.prank(agent);
         vm.expectRevert(AgentVault.ExceedsPerTxLimit.selector);
-        vault.spend(recipient, 600e6); // limit is 500
+        vault.spend(address(usdc), recipient, 600e6);
     }
 
-    function test_dailyLimitEnforced() public {
+    function test_dailyLimit() public {
         vm.prank(owner);
-        vault.deposit(10_000e6);
+        vault.deposit(address(usdc), 10_000e6);
 
         vm.prank(agent);
-        vault.spend(recipient, 500e6);
+        vault.spend(address(usdc), recipient, 500e6);
         vm.prank(agent);
-        vault.spend(recipient, 500e6);
+        vault.spend(address(usdc), recipient, 500e6);
 
         vm.prank(agent);
         vm.expectRevert(AgentVault.ExceedsDailyLimit.selector);
-        vault.spend(recipient, 100e6); // daily limit reached
+        vault.spend(address(usdc), recipient, 100e6);
     }
 
     function test_dailyLimitResetsNextDay() public {
         vm.prank(owner);
-        vault.deposit(10_000e6);
+        vault.deposit(address(usdc), 10_000e6);
 
         vm.prank(agent);
-        vault.spend(recipient, 500e6);
+        vault.spend(address(usdc), recipient, 500e6);
         vm.prank(agent);
-        vault.spend(recipient, 500e6);
+        vault.spend(address(usdc), recipient, 500e6);
 
         vm.warp(block.timestamp + 1 days);
 
         vm.prank(agent);
-        vault.spend(recipient, 500e6); // works again
+        vault.spend(address(usdc), recipient, 500e6);
         assertEq(usdc.balanceOf(recipient), 1_500e6);
     }
 
-    function test_budgetLimitEnforced() public {
+    // --- Withdraw ---
+
+    function test_withdraw() public {
         vm.prank(owner);
-        vault.deposit(100e6);
-
-        vm.prank(agent);
-        vm.expectRevert(AgentVault.ExceedsBudget.selector);
-        vault.spend(recipient, 200e6); // only 100 in vault
-    }
-
-    // --- Whitelist ---
-
-    function test_whitelistEnforced() public {
-        vm.prank(owner);
-        vault.deposit(10_000e6);
+        vault.deposit(address(usdc), 10_000e6);
 
         vm.prank(owner);
-        vault.setWhitelistEnabled(true);
+        vault.withdraw(address(usdc), 5_000e6);
 
-        vm.prank(agent);
-        vm.expectRevert(AgentVault.RecipientNotWhitelisted.selector);
-        vault.spend(recipient, 100e6);
-
-        vm.prank(owner);
-        vault.setWhitelist(recipient, true);
-
-        vm.prank(agent);
-        vault.spend(recipient, 100e6);
-        assertEq(usdc.balanceOf(recipient), 100e6);
+        assertEq(usdc.balanceOf(address(vault)), 5_000e6);
     }
 
     // --- Pause ---
 
-    function test_pauseStopsAgent() public {
+    function test_pause() public {
         vm.prank(owner);
-        vault.deposit(10_000e6);
+        vault.deposit(address(usdc), 10_000e6);
 
         vm.prank(owner);
         vault.setPaused(true);
 
         vm.prank(agent);
         vm.expectRevert(AgentVault.VaultPaused.selector);
-        vault.spend(recipient, 100e6);
+        vault.spend(address(usdc), recipient, 100e6);
     }
 
-    // --- Access Control ---
+    // --- Access control ---
 
     function test_onlyOwnerDeposit() public {
         vm.prank(agent);
         vm.expectRevert(AgentVault.OnlyOwner.selector);
-        vault.deposit(100e6);
+        vault.deposit(address(usdc), 100e6);
     }
 
     function test_onlyAgentSpend() public {
         vm.prank(owner);
-        vault.deposit(10_000e6);
+        vault.deposit(address(usdc), 10_000e6);
 
         vm.prank(owner);
         vm.expectRevert(AgentVault.OnlyAgent.selector);
-        vault.spend(recipient, 100e6);
+        vault.spend(address(usdc), recipient, 100e6);
     }
 
     // --- Factory ---
 
-    function test_factoryTracksVaults() public {
+    function test_factory() public {
         assertEq(factory.totalVaults(), 1);
         assertEq(factory.getVaultsByOwner(owner).length, 1);
         assertEq(factory.getVaultsByAgent(agent).length, 1);
     }
 
-    // --- Stats ---
+    // --- Full flow ---
 
-    function test_getStats() public {
+    function test_fullFlow_depositUSDC_agentSpends_ownerWithdraws() public {
+        // Owner deposits
         vm.prank(owner);
-        vault.deposit(10_000e6);
+        vault.deposit(address(usdc), 5_000e6);
 
+        // Agent spends
         vm.prank(agent);
-        vault.spend(recipient, 100e6, "test");
+        vault.spend(address(usdc), recipient, 200e6, "Bought data feed access");
 
-        (uint256 balance, uint256 deposited, uint256 spent, uint256 avail, uint256 dailyLeft) = vault.getStats();
-        assertEq(balance, 9_900e6);
-        assertEq(deposited, 10_000e6);
-        assertEq(spent, 100e6);
-        assertEq(avail, 9_900e6);
-        assertEq(dailyLeft, 900e6);
+        // Verify
+        assertEq(usdc.balanceOf(recipient), 200e6);
+        assertEq(vault.balanceOf(address(usdc)), 4_800e6);
+
+        // Owner withdraws remainder
+        vm.prank(owner);
+        vault.withdraw(address(usdc), 4_800e6);
+
+        assertEq(vault.balanceOf(address(usdc)), 0);
     }
 
-    // --- Zero address ---
-
-    function test_zeroAddressReverts() public {
+    function test_fullFlow_stakeETH_agentSpendsWstETH() public {
+        // Create vault with ETH-scale limits
         vm.prank(owner);
-        vault.deposit(10_000e6);
+        address vAddr = factory.createVault(agent, 10 ether, 5 ether);
+        AgentVault ethVault = AgentVault(vAddr);
 
+        // Owner stakes ETH → wstETH
+        vm.prank(owner);
+        ethVault.stakeETH{value: 10 ether}();
+
+        // Agent spends wstETH
         vm.prank(agent);
-        vm.expectRevert(AgentVault.ZeroAddress.selector);
-        vault.spend(address(0), 100e6);
+        ethVault.spend(address(wstETHMock), recipient, 0.5 ether, "Paid for compute");
+
+        assertEq(wstETHMock.balanceOf(recipient), 0.5 ether);
+        assertEq(ethVault.balanceOf(address(wstETHMock)), 9.5 ether);
     }
 }

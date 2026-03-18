@@ -3,44 +3,43 @@ pragma solidity ^0.8.20;
 
 import {AgentVault} from "./AgentVault.sol";
 
-/// @title AgentVaultFactory — Create agent treasuries for any token
-/// @notice One-click vault deployment. Works with USDC, WETH, wstETH, or any ERC20.
+/// @title AgentVaultFactory — Create multi-token agent treasuries
 contract AgentVaultFactory {
 
     event VaultCreated(
         address indexed owner,
         address indexed agent,
-        address indexed token,
-        address vault,
-        uint256 dailyLimit,
-        uint256 perTxLimit
+        address vault
     );
 
+    address public immutable stETH;
+    address public immutable wstETH;
     address public immutable swapRouter;
 
     address[] public allVaults;
     mapping(address => address[]) public vaultsByOwner;
     mapping(address => address[]) public vaultsByAgent;
 
-    constructor(address _swapRouter) {
+    constructor(address _stETH, address _wstETH, address _swapRouter) {
+        stETH = _stETH;
+        wstETH = _wstETH;
         swapRouter = _swapRouter;
     }
 
     /// @notice Create a new AgentVault
     /// @param agent The agent's wallet address
-    /// @param token The ERC20 token for this vault (e.g. USDC, WETH, wstETH)
-    /// @param dailyLimit Max tokens the agent can spend per day
-    /// @param perTxLimit Max tokens the agent can spend per transaction
+    /// @param dailyLimit Max tokens agent can spend per day (per token)
+    /// @param perTxLimit Max tokens agent can spend per transaction
     function createVault(
         address agent,
-        address token,
         uint256 dailyLimit,
         uint256 perTxLimit
     ) external returns (address) {
         AgentVault vault = new AgentVault(
             msg.sender,
             agent,
-            token,
+            stETH,
+            wstETH,
             swapRouter,
             dailyLimit,
             perTxLimit
@@ -50,7 +49,7 @@ contract AgentVaultFactory {
         vaultsByOwner[msg.sender].push(address(vault));
         vaultsByAgent[agent].push(address(vault));
 
-        emit VaultCreated(msg.sender, agent, token, address(vault), dailyLimit, perTxLimit);
+        emit VaultCreated(msg.sender, agent, address(vault));
         return address(vault);
     }
 
@@ -58,11 +57,11 @@ contract AgentVaultFactory {
         return allVaults.length;
     }
 
-    function getVaultsByOwner(address owner) external view returns (address[] memory) {
-        return vaultsByOwner[owner];
+    function getVaultsByOwner(address _owner) external view returns (address[] memory) {
+        return vaultsByOwner[_owner];
     }
 
-    function getVaultsByAgent(address agent) external view returns (address[] memory) {
-        return vaultsByAgent[agent];
+    function getVaultsByAgent(address _agent) external view returns (address[] memory) {
+        return vaultsByAgent[_agent];
     }
 }
