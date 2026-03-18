@@ -1488,23 +1488,27 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                 <!-- Row 4: Connect Your Agent -->
                 <div class="dashboard-card full-width agent-connect-card">
                     <h3>Connect Your Agent</h3>
-                    <p class="card-desc">Give your AI agent access to this vault. Use any of the integration methods below.</p>
+                    <p class="card-desc">Copy any of these and paste into your agent. It will know how to spend from this vault.</p>
                     <div class="agent-tabs">
                         <button class="agent-tab active" onclick="switchAgentTab(this, 'agent-skill')">Skill File</button>
                         <button class="agent-tab" onclick="switchAgentTab(this, 'agent-mcp')">MCP Server</button>
                         <button class="agent-tab" onclick="switchAgentTab(this, 'agent-sdk')">Python SDK</button>
                         <button class="agent-tab" onclick="switchAgentTab(this, 'agent-cli')">Terminal</button>
                     </div>
-                    <div class="agent-panel active" id="agent-skill">
+                    <div class="agent-panel active" id="agent-skill" style="position:relative;">
+                        <button class="btn btn-outline btn-sm" style="position:absolute;top:8px;right:8px;font-size:0.72rem;padding:3px 10px;z-index:1;" onclick="copyPanel('skillFileContent')">Copy</button>
                         <pre id="skillFileContent">Loading...</pre>
                     </div>
-                    <div class="agent-panel" id="agent-mcp">
+                    <div class="agent-panel" id="agent-mcp" style="position:relative;">
+                        <button class="btn btn-outline btn-sm" style="position:absolute;top:8px;right:8px;font-size:0.72rem;padding:3px 10px;z-index:1;" onclick="copyPanel('mcpContent')">Copy</button>
                         <pre id="mcpContent">Loading...</pre>
                     </div>
-                    <div class="agent-panel" id="agent-sdk">
+                    <div class="agent-panel" id="agent-sdk" style="position:relative;">
+                        <button class="btn btn-outline btn-sm" style="position:absolute;top:8px;right:8px;font-size:0.72rem;padding:3px 10px;z-index:1;" onclick="copyPanel('sdkContent')">Copy</button>
                         <pre id="sdkContent">Loading...</pre>
                     </div>
-                    <div class="agent-panel" id="agent-cli">
+                    <div class="agent-panel" id="agent-cli" style="position:relative;">
+                        <button class="btn btn-outline btn-sm" style="position:absolute;top:8px;right:8px;font-size:0.72rem;padding:3px 10px;z-index:1;" onclick="copyPanel('cliContent')">Copy</button>
                         <pre id="cliContent">Loading...</pre>
                     </div>
                 </div>
@@ -2179,71 +2183,124 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     // AGENT SNIPPETS
     // ==========================================
     function updateAgentSnippets(vaultAddr) {
+        // Tab 1: Copy-paste prompt for any LLM agent
         document.getElementById('skillFileContent').textContent =
-`# .well-known/ai-plugin.json
-{
-  "schema_version": "v1",
-  "name": "AgentVault",
-  "vault_address": "${vaultAddr}",
-  "rpc_url": "${CONFIG.rpcUrl}",
-  "chain_id": ${CONFIG.chainId},
-  "capabilities": ["spend", "balance", "expenses"]
-}`;
+`Paste this into your agent (Claude Code, Cursor, or any LLM):
+────────────────────────────────────────────────────
 
+You have an AgentVault at ${vaultAddr} on Base Sepolia.
+Read the full skill file: ${location.origin}/skill.md
+
+Quick start:
+  pip install -e /path/to/yieldvault/sdk/python
+
+  from yieldvault import VaultClient
+  import os
+  client = VaultClient("${CONFIG.rpcUrl}", "${vaultAddr}", os.environ["AGENT_PRIVATE_KEY"])
+
+  # Check budget
+  budget = client.check_budget()
+
+  # Spend (always give a reason)
+  client.spend(to_address="0x...", amount_wei=1000000, reason="Paid for API call")
+
+  # View history
+  client.get_history()
+
+Rules:
+  - Check budget before every spend
+  - Always provide a reason (your human reads expense reports)
+  - USDC = 6 decimals, WETH = 18 decimals
+  - If vault is paused, stop and notify your human
+  - Daily and per-tx limits are enforced by the contract`;
+
+        // Tab 2: MCP Server config
         document.getElementById('mcpContent').textContent =
-`// claude_desktop_config.json
+`Add to your Claude Code settings (~/.claude/settings.json):
+
 {
   "mcpServers": {
     "agentvault": {
-      "command": "npx",
-      "args": ["agentvault-mcp"],
+      "command": "node",
+      "args": ["/path/to/yieldvault/mcp-server/index.js"],
       "env": {
         "VAULT_ADDRESS": "${vaultAddr}",
-        "AGENT_PRIVATE_KEY": "0xYourAgentKey...",
+        "AGENT_PRIVATE_KEY": "0xYourAgentPrivateKey",
         "RPC_URL": "${CONFIG.rpcUrl}"
       }
     }
   }
-}`;
+}
 
+This gives your agent native tools:
+  check_budget   — see available balance and daily remaining
+  spend          — send tokens with a reason (on-chain receipt)
+  spend_and_swap — swap tokens via Uniswap before sending
+  get_history    — view past transactions
+  get_vault_info — vault status, agent address, limits`;
+
+        // Tab 3: Python SDK
         document.getElementById('sdkContent').textContent =
-`from agentvault import AgentVaultClient
+`# Install
+pip install -e /path/to/yieldvault/sdk/python
 
-client = AgentVaultClient(
-    vault_address="${vaultAddr}",
-    private_key="0xYourAgentKey...",
-    rpc_url="${CONFIG.rpcUrl}"
+# Set environment variables
+export VAULT_ADDRESS="${vaultAddr}"
+export AGENT_PRIVATE_KEY="0xYourAgentPrivateKey"
+export RPC_URL="${CONFIG.rpcUrl}"
+
+# In your agent code:
+import os
+from yieldvault import VaultClient
+
+client = VaultClient(
+    rpc_url=os.environ["RPC_URL"],
+    vault_address=os.environ["VAULT_ADDRESS"],
+    agent_private_key=os.environ["AGENT_PRIVATE_KEY"],
 )
 
-# Check budget
-budget = client.remaining_daily_budget(token="USDC")
-print(f"Budget remaining: {budget} USDC")
+# 1. Check budget
+budget = client.check_budget()
+print(f"Available: {budget['available_budget']}")
+print(f"Daily remaining: {budget['daily_remaining']}")
 
-# Spend with reason
+# 2. Spend tokens (ALWAYS include a reason)
 tx = client.spend(
-    token="USDC",
-    to="0xVendor...",
-    amount="10.00",
-    reason="API subscription"
-)`;
+    to_address="0xServiceAddress",
+    amount_wei=1000000,              # 1 USDC (6 decimals)
+    reason="GPT-4 API call — price analysis"
+)
+print(f"Tx: {tx}")
 
+# 3. View expense history
+for tx in client.get_history():
+    print(f"{tx['amount']} → {tx['to']} | {tx['reason']}")`;
+
+        // Tab 4: Terminal / cast
         document.getElementById('cliContent').textContent =
-`# Set vault context
-$ export VAULT_ADDRESS=${vaultAddr}
-$ export RPC_URL=${CONFIG.rpcUrl}
+`# Set variables
+export VAULT=${vaultAddr}
+export KEY="0xYourAgentPrivateKey"
+export RPC="${CONFIG.rpcUrl}"
+export TOKEN="0xTokenAddress"  # USDC, WETH, etc.
 
-# Check balance
-$ agentvault balance --token USDC
+# Check what tokens are in the vault
+cast call $VAULT "getTokens()(address[])" --rpc-url $RPC
 
-# Spend from vault
-$ agentvault spend \\
-    --token USDC \\
-    --to 0xVendor... \\
-    --amount 25.00 \\
-    --reason "Cloud compute - batch job"
+# Check balance of a token
+cast call $VAULT "balanceOf(address)(uint256)" $TOKEN --rpc-url $RPC
 
-# View expense log
-$ agentvault expenses --last 10`;
+# Check daily budget remaining
+cast call $VAULT "remainingDailyBudget(address)(uint256)" $TOKEN --rpc-url $RPC
+
+# Spend tokens with a reason
+cast send $VAULT \\
+  "spend(address,address,uint256,string)" \\
+  $TOKEN 0xRecipient 1000000 "API payment" \\
+  --private-key $KEY --rpc-url $RPC
+
+# Check expense count
+cast call $VAULT "expenseCount()(uint256)" --rpc-url $RPC`;
     }
 
     // ==========================================
@@ -2279,6 +2336,11 @@ $ agentvault expenses --last 10`;
         document.querySelectorAll('.dev-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(panelId).classList.add('active');
+    }
+
+    function copyPanel(id) {
+        const text = document.getElementById(id)?.textContent || '';
+        navigator.clipboard.writeText(text).then(() => showToast('Copied!', 'success'));
     }
 
     function switchAgentTab(btn, panelId) {
