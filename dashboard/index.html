@@ -11,6 +11,35 @@
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
+            --bg-primary: #FAFAFA;
+            --bg-secondary: #FFFFFF;
+            --bg-card: #FFFFFF;
+            --bg-card-hover: #FFFFFF;
+            --bg-input: #F3F4F6;
+            --border: #E5E7EB;
+            --border-hover: #D1D5DB;
+            --border-focus: rgba(17, 17, 17, 0.3);
+            --text-primary: #111111;
+            --text-secondary: #6B7280;
+            --text-tertiary: #9CA3AF;
+            --accent: #111111;
+            --accent-green: #10B981;
+            --accent-green-light: rgba(16, 185, 129, 0.08);
+            --green: #10B981;
+            --red: #EF4444;
+            --orange: #F59E0B;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-2xl: 24px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+        }
+
+        /* ============ DARK THEME FOR APP SECTION ============ */
+        .app-dark {
             --bg-primary: #0a0b0f;
             --bg-secondary: #0f1016;
             --bg-card: rgba(15, 16, 22, 0.6);
@@ -29,11 +58,6 @@
             --green: #00c853;
             --red: #ff4757;
             --orange: #ff9800;
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 20px;
-            --radius-2xl: 24px;
             --shadow-glow: 0 0 60px rgba(0, 212, 255, 0.08), 0 0 120px rgba(123, 97, 255, 0.04);
         }
 
@@ -66,31 +90,6 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        @keyframes gradientMove {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        @keyframes orb1 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(100px, -50px) scale(1.1); }
-            50% { transform: translate(-50px, 100px) scale(0.9); }
-            75% { transform: translate(-100px, -30px) scale(1.05); }
-        }
-        @keyframes orb2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(-80px, 60px) scale(0.95); }
-            50% { transform: translate(60px, -80px) scale(1.1); }
-            75% { transform: translate(40px, 40px) scale(1); }
-        }
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -98,8 +97,8 @@
 
         .fade-in-up {
             opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.7s ease, transform 0.7s ease;
+            transform: translateY(24px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
         }
         .fade-in-up.visible {
             opacity: 1;
@@ -109,6 +108,8 @@
         .delay-2 { transition-delay: 0.2s; }
         .delay-3 { transition-delay: 0.3s; }
         .delay-4 { transition-delay: 0.4s; }
+        .delay-5 { transition-delay: 0.5s; }
+        .delay-6 { transition-delay: 0.6s; }
 
         /* ============ NAVBAR ============ */
         .navbar {
@@ -118,40 +119,39 @@
             right: 0;
             z-index: 100;
             padding: 0 2rem;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            background: rgba(10, 11, 15, 0.8);
-            border-bottom: 1px solid var(--border);
+            background: rgba(250, 250, 250, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid transparent;
             transition: all 0.3s ease;
         }
         .navbar.scrolled {
-            background: rgba(10, 11, 15, 0.95);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom-color: var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
         .navbar-inner {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 72px;
+            height: 60px;
         }
         .navbar-logo {
-            font-size: 1.3rem;
+            font-size: 1.15rem;
             font-weight: 800;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--text-primary);
             letter-spacing: -0.02em;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            text-decoration: none;
         }
         .navbar-logo svg {
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
         }
         .navbar-links {
             display: flex;
@@ -161,33 +161,57 @@
         .navbar-links a {
             color: var(--text-secondary);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
             font-weight: 500;
             transition: color 0.2s;
         }
         .navbar-links a:hover { color: var(--text-primary); }
         .nav-connect-btn {
-            background: var(--accent-gradient);
+            background: var(--text-primary);
             color: white !important;
-            padding: 10px 24px;
-            border-radius: 12px;
+            padding: 8px 20px;
+            border-radius: 8px;
             font-weight: 600 !important;
-            font-size: 0.9rem !important;
+            font-size: 0.875rem !important;
             transition: opacity 0.2s, transform 0.2s !important;
             border: none;
             cursor: pointer;
             text-decoration: none;
         }
         .nav-connect-btn:hover {
-            opacity: 0.9;
+            opacity: 0.85;
             transform: translateY(-1px);
         }
+
+        /* App-dark navbar overrides */
+        .app-dark .navbar {
+            background: rgba(10, 11, 15, 0.8);
+            border-bottom-color: rgba(255,255,255,0.06);
+        }
+        .app-dark .navbar.scrolled {
+            background: rgba(10, 11, 15, 0.95);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+        }
+        .app-dark .navbar-logo { color: #f0f0f5; }
+        .app-dark .navbar-logo svg circle { stroke: url(#lg-dark); }
+        .app-dark .navbar-logo svg path { stroke: url(#lg-dark); }
+        .app-dark .navbar-links a { color: #8a8f98; }
+        .app-dark .navbar-links a:hover { color: #f0f0f5; }
+        .app-dark .nav-connect-btn {
+            background: linear-gradient(135deg, #00d4ff, #7b61ff);
+            color: white !important;
+        }
         .nav-connect-btn.connected {
-            background: var(--bg-card);
+            background: #F3F4F6;
+            color: var(--text-primary) !important;
             border: 1px solid var(--border);
-            -webkit-text-fill-color: var(--text-primary);
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.82rem !important;
+        }
+        .app-dark .nav-connect-btn.connected {
+            background: rgba(15, 16, 22, 0.6);
+            border: 1px solid rgba(255,255,255,0.06);
+            color: #f0f0f5 !important;
         }
 
         /* ============ HERO ============ */
@@ -198,109 +222,63 @@
             align-items: center;
             justify-content: center;
             padding: 120px 2rem 80px;
-            overflow: hidden;
-        }
-        .hero-bg {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            z-index: 0;
-        }
-        .hero-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.3;
-        }
-        .hero-orb-1 {
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(0, 212, 255, 0.15), transparent 70%);
-            top: -200px;
-            right: -100px;
-            animation: orb1 20s ease-in-out infinite;
-        }
-        .hero-orb-2 {
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(123, 97, 255, 0.15), transparent 70%);
-            bottom: -150px;
-            left: -100px;
-            animation: orb2 25s ease-in-out infinite;
-        }
-        .hero-grid {
-            position: absolute;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 60px 60px;
-            mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 70%);
-            -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 70%);
+            background: var(--bg-primary);
         }
         .hero-content {
             position: relative;
             z-index: 1;
             text-align: center;
-            max-width: 800px;
+            max-width: 720px;
         }
         .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(0, 212, 255, 0.08);
-            border: 1px solid rgba(0, 212, 255, 0.15);
-            padding: 8px 20px;
+            background: var(--accent-green-light);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            padding: 6px 16px;
             border-radius: 100px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 500;
-            color: var(--accent-cyan);
+            color: var(--accent-green);
             margin-bottom: 2rem;
-            animation: fadeInUp 0.8s ease;
         }
         .hero-badge .dot {
-            width: 8px;
-            height: 8px;
-            background: var(--green);
+            width: 6px;
+            height: 6px;
+            background: var(--accent-green);
             border-radius: 50%;
             animation: pulse 2s infinite;
         }
         .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4.2rem);
-            font-weight: 900;
-            line-height: 1.1;
+            font-size: clamp(2.8rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.08;
             letter-spacing: -0.03em;
+            color: var(--text-primary);
             margin-bottom: 1.5rem;
-            animation: fadeInUp 0.8s ease 0.1s both;
-        }
-        .hero h1 .gradient-text {
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
         .hero-subtitle {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             line-height: 1.7;
             color: var(--text-secondary);
-            max-width: 620px;
+            max-width: 500px;
             margin: 0 auto 2.5rem;
-            animation: fadeInUp 0.8s ease 0.2s both;
+            font-weight: 400;
         }
         .hero-ctas {
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
             justify-content: center;
             flex-wrap: wrap;
-            animation: fadeInUp 0.8s ease 0.3s both;
         }
         .btn-primary {
-            background: var(--accent-gradient);
+            background: var(--text-primary);
             color: white;
-            padding: 14px 36px;
-            border-radius: 14px;
-            font-weight: 700;
-            font-size: 1rem;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
             border: none;
             cursor: pointer;
             transition: opacity 0.2s, transform 0.2s;
@@ -310,16 +288,16 @@
             gap: 8px;
         }
         .btn-primary:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
+            opacity: 0.85;
+            transform: translateY(-1px);
         }
         .btn-secondary {
             background: transparent;
             color: var(--text-primary);
-            padding: 14px 36px;
-            border-radius: 14px;
+            padding: 12px 28px;
+            border-radius: 8px;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
             border: 1px solid var(--border);
             cursor: pointer;
             transition: all 0.2s;
@@ -330,62 +308,93 @@
         }
         .btn-secondary:hover {
             border-color: var(--border-hover);
-            background: var(--bg-card);
+            background: #FFFFFF;
         }
-        .hero-stats {
+        .hero-visual {
+            margin-top: 4rem;
             display: flex;
             justify-content: center;
-            gap: 3rem;
-            margin-top: 4rem;
-            animation: fadeInUp 0.8s ease 0.4s both;
         }
-        .hero-stat {
-            text-align: center;
+        .hero-mockup {
+            width: 100%;
+            max-width: 640px;
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
         }
-        .hero-stat-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .mockup-bar {
+            height: 36px;
+            background: #F9FAFB;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 6px;
         }
-        .hero-stat-label {
-            font-size: 0.82rem;
+        .mockup-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #E5E7EB;
+        }
+        .mockup-body {
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .mockup-stat {
+            background: #F9FAFB;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .mockup-stat-label {
+            font-size: 0.7rem;
             color: var(--text-tertiary);
-            margin-top: 4px;
-            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
         }
+        .mockup-stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .mockup-stat-value.green { color: var(--accent-green); }
 
         /* ============ SECTIONS ============ */
         .section {
             padding: 100px 2rem;
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
         }
         .section-label {
-            font-size: 0.82rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--accent-cyan);
+            letter-spacing: 0.12em;
+            color: var(--text-tertiary);
             margin-bottom: 0.75rem;
         }
         .section-title {
-            font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
             font-weight: 800;
             letter-spacing: -0.02em;
-            margin-bottom: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
         }
         .section-desc {
             color: var(--text-secondary);
-            font-size: 1.05rem;
+            font-size: 1rem;
             line-height: 1.7;
-            max-width: 600px;
+            max-width: 540px;
         }
         .section-header {
             text-align: center;
-            margin-bottom: 4rem;
+            margin-bottom: 3.5rem;
         }
         .section-header .section-desc {
             margin: 0.5rem auto 0;
@@ -394,124 +403,162 @@
         /* ============ HOW IT WORKS ============ */
         .steps-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
-            position: relative;
-        }
-        .steps-grid::before {
-            content: '';
-            position: absolute;
-            top: 44px;
-            left: 12.5%;
-            width: 75%;
-            height: 2px;
-            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
-            opacity: 0.2;
-            z-index: 0;
         }
         .step-card {
-            background: var(--bg-card);
+            background: #FFFFFF;
             border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            padding: 2rem 1.5rem;
-            text-align: center;
-            position: relative;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+            border-radius: var(--radius-lg);
+            padding: 2rem 1.75rem;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
         }
         .step-card:hover {
-            border-color: var(--border-hover);
-            background: var(--bg-card-hover);
-            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
         }
-        .step-number {
-            width: 48px;
-            height: 48px;
-            background: var(--accent-gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 1.1rem;
-            margin: 0 auto 1.25rem;
-            position: relative;
-            z-index: 1;
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
         }
         .step-card h3 {
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 700;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
         }
         .step-card p {
-            font-size: 0.88rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+
+        /* ============ LIDO SECTION ============ */
+        .lido-hero {
+            padding: 80px 2rem;
+            background: #F0FDF4;
+        }
+        .lido-hero-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .lido-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 0.5rem;
+        }
+        .lido-header img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+        .lido-hero .section-title {
+            margin-bottom: 0.5rem;
+        }
+        .lido-hero .section-desc {
+            margin-bottom: 3rem;
+        }
+        .lido-steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .lido-step {
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+        .lido-step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--accent-green);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        .lido-step h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        .lido-step p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .lido-step-arrow {
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            font-size: 1.2rem;
+        }
+        .lido-note {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent-green);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            max-width: 600px;
+        }
+
+        /* ============ FEATURES GRID ============ */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+        }
+        .feature-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        .feature-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        .feature-card h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+        }
+        .feature-card p {
+            font-size: 0.875rem;
             color: var(--text-secondary);
             line-height: 1.6;
         }
 
-        /* ============ WHY CARDS ============ */
-        .why-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-        }
-        .why-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            padding: 2.5rem 2rem;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .why-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--accent-gradient);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .why-card:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-4px);
-        }
-        .why-card:hover::before { opacity: 1; }
-        .why-icon {
-            width: 52px;
-            height: 52px;
-            background: rgba(0, 212, 255, 0.08);
-            border: 1px solid rgba(0, 212, 255, 0.12);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            margin-bottom: 1.25rem;
-            color: var(--accent-cyan);
-        }
-        .why-card h3 {
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin-bottom: 0.6rem;
-        }
-        .why-card p {
-            color: var(--text-secondary);
-            font-size: 0.92rem;
-            line-height: 1.65;
-        }
-
         /* ============ DEVELOPERS ============ */
         .dev-section {
-            background: var(--bg-card);
+            background: #FFFFFF;
             border: 1px solid var(--border);
-            border-radius: var(--radius-2xl);
+            border-radius: var(--radius-lg);
             overflow: hidden;
-            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-sm);
         }
         .dev-tabs {
             display: flex;
@@ -519,13 +566,13 @@
         }
         .dev-tab {
             flex: 1;
-            padding: 1rem;
+            padding: 0.875rem 1rem;
             text-align: center;
             background: none;
             border: none;
             color: var(--text-secondary);
             font-family: 'Inter', sans-serif;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -533,7 +580,7 @@
         }
         .dev-tab:hover { color: var(--text-primary); }
         .dev-tab.active {
-            color: var(--accent-cyan);
+            color: var(--text-primary);
         }
         .dev-tab.active::after {
             content: '';
@@ -542,33 +589,103 @@
             left: 0;
             right: 0;
             height: 2px;
-            background: var(--accent-gradient);
+            background: var(--text-primary);
         }
         .dev-panel {
             display: none;
-            padding: 2rem;
+            padding: 1.5rem;
+            position: relative;
         }
         .dev-panel.active { display: block; }
         .dev-panel pre {
-            background: rgba(0, 0, 0, 0.4);
+            background: #F3F4F6;
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
-            padding: 1.5rem;
+            padding: 1.25rem;
             overflow-x: auto;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.82rem;
             line-height: 1.7;
-            color: var(--text-secondary);
+            color: #374151;
         }
-        .dev-panel pre .comment { color: var(--text-tertiary); }
-        .dev-panel pre .keyword { color: var(--accent-purple); }
-        .dev-panel pre .string { color: var(--green); }
-        .dev-panel pre .fn { color: var(--accent-cyan); }
+        .dev-panel .copy-btn {
+            position: absolute;
+            top: 1.75rem;
+            right: 1.75rem;
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            z-index: 2;
+        }
+        .dev-panel .copy-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--border-hover);
+        }
+        .dev-panel pre .comment { color: #9CA3AF; }
+        .dev-panel pre .keyword { color: #7C3AED; }
+        .dev-panel pre .string { color: #059669; }
+        .dev-panel pre .fn { color: #2563EB; }
 
-        /* ============ APP SECTION ============ */
+        /* ============ CTA SECTION ============ */
+        .cta-section {
+            padding: 80px 2rem;
+            background: #F3F4F6;
+            text-align: center;
+        }
+        .cta-section h2 {
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        /* ============ FOOTER (LANDING) ============ */
+        .landing-footer {
+            border-top: 1px solid var(--border);
+            padding: 2rem;
+            background: #FFFFFF;
+        }
+        .landing-footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .landing-footer-logo {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+        .landing-footer-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+        .landing-footer-links a {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .landing-footer-links a:hover { color: var(--text-secondary); }
+
+        /* ============ APP SECTION (DARK THEME) ============ */
         #app-section {
             display: none;
             padding-top: 100px;
+            background: #0a0b0f;
+            color: #f0f0f5;
+            min-height: 100vh;
         }
         #app-section.active { display: block; }
         #landing-section { transition: opacity 0.3s ease; }
@@ -579,673 +696,254 @@
             padding: 0 2rem 4rem;
         }
 
-        /* Vault Selector */
-        .vault-selector {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
+        /* ---- App-section internal styles (dark theme) ---- */
+        #app-section .vault-selector { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        #app-section .vault-selector label { font-weight: 600; font-size: 0.92rem; color: #8a8f98; }
+        #app-section .vault-selector select {
+            background: rgba(15, 16, 22, 0.8); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; color: #f0f0f5; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem; padding: 10px 16px; min-width: 300px; cursor: pointer;
         }
-        .vault-selector label {
-            font-weight: 600;
-            font-size: 0.92rem;
-            color: var(--text-secondary);
-        }
-        .vault-selector select {
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.82rem;
-            padding: 10px 16px;
-            min-width: 300px;
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-        .vault-selector select:focus {
-            outline: none;
-            border-color: var(--border-focus);
-        }
+        #app-section .vault-selector select:focus { outline: none; border-color: rgba(0, 212, 255, 0.3); }
 
-        /* Create Vault */
-        .create-vault-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-2xl);
-            padding: 2.5rem;
-            backdrop-filter: blur(10px);
-            margin-bottom: 2rem;
-            position: relative;
-            overflow: hidden;
+        #app-section .create-vault-card {
+            background: rgba(15, 16, 22, 0.6); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 24px; padding: 2.5rem; backdrop-filter: blur(10px);
+            margin-bottom: 2rem; position: relative; overflow: hidden;
         }
-        .create-vault-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--accent-gradient);
+        #app-section .create-vault-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(135deg, #00d4ff, #7b61ff);
         }
-        .create-vault-card h2 {
-            font-size: 1.4rem;
-            font-weight: 800;
-            margin-bottom: 0.4rem;
+        #app-section .create-vault-card h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.4rem; }
+        #app-section .card-desc { color: #8a8f98; font-size: 0.9rem; margin-bottom: 2rem; }
+
+        #app-section .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        #app-section .form-group { display: flex; flex-direction: column; gap: 6px; }
+        #app-section .form-group label { font-size: 0.82rem; font-weight: 600; color: #8a8f98; }
+        #app-section .form-group input, #app-section .form-group select {
+            background: rgba(15, 16, 22, 0.8); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; color: #f0f0f5; font-family: 'Inter', sans-serif;
+            font-size: 0.9rem; padding: 12px 16px; transition: border-color 0.2s;
         }
-        .create-vault-card .card-desc {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .form-group label {
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-        .form-group input, .form-group select {
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            padding: 12px 16px;
-            transition: border-color 0.2s;
-        }
-        .form-group input::placeholder {
-            color: var(--text-tertiary);
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: var(--border-focus);
-        }
-        .form-group .hint {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-        }
+        #app-section .form-group input::placeholder { color: #5a5f6a; }
+        #app-section .form-group input:focus, #app-section .form-group select:focus { outline: none; border-color: rgba(0,212,255,0.3); }
+        #app-section .form-group .hint { font-size: 0.75rem; color: #5a5f6a; }
 
         /* Dashboard Grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
+        #app-section .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        #app-section .dashboard-card {
+            background: rgba(15, 16, 22, 0.6); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px; padding: 2rem; backdrop-filter: blur(10px); transition: border-color 0.3s;
         }
-        .dashboard-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            backdrop-filter: blur(10px);
-            transition: border-color 0.3s;
-        }
-        .dashboard-card:hover {
-            border-color: var(--border-hover);
-        }
-        .dashboard-card h3 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin-bottom: 0.3rem;
-        }
-        .dashboard-card .card-desc {
-            color: var(--text-secondary);
-            font-size: 0.82rem;
-            margin-bottom: 1.25rem;
-        }
-        .dashboard-card.full-width {
-            grid-column: 1 / -1;
-        }
+        #app-section .dashboard-card:hover { border-color: rgba(255,255,255,0.12); }
+        #app-section .dashboard-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.3rem; }
+        #app-section .dashboard-card .card-desc { color: #8a8f98; font-size: 0.82rem; margin-bottom: 1.25rem; }
+        #app-section .dashboard-card.full-width { grid-column: 1 / -1; }
 
         /* Custom Vault Dropdown */
-        .custom-dropdown-selected {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 10px 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-            transition: border-color 0.2s;
+        #app-section .custom-dropdown-selected {
+            background: rgba(15, 16, 22, 0.6); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; font-size: 0.9rem; color: #f0f0f5; transition: border-color 0.2s;
         }
-        .custom-dropdown-selected:hover { border-color: var(--accent-cyan); }
-        .custom-dropdown-selected .dropdown-arrow {
-            color: var(--text-tertiary);
-            transition: transform 0.2s;
+        #app-section .custom-dropdown-selected:hover { border-color: #00d4ff; }
+        #app-section .custom-dropdown-selected .dropdown-arrow { color: #5a5f6a; transition: transform 0.2s; }
+        #app-section .custom-dropdown.open .dropdown-arrow { transform: rotate(180deg); }
+        #app-section .custom-dropdown-options {
+            display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+            background: #0f1016; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;
+            overflow: hidden; z-index: 100; box-shadow: 0 8px 30px rgba(0,0,0,0.4); max-height: 240px; overflow-y: auto;
         }
-        .custom-dropdown.open .dropdown-arrow { transform: rotate(180deg); }
-        .custom-dropdown-options {
-            display: none;
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 0; right: 0;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-            z-index: 100;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-            max-height: 240px;
-            overflow-y: auto;
+        #app-section .custom-dropdown.open .custom-dropdown-options { display: block; }
+        #app-section .custom-dropdown-option {
+            padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between;
+            align-items: center; font-size: 0.85rem; transition: background 0.15s;
         }
-        .custom-dropdown.open .custom-dropdown-options { display: block; }
-        .custom-dropdown-option {
-            padding: 10px 14px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            transition: background 0.15s;
-        }
-        .custom-dropdown-option:hover { background: rgba(0, 212, 255, 0.08); }
-        .custom-dropdown-option.active {
-            background: rgba(0, 212, 255, 0.12);
-            border-left: 2px solid var(--accent-cyan);
-        }
-        .custom-dropdown-option .opt-addr {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-primary);
-        }
-        .custom-dropdown-option .opt-meta {
-            font-size: 0.78rem;
-            color: var(--text-tertiary);
-        }
+        #app-section .custom-dropdown-option:hover { background: rgba(0, 212, 255, 0.08); }
+        #app-section .custom-dropdown-option.active { background: rgba(0, 212, 255, 0.12); border-left: 2px solid #00d4ff; }
+        #app-section .custom-dropdown-option .opt-addr { font-family: 'JetBrains Mono', monospace; color: #f0f0f5; }
+        #app-section .custom-dropdown-option .opt-meta { font-size: 0.78rem; color: #5a5f6a; }
 
         /* Vault Controls Status Bar */
-        .vault-status-bar {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 0.75rem 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-            margin-bottom: 1.5rem;
-            backdrop-filter: blur(10px);
-            flex-wrap: wrap;
+        #app-section .vault-status-bar {
+            background: rgba(15, 16, 22, 0.6); border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 0.75rem 1.25rem; display: flex; align-items: center;
+            gap: 1.25rem; margin-bottom: 1.5rem; backdrop-filter: blur(10px); flex-wrap: wrap;
         }
-        .vault-status-bar .bar-label {
-            font-size: 0.78rem;
-            color: var(--text-tertiary);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .vault-status-bar .bar-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.82rem;
-            color: var(--text-secondary);
-        }
-        .vault-status-bar .bar-separator {
-            color: var(--text-tertiary);
-            font-size: 0.8rem;
-            user-select: none;
-        }
-        .vault-status-bar .bar-actions {
-            margin-left: auto;
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        /* Compact Token Rows - override JS-generated inline styles */
-        .token-list .token-card {
-            padding: 0.6rem 0.85rem !important;
-            margin-bottom: 0.35rem !important;
-            border-radius: var(--radius-sm) !important;
-        }
-
-        /* Lido Branded Section */
-        .lido-section {
-            background: rgba(0, 163, 255, 0.04);
-            border: 1px solid var(--border);
-            border-left: 3px solid #00A3FF;
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            backdrop-filter: blur(10px);
-            margin-bottom: 1.5rem;
-            transition: border-color 0.3s;
-        }
-        .lido-section:hover {
-            border-color: var(--border-hover);
-            border-left-color: #00A3FF;
-        }
-        .lido-section h3 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin-bottom: 0.2rem;
-        }
-        .lido-section .lido-subtitle {
-            font-size: 0.82rem;
-            color: var(--text-tertiary);
-            margin-bottom: 1.25rem;
-        }
-        .lido-section .card-desc {
-            color: var(--text-secondary);
-            font-size: 0.82rem;
-            margin-bottom: 1.25rem;
-        }
+        #app-section .vault-status-bar .bar-label { font-size: 0.78rem; color: #5a5f6a; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+        #app-section .vault-status-bar .bar-value { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #8a8f98; }
+        #app-section .vault-status-bar .bar-separator { color: #5a5f6a; font-size: 0.8rem; user-select: none; }
+        #app-section .vault-status-bar .bar-actions { margin-left: auto; display: flex; gap: 0.5rem; }
 
         /* Token list */
-        .token-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
+        #app-section .token-list { display: flex; flex-direction: column; gap: 0.4rem; }
+        #app-section .token-list .token-card { padding: 0.6rem 0.85rem !important; margin-bottom: 0.35rem !important; border-radius: 8px !important; }
+        #app-section .token-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);
         }
-        .token-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border);
+        #app-section .token-row .token-symbol { font-weight: 700; font-size: 0.95rem; }
+        #app-section .token-row .token-balance { font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: #8a8f98; }
+        #app-section .token-empty { text-align: center; padding: 1.5rem; color: #5a5f6a; font-size: 0.85rem; }
+
+        /* Lido Branded Section (app) */
+        #app-section .lido-section {
+            background: rgba(0, 163, 255, 0.04); border: 1px solid rgba(255,255,255,0.06);
+            border-left: 3px solid #00A3FF; border-radius: 20px; padding: 2rem;
+            backdrop-filter: blur(10px); margin-bottom: 1.5rem; transition: border-color 0.3s;
         }
-        .token-row .token-symbol {
-            font-weight: 700;
-            font-size: 0.95rem;
-        }
-        .token-row .token-balance {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.88rem;
-            color: var(--text-secondary);
-        }
-        .token-empty {
-            text-align: center;
-            padding: 1.5rem;
-            color: var(--text-tertiary);
-            font-size: 0.85rem;
-        }
+        #app-section .lido-section:hover { border-color: rgba(255,255,255,0.12); border-left-color: #00A3FF; }
+        #app-section .lido-section h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.2rem; }
+        #app-section .lido-section .lido-subtitle { font-size: 0.82rem; color: #5a5f6a; margin-bottom: 1.25rem; }
 
         /* Staking Stats */
-        .staking-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-            margin-bottom: 1.25rem;
+        #app-section .staking-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+        #app-section .staking-stat {
+            background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 14px; text-align: center;
         }
-        .staking-stat {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 14px;
-            text-align: center;
-        }
-        .staking-stat .stat-label {
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
-        }
-        .staking-stat .stat-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-        .staking-stat .stat-value.cyan { color: var(--accent-cyan); }
-        .staking-stat .stat-value.green { color: var(--green); }
-        .staking-stat .stat-value.purple { color: var(--accent-purple); }
+        #app-section .staking-stat .stat-label { font-size: 0.72rem; font-weight: 600; color: #5a5f6a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        #app-section .staking-stat .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 600; }
+        #app-section .staking-stat .stat-value.cyan { color: #00d4ff; }
+        #app-section .staking-stat .stat-value.green { color: #00c853; }
+        #app-section .staking-stat .stat-value.purple { color: #7b61ff; }
 
         /* Stake form row */
-        .stake-form-row {
-            display: flex;
-            gap: 0.75rem;
-            align-items: flex-end;
-        }
-        .stake-form-row .form-group { flex: 1; }
-        .checkbox-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 0.75rem;
-        }
-        .checkbox-row input[type="checkbox"] {
-            accent-color: var(--accent-cyan);
-            width: 16px;
-            height: 16px;
-        }
-        .checkbox-row label {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-        }
+        #app-section .stake-form-row { display: flex; gap: 0.75rem; align-items: flex-end; }
+        #app-section .stake-form-row .form-group { flex: 1; }
+        #app-section .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 0.75rem; }
+        #app-section .checkbox-row input[type="checkbox"] { accent-color: #00d4ff; width: 16px; height: 16px; }
+        #app-section .checkbox-row label { font-size: 0.85rem; color: #8a8f98; cursor: pointer; }
 
         /* Token preset buttons */
-        .token-presets {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
+        #app-section .token-presets { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+        #app-section .token-preset-btn {
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px; color: #8a8f98; font-size: 0.78rem; font-weight: 600;
+            padding: 6px 14px; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
         }
-        .token-preset-btn {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            color: var(--text-secondary);
-            font-size: 0.78rem;
-            font-weight: 600;
-            padding: 6px 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'Inter', sans-serif;
-        }
-        .token-preset-btn:hover {
-            border-color: var(--accent-cyan);
-            color: var(--accent-cyan);
-        }
-
-        /* Spending Rules */
-        .rules-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-        .rule-item {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 14px;
-        }
-        .rule-item .rule-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
-        }
-        .rule-item .rule-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: 100px;
-            font-size: 0.78rem;
-            font-weight: 600;
-        }
-        .status-badge.active {
-            background: rgba(0, 200, 83, 0.1);
-            color: var(--green);
-            border: 1px solid rgba(0, 200, 83, 0.2);
-        }
-        .status-badge.paused {
-            background: rgba(255, 71, 87, 0.1);
-            color: var(--red);
-            border: 1px solid rgba(255, 71, 87, 0.2);
-        }
-        .status-badge .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-        }
+        #app-section .token-preset-btn:hover { border-color: #00d4ff; color: #00d4ff; }
 
         /* Activity Table */
-        .activity-table-wrap {
-            overflow-x: auto;
+        #app-section .activity-table-wrap { overflow-x: auto; }
+        #app-section .activity-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        #app-section .activity-table th {
+            text-align: left; padding: 10px 14px; font-size: 0.72rem; font-weight: 600;
+            color: #5a5f6a; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.06);
         }
-        .activity-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-        .activity-table th {
-            text-align: left;
-            padding: 10px 14px;
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--border);
-        }
-        .activity-table td {
-            padding: 12px 14px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-        .activity-table tr:last-child td {
-            border-bottom: none;
-        }
-        .activity-table .mono {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-        }
-        .activity-table .reason-cell {
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .activity-table a {
-            color: var(--accent-cyan);
-            text-decoration: none;
-            font-size: 0.8rem;
-        }
-        .activity-table a:hover { text-decoration: underline; }
-        .activity-empty {
-            text-align: center;
-            padding: 2.5rem;
-            color: var(--text-tertiary);
-            font-size: 0.88rem;
-        }
+        #app-section .activity-table td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #8a8f98; }
+        #app-section .activity-table tr:last-child td { border-bottom: none; }
+        #app-section .activity-table .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+        #app-section .activity-table .reason-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        #app-section .activity-table a { color: #00d4ff; text-decoration: none; font-size: 0.8rem; }
+        #app-section .activity-table a:hover { text-decoration: underline; }
+        #app-section .activity-empty { text-align: center; padding: 2.5rem; color: #5a5f6a; font-size: 0.88rem; }
 
         /* Connect agent card */
-        .agent-connect-card .agent-tabs {
-            display: flex;
-            gap: 0;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 1.25rem;
+        #app-section .agent-connect-card .agent-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 1.25rem; }
+        #app-section .agent-tab {
+            padding: 8px 18px; background: none; border: none; color: #5a5f6a;
+            font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+            transition: color 0.2s; position: relative;
         }
-        .agent-tab {
-            padding: 8px 18px;
-            background: none;
-            border: none;
-            color: var(--text-tertiary);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.82rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: color 0.2s;
-            position: relative;
+        #app-section .agent-tab:hover { color: #8a8f98; }
+        #app-section .agent-tab.active { color: #00d4ff; }
+        #app-section .agent-tab.active::after {
+            content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px;
+            background: linear-gradient(135deg, #00d4ff, #7b61ff);
         }
-        .agent-tab:hover { color: var(--text-secondary); }
-        .agent-tab.active { color: var(--accent-cyan); }
-        .agent-tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--accent-gradient);
-        }
-        .agent-panel {
-            display: none;
-        }
-        .agent-panel.active { display: block; }
-        .agent-panel pre {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 1.25rem;
-            overflow-x: auto;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-            line-height: 1.7;
-            color: var(--text-secondary);
+        #app-section .agent-panel { display: none; }
+        #app-section .agent-panel.active { display: block; }
+        #app-section .agent-panel pre {
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 1.25rem; overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; line-height: 1.7; color: #8a8f98;
         }
 
-        /* Buttons */
-        .btn {
-            padding: 10px 24px;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: 0.88rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'Inter', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        /* Buttons (app) */
+        #app-section .btn {
+            padding: 10px 24px; border-radius: 12px; font-weight: 600; font-size: 0.88rem;
+            border: none; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+            display: inline-flex; align-items: center; gap: 8px;
         }
-        .btn-gradient {
-            background: var(--accent-gradient);
-            color: white;
+        #app-section .btn-gradient { background: linear-gradient(135deg, #00d4ff, #7b61ff); color: white; }
+        #app-section .btn-gradient:hover { opacity: 0.9; transform: translateY(-1px); }
+        #app-section .btn-gradient:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        #app-section .btn-outline { background: transparent; color: #f0f0f5; border: 1px solid rgba(255,255,255,0.06); }
+        #app-section .btn-outline:hover { border-color: rgba(255,255,255,0.12); background: rgba(15,16,22,0.6); }
+        #app-section .btn-danger { background: rgba(255,71,87,0.1); color: #ff4757; border: 1px solid rgba(255,71,87,0.2); }
+        #app-section .btn-danger:hover { background: rgba(255,71,87,0.2); }
+        #app-section .btn-sm { padding: 8px 16px; font-size: 0.82rem; }
+        #app-section .btn .spinner {
+            width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;
         }
-        .btn-gradient:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+
+        /* Status badges (app) */
+        #app-section .status-badge {
+            display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+            border-radius: 100px; font-size: 0.78rem; font-weight: 600;
         }
-        .btn-gradient:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
+        #app-section .status-badge.active { background: rgba(0,200,83,0.1); color: #00c853; border: 1px solid rgba(0,200,83,0.2); }
+        #app-section .status-badge.paused { background: rgba(255,71,87,0.1); color: #ff4757; border: 1px solid rgba(255,71,87,0.2); }
+        #app-section .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+        /* Vault card list (app) */
+        #app-section .vault-card-item {
+            display: flex; align-items: center; gap: 1rem;
+            background: rgba(15,16,22,0.6); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 0.85rem 1.25rem; cursor: pointer;
+            transition: all 0.2s; border-left: 3px solid transparent; margin-bottom: 0.5rem;
         }
-        .btn-outline {
-            background: transparent;
-            color: var(--text-primary);
-            border: 1px solid var(--border);
+        #app-section .vault-card-item:hover { border-color: rgba(255,255,255,0.12); background: rgba(20,22,30,0.8); }
+        #app-section .vault-card-item.selected { border-left-color: #00d4ff; background: rgba(0,212,255,0.04); border-color: rgba(0,212,255,0.15); }
+        #app-section .vault-card-addr { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #f0f0f5; font-weight: 600; min-width: 140px; }
+        #app-section .vault-card-meta { display: flex; align-items: center; gap: 1rem; flex: 1; font-size: 0.82rem; color: #8a8f98; }
+        #app-section .vault-card-meta .vault-status-dot { display: inline-flex; align-items: center; gap: 4px; }
+        #app-section .vault-card-meta .vault-status-dot .dot { width: 6px; height: 6px; border-radius: 50%; }
+        #app-section .vault-card-meta .vault-status-dot .dot.active { background: #00c853; }
+        #app-section .vault-card-meta .vault-status-dot .dot.paused { background: #ff4757; }
+        #app-section .vault-card-selected-label { font-size: 0.72rem; font-weight: 600; color: #00d4ff; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Collapsible */
+        .collapsible-header {
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; padding: 0; user-select: none;
         }
-        .btn-outline:hover {
-            border-color: var(--border-hover);
-            background: var(--bg-card);
-        }
-        .btn-danger {
-            background: rgba(255, 71, 87, 0.1);
-            color: var(--red);
-            border: 1px solid rgba(255, 71, 87, 0.2);
-        }
-        .btn-danger:hover {
-            background: rgba(255, 71, 87, 0.2);
-        }
-        .btn-sm {
-            padding: 8px 16px;
-            font-size: 0.82rem;
-        }
-        .btn .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
+        .collapsible-header:hover { opacity: 0.85; }
+        .collapse-arrow { font-size: 1.2rem; color: #5a5f6a; transition: transform 0.3s ease; display: inline-block; }
+        .collapse-arrow.expanded { transform: rotate(180deg); }
+        .collapsible-body { overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease; max-height: 0; opacity: 0; }
+        .collapsible-body.expanded { max-height: 2000px; opacity: 1; }
 
         /* Toast */
-        .toast-container {
-            position: fixed;
-            top: 88px;
-            right: 2rem;
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
+        .toast-container { position: fixed; top: 72px; right: 2rem; z-index: 200; display: flex; flex-direction: column; gap: 0.75rem; }
         .toast {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 14px 20px;
-            backdrop-filter: blur(20px);
-            min-width: 300px;
-            animation: slideDown 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.88rem;
+            background: #0f1016; border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; padding: 14px 20px; backdrop-filter: blur(20px);
+            min-width: 300px; animation: slideDown 0.3s ease; display: flex;
+            align-items: center; gap: 10px; font-size: 0.88rem; color: #f0f0f5;
         }
         .toast.success { border-color: rgba(0, 200, 83, 0.3); }
         .toast.error { border-color: rgba(255, 71, 87, 0.3); }
         .toast .toast-icon { font-size: 1.1rem; }
 
-        /* Footer */
-        .footer {
-            border-top: 1px solid var(--border);
-            padding: 3rem 2rem;
-            text-align: center;
+        /* App Footer */
+        #app-section .footer {
+            border-top: 1px solid rgba(255,255,255,0.06); padding: 3rem 2rem; text-align: center;
         }
-        .footer-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        #app-section .footer-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        #app-section .footer-logo {
+            font-size: 1.1rem; font-weight: 800;
+            background: linear-gradient(135deg, #00d4ff, #7b61ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
-        .footer-logo {
-            font-size: 1.1rem;
-            font-weight: 800;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .footer-links {
-            display: flex;
-            gap: 2rem;
-        }
-        .footer-links a {
-            color: var(--text-tertiary);
-            text-decoration: none;
-            font-size: 0.85rem;
-            transition: color 0.2s;
-        }
-        .footer-links a:hover { color: var(--text-secondary); }
+        #app-section .footer-links { display: flex; gap: 2rem; }
+        #app-section .footer-links a { color: #5a5f6a; text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+        #app-section .footer-links a:hover { color: #8a8f98; }
 
-        /* ============ RESPONSIVE ============ */
-        @media (max-width: 900px) {
-            .steps-grid { grid-template-columns: repeat(2, 1fr); }
-            .steps-grid::before { display: none; }
-            .why-grid { grid-template-columns: 1fr; }
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .staking-stats { grid-template-columns: 1fr; }
-            .rules-grid { grid-template-columns: 1fr; }
-            .hero-stats { gap: 2rem; }
-            .vault-status-bar { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-            .vault-status-bar .bar-actions { margin-left: 0; }
-            .vault-status-bar .bar-separator { display: none; }
-        }
-        @media (max-width: 640px) {
-            .steps-grid { grid-template-columns: 1fr; }
-            .navbar-links a:not(.nav-connect-btn) { display: none; }
-            .hero { padding: 100px 1.25rem 60px; }
-            .section { padding: 60px 1.25rem; }
-            .hero-stats { flex-direction: column; gap: 1rem; }
-            .hero-ctas { flex-direction: column; align-items: center; }
-            .create-vault-card { padding: 1.5rem; }
-            .dashboard-card { padding: 1.25rem; }
-            .lido-section { padding: 1.25rem; }
-            .footer-inner { flex-direction: column; gap: 1rem; }
-            .vault-selector select { min-width: auto; width: 100%; }
-            .vault-selector { flex-direction: column; align-items: stretch; }
-            .stake-form-row { flex-direction: column; }
-            .dev-tabs { overflow-x: auto; }
-        }
-
-        /* ============ CUSTOM MODALS ============ */
+        /* Modals */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
@@ -1253,108 +951,65 @@
             z-index: 10000; animation: fadeIn 0.2s;
         }
         .modal-box {
-            background: var(--bg-secondary); border: 1px solid var(--border);
+            background: #0f1016; border: 1px solid rgba(255,255,255,0.06);
             border-radius: 16px; padding: 2rem; max-width: 420px; width: 90%;
-            animation: fadeInUp 0.2s;
+            animation: fadeInUp 0.2s; color: #f0f0f5;
         }
         .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem; }
-        .modal-desc { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5; }
+        .modal-desc { color: #8a8f98; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5; }
         .modal-field { margin-bottom: 0.75rem; }
-        .modal-field label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .modal-field label { display: block; font-size: 0.82rem; font-weight: 600; color: #8a8f98; margin-bottom: 4px; }
         .modal-field input, .modal-field select {
-            width: 100%; background: var(--bg-input); border: 1px solid var(--border);
-            border-radius: var(--radius-md); color: var(--text-primary);
-            font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 10px 14px;
-            transition: border-color 0.2s;
+            width: 100%; background: rgba(15,16,22,0.8); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; color: #f0f0f5; font-family: 'Inter', sans-serif;
+            font-size: 0.9rem; padding: 10px 14px; transition: border-color 0.2s;
         }
-        .modal-field input:focus, .modal-field select:focus { outline: none; border-color: var(--border-focus); }
+        .modal-field input:focus, .modal-field select:focus { outline: none; border-color: rgba(0,212,255,0.3); }
         .modal-field .input-with-btn { display: flex; gap: 0.5rem; }
         .modal-field .input-with-btn input { flex: 1; }
         .modal-field .input-with-btn .btn-max {
             background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2);
-            color: var(--accent-cyan); border-radius: var(--radius-sm); padding: 0 14px;
-            font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
-            font-family: 'Inter', sans-serif;
+            color: #00d4ff; border-radius: 8px; padding: 0 14px; font-weight: 600;
+            font-size: 0.82rem; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
         }
         .modal-field .input-with-btn .btn-max:hover { background: rgba(0,212,255,0.2); }
         .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+        .modal-actions .btn { padding: 10px 24px; border-radius: 12px; font-weight: 600; font-size: 0.88rem; border: none; cursor: pointer; font-family: 'Inter', sans-serif; }
+        .modal-actions .modal-cancel-btn { background: transparent; color: #f0f0f5; border: 1px solid rgba(255,255,255,0.06); }
+        .modal-actions .modal-confirm-btn { background: linear-gradient(135deg, #00d4ff, #7b61ff); color: white; }
         .modal-toggle { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
-        .modal-toggle label { font-size: 0.88rem; color: var(--text-secondary); cursor: pointer; }
-        .modal-toggle select {
-            background: var(--bg-input); border: 1px solid var(--border);
-            border-radius: var(--radius-sm); color: var(--text-primary);
-            font-family: 'Inter', sans-serif; font-size: 0.85rem; padding: 6px 12px;
-        }
+        .modal-toggle label { font-size: 0.88rem; color: #8a8f98; cursor: pointer; }
 
-        /* ============ VAULT CARD LIST ============ */
-        .vault-list-wrap {
-            margin-bottom: 2rem;
-        }
-        .vault-list-header {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 0.75rem;
-        }
-        .vault-list-header h3 { font-size: 1rem; font-weight: 700; color: var(--text-secondary); }
-        .vault-list {
-            display: flex; flex-direction: column; gap: 0.5rem;
-        }
-        .vault-card-item {
-            display: flex; align-items: center; gap: 1rem;
-            background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: var(--radius-md); padding: 0.85rem 1.25rem;
-            cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent;
-        }
-        .vault-card-item:hover {
-            border-color: var(--border-hover);
-            background: var(--bg-card-hover);
-        }
-        .vault-card-item.selected {
-            border-left-color: var(--accent-cyan);
-            background: rgba(0, 212, 255, 0.04);
-            border-color: rgba(0, 212, 255, 0.15);
-        }
-        .vault-card-addr {
-            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
-            color: var(--text-primary); font-weight: 600; min-width: 140px;
-        }
-        .vault-card-meta {
-            display: flex; align-items: center; gap: 1rem; flex: 1;
-            font-size: 0.82rem; color: var(--text-secondary);
-        }
-        .vault-card-meta .vault-token-count { white-space: nowrap; }
-        .vault-card-meta .vault-status-dot {
-            display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
-        }
-        .vault-card-meta .vault-status-dot .dot {
-            width: 6px; height: 6px; border-radius: 50%;
-        }
-        .vault-card-meta .vault-status-dot .dot.active { background: var(--green); }
-        .vault-card-meta .vault-status-dot .dot.paused { background: var(--red); }
-        .vault-card-selected-label {
-            font-size: 0.72rem; font-weight: 600; color: var(--accent-cyan);
-            text-transform: uppercase; letter-spacing: 0.05em;
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 900px) {
+            .steps-grid { grid-template-columns: 1fr; }
+            .features-grid { grid-template-columns: 1fr 1fr; }
+            .lido-steps { grid-template-columns: 1fr; }
+            .lido-step-arrow { display: none; }
+            #app-section .dashboard-grid { grid-template-columns: 1fr; }
+            #app-section .staking-stats { grid-template-columns: 1fr; }
+            #app-section .vault-status-bar { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            #app-section .vault-status-bar .bar-actions { margin-left: 0; }
+            #app-section .vault-status-bar .bar-separator { display: none; }
         }
         @media (max-width: 640px) {
-            .vault-card-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-        }
-
-        /* ============ COLLAPSIBLE ============ */
-        .collapsible-header {
-            display: flex; align-items: center; justify-content: space-between;
-            cursor: pointer; padding: 0; user-select: none;
-        }
-        .collapsible-header:hover { opacity: 0.85; }
-        .collapse-arrow {
-            font-size: 1.2rem; color: var(--text-tertiary);
-            transition: transform 0.3s ease; display: inline-block;
-        }
-        .collapse-arrow.expanded { transform: rotate(180deg); }
-        .collapsible-body {
-            overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease;
-            max-height: 0; opacity: 0;
-        }
-        .collapsible-body.expanded {
-            max-height: 2000px; opacity: 1;
+            .navbar-links a:not(.nav-connect-btn) { display: none; }
+            .hero { padding: 100px 1.25rem 60px; }
+            .section { padding: 60px 1.25rem; }
+            .hero-ctas { flex-direction: column; align-items: center; }
+            .features-grid { grid-template-columns: 1fr; }
+            .mockup-body { grid-template-columns: 1fr; }
+            .landing-footer-inner { flex-direction: column; gap: 1rem; }
+            #app-section .create-vault-card { padding: 1.5rem; }
+            #app-section .dashboard-card { padding: 1.25rem; }
+            #app-section .lido-section { padding: 1.25rem; }
+            #app-section .vault-selector select { min-width: auto; width: 100%; }
+            #app-section .vault-selector { flex-direction: column; align-items: stretch; }
+            #app-section .stake-form-row { flex-direction: column; }
+            .dev-tabs { overflow-x: auto; }
+            .lido-hero { padding: 60px 1.25rem; }
+            #app-section .footer-inner { flex-direction: column; gap: 1rem; }
+            #app-section .vault-card-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
         }
     </style>
 </head>
@@ -1363,14 +1018,24 @@
     <nav class="navbar" id="navbar">
         <div class="navbar-inner">
             <div class="navbar-logo" onclick="scrollToTop()">
-                <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#00d4ff"/><stop offset="1" stop-color="#7b61ff"/></linearGradient></defs><circle cx="14" cy="14" r="11" stroke="url(#lg)" stroke-width="2" fill="none"/><path d="M14 7v14" stroke="url(#lg)" stroke-width="2" stroke-linecap="round"/><path d="M9 10.5h6.5a2.5 2.5 0 0 1 0 5H10.5a2.5 2.5 0 0 0 0 5H19" stroke="url(#lg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="9.5" stroke="#111111" stroke-width="1.8" fill="none"/>
+                    <path d="M12 6v12" stroke="#111111" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M8 9h5.5a2 2 0 0 1 0 4H9a2 2 0 0 0 0 4H16" stroke="#111111" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <!-- Dark mode gradient defs -->
+                    <defs>
+                        <linearGradient id="lg-dark" x1="0" y1="0" x2="24" y2="24">
+                            <stop stop-color="#00d4ff"/><stop offset="1" stop-color="#7b61ff"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
                 SpendControl
             </div>
             <div class="navbar-links">
                 <a href="#how-it-works">How It Works</a>
-                <a href="#why">Why SpendControl</a>
+                <a href="#features">Features</a>
                 <a href="#developers">Developers</a>
-                <button class="nav-connect-btn" id="connectBtn" onclick="handleConnect()">Connect Wallet</button>
+                <button class="nav-connect-btn" id="connectBtn" onclick="handleConnect()">Launch App</button>
             </div>
         </div>
     </nav>
@@ -1382,34 +1047,42 @@
     <div id="landing-section">
         <!-- HERO -->
         <section class="hero">
-            <div class="hero-bg">
-                <div class="hero-orb hero-orb-1"></div>
-                <div class="hero-orb hero-orb-2"></div>
-                <div class="hero-grid"></div>
-            </div>
             <div class="hero-content">
-                <div class="hero-badge">
+                <div class="hero-badge fade-in-up">
                     <span class="dot"></span>
                     Live on Base Sepolia
                 </div>
-                <h1>The Treasury Protocol<br>for <span class="gradient-text">AI Agents</span></h1>
-                <p class="hero-subtitle">Deposit tokens. Set spending rules. Your agent operates within limits. Every transaction recorded on-chain.</p>
-                <div class="hero-ctas">
+                <h1 class="fade-in-up delay-1">Control Every Dollar<br>Your AI Agent Spends</h1>
+                <p class="hero-subtitle fade-in-up delay-2">Set budgets. Track expenses. Every transaction on-chain. Your agent operates freely within rules you define -- enforced by smart contracts, not promises.</p>
+                <div class="hero-ctas fade-in-up delay-3">
                     <button class="btn-primary" onclick="handleConnect()">Launch App <span>&rarr;</span></button>
-                    <a href="#how-it-works" class="btn-secondary">How it Works</a>
+                    <a href="#developers" class="btn-secondary">Read Docs</a>
                 </div>
-                <div class="hero-stats">
-                    <div class="hero-stat">
-                        <div class="hero-stat-value" id="statVaults">--</div>
-                        <div class="hero-stat-label">Vaults Created</div>
-                    </div>
-                    <div class="hero-stat">
-                        <div class="hero-stat-value">Multi-Token</div>
-                        <div class="hero-stat-label">Any ERC20 Supported</div>
-                    </div>
-                    <div class="hero-stat">
-                        <div class="hero-stat-value">Lido stETH</div>
-                        <div class="hero-stat-label">Yield Staking Built-in</div>
+                <div class="hero-visual fade-in-up delay-4">
+                    <div class="hero-mockup">
+                        <div class="mockup-bar">
+                            <span class="mockup-dot"></span>
+                            <span class="mockup-dot"></span>
+                            <span class="mockup-dot"></span>
+                        </div>
+                        <div class="mockup-body">
+                            <div class="mockup-stat">
+                                <div class="mockup-stat-label">Vaults Created</div>
+                                <div class="mockup-stat-value" id="statVaults">--</div>
+                            </div>
+                            <div class="mockup-stat">
+                                <div class="mockup-stat-label">Tokens Supported</div>
+                                <div class="mockup-stat-value">Any ERC20</div>
+                            </div>
+                            <div class="mockup-stat">
+                                <div class="mockup-stat-label">Yield Staking</div>
+                                <div class="mockup-stat-value green">Lido stETH</div>
+                            </div>
+                            <div class="mockup-stat">
+                                <div class="mockup-stat-label">Est. APY</div>
+                                <div class="mockup-stat-value green">~3.5%</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1417,81 +1090,157 @@
 
         <!-- HOW IT WORKS -->
         <section class="section" id="how-it-works">
-            <div class="section-header fade-in-up">
-                <div class="section-label">How It Works</div>
-                <h2 class="section-title">Four steps to autonomous agent finance</h2>
-                <p class="section-desc">Go from zero to a fully funded AI agent treasury in under a minute.</p>
+            <div class="section-header">
+                <div class="section-label fade-in-up">How It Works</div>
+                <h2 class="section-title fade-in-up delay-1">Three steps to autonomous agent finance</h2>
+                <p class="section-desc fade-in-up delay-2">Go from zero to a fully funded AI agent treasury in under a minute.</p>
             </div>
             <div class="steps-grid">
                 <div class="step-card fade-in-up delay-1">
-                    <div class="step-number">1</div>
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="3"/>
+                            <line x1="12" y1="8" x2="12" y2="16"/>
+                            <line x1="8" y1="12" x2="16" y2="12"/>
+                        </svg>
+                    </div>
                     <h3>Create a Vault</h3>
-                    <p>Deploy your agent's personal treasury in one click. Each vault is an independent smart contract.</p>
+                    <p>One transaction. Your agent gets a personal treasury -- an independent smart contract you own and control.</p>
                 </div>
                 <div class="step-card fade-in-up delay-2">
-                    <div class="step-number">2</div>
-                    <h3>Fund It</h3>
-                    <p>Deposit USDC, WETH, or any ERC20 token. Optionally stake ETH via Lido for passive yield.</p>
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                        </svg>
+                    </div>
+                    <h3>Deposit &amp; Set Rules</h3>
+                    <p>Add any token. Set daily limits, per-tx caps, and whitelist approved recipients. All enforced on-chain.</p>
                 </div>
                 <div class="step-card fade-in-up delay-3">
-                    <div class="step-number">3</div>
+                    <div class="step-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
                     <h3>Agent Operates</h3>
-                    <p>Your agent spends within daily and per-transaction limits. Every spend has a recorded reason.</p>
-                </div>
-                <div class="step-card fade-in-up delay-4">
-                    <div class="step-number">4</div>
-                    <h3>Full Transparency</h3>
-                    <p>Expense reports on-chain. Pause anytime. Withdraw anytime. You stay in control.</p>
+                    <p>Spends within limits. Every transaction has a reason. Pause anytime with one click.</p>
                 </div>
             </div>
         </section>
 
-        <!-- WHY AGENTVAULT -->
-        <section class="section" id="why">
-            <div class="section-header fade-in-up">
-                <div class="section-label">Why SpendControl</div>
-                <h2 class="section-title">Built for the agentic economy</h2>
+        <!-- LIDO STAKING - HERO FEATURE -->
+        <section class="lido-hero" id="lido">
+            <div class="lido-hero-inner">
+                <div class="lido-header fade-in-up">
+                    <img src="https://s2.coinmarketcap.com/static/img/coins/200x200/8085.png" alt="Lido" />
+                </div>
+                <h2 class="section-title fade-in-up delay-1">Free Agents. Powered by Lido.</h2>
+                <p class="section-desc fade-in-up delay-2" style="margin-bottom:2.5rem;">Stake ETH. Your agent lives off the staking yield. You keep your principal. Zero ongoing costs.</p>
+                <div class="lido-steps">
+                    <div class="lido-step fade-in-up delay-1">
+                        <div class="lido-step-num">1</div>
+                        <h4>You stake ETH</h4>
+                        <p>Deposit ETH into the vault's Lido integration</p>
+                        <span class="lido-step-arrow">&rarr;</span>
+                    </div>
+                    <div class="lido-step fade-in-up delay-2">
+                        <div class="lido-step-num">2</div>
+                        <h4>Lido generates ~3.5% APY</h4>
+                        <p>stETH balance rebases daily with staking rewards</p>
+                        <span class="lido-step-arrow">&rarr;</span>
+                    </div>
+                    <div class="lido-step fade-in-up delay-3">
+                        <div class="lido-step-num">3</div>
+                        <h4>Agent pays for itself</h4>
+                        <p>Harvest yield to fund agent operations</p>
+                    </div>
+                </div>
+                <div class="lido-note fade-in-up delay-4">
+                    <strong>Yield-only mode:</strong> agent can only spend harvested yield. Principal is locked.
+                </div>
             </div>
-            <div class="why-grid">
-                <div class="why-card fade-in-up delay-1">
-                    <div class="why-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </section>
+
+        <!-- FEATURES -->
+        <section class="section" id="features">
+            <div class="section-header">
+                <div class="section-label fade-in-up">Features</div>
+                <h2 class="section-title fade-in-up delay-1">Built for trust, not promises</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card fade-in-up delay-1">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/><path d="M12 6v12M8 10l4-4 4 4"/>
+                        </svg>
                     </div>
                     <h3>Multi-Token Treasury</h3>
-                    <p>Deposit any ERC20 token: USDC, WETH, DAI, and more. Your agent has a single vault for all its assets.</p>
+                    <p>USDC, WETH, DAI, stETH -- all in one vault. Your agent has a unified treasury.</p>
                 </div>
-                <div class="why-card fade-in-up delay-2">
-                    <div class="why-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <div class="feature-card fade-in-up delay-2">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
                     </div>
-                    <h3>On-Chain Spending Rules</h3>
-                    <p>Daily limits, per-transaction caps, recipient whitelists. All enforced by the smart contract, not a backend.</p>
+                    <h3>Per-Token Limits</h3>
+                    <p>Set daily and per-tx limits for each token separately. Granular, on-chain controls.</p>
                 </div>
-                <div class="why-card fade-in-up delay-3">
-                    <div class="why-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <div class="feature-card fade-in-up delay-3">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
                     </div>
                     <h3>Expense Reports</h3>
-                    <p>Every spend is recorded with a reason, timestamp, and recipient. Full auditability, immutable and on-chain.</p>
+                    <p>Every spend recorded on-chain with a reason. Full audit trail, immutable and transparent.</p>
+                </div>
+                <div class="feature-card fade-in-up delay-4">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>
+                        </svg>
+                    </div>
+                    <h3>Instant Pause</h3>
+                    <p>One click to freeze all agent spending. Unpause anytime. You stay in control.</p>
+                </div>
+                <div class="feature-card fade-in-up delay-5">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                        </svg>
+                    </div>
+                    <h3>Whitelist Control</h3>
+                    <p>Restrict which addresses your agent can send to. Only approved recipients.</p>
+                </div>
+                <div class="feature-card fade-in-up delay-6">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <h3>Open Source</h3>
+                    <p>Smart contracts verified on-chain. SDK, MCP server, skill file -- all public.</p>
                 </div>
             </div>
         </section>
 
         <!-- DEVELOPERS -->
         <section class="section" id="developers">
-            <div class="section-header fade-in-up">
-                <div class="section-label">For Developers</div>
-                <h2 class="section-title">Integrate in minutes</h2>
-                <p class="section-desc">Connect your agent to its vault using MCP, Python SDK, a skill file, or direct CLI calls.</p>
+            <div class="section-header">
+                <div class="section-label fade-in-up">For Developers</div>
+                <h2 class="section-title fade-in-up delay-1">Integrate in minutes</h2>
+                <p class="section-desc fade-in-up delay-2">Connect your agent to its vault using MCP, Python SDK, a skill file, or direct CLI calls.</p>
             </div>
-            <div class="dev-section fade-in-up delay-1">
+            <div class="dev-section fade-in-up delay-3">
                 <div class="dev-tabs">
                     <button class="dev-tab active" onclick="switchDevTab(this, 'panel-mcp')">MCP Server</button>
                     <button class="dev-tab" onclick="switchDevTab(this, 'panel-python')">Python SDK</button>
                     <button class="dev-tab" onclick="switchDevTab(this, 'panel-skill')">Skill File</button>
-                    <button class="dev-tab" onclick="switchDevTab(this, 'panel-terminal')">Terminal</button>
+                    <button class="dev-tab" onclick="switchDevTab(this, 'panel-terminal')">CLI</button>
                 </div>
                 <div class="dev-panel active" id="panel-mcp">
+                    <button class="copy-btn" onclick="copyDevPanel(this)">Copy</button>
                     <pre><span class="comment">// claude_desktop_config.json</span>
 {
   <span class="string">"mcpServers"</span>: {
@@ -1508,6 +1257,7 @@
 }</pre>
                 </div>
                 <div class="dev-panel" id="panel-python">
+                    <button class="copy-btn" onclick="copyDevPanel(this)">Copy</button>
                     <pre><span class="keyword">from</span> spendcontrol <span class="keyword">import</span> SpendControlClient
 
 client = SpendControlClient(
@@ -1529,6 +1279,7 @@ tx = client.<span class="fn">spend</span>(
 )</pre>
                 </div>
                 <div class="dev-panel" id="panel-skill">
+                    <button class="copy-btn" onclick="copyDevPanel(this)">Copy</button>
                     <pre><span class="comment">// .well-known/ai-plugin.json</span>
 {
   <span class="string">"schema_version"</span>: <span class="string">"v1"</span>,
@@ -1544,6 +1295,7 @@ tx = client.<span class="fn">spend</span>(
 }</pre>
                 </div>
                 <div class="dev-panel" id="panel-terminal">
+                    <button class="copy-btn" onclick="copyDevPanel(this)">Copy</button>
                     <pre><span class="comment"># Install the CLI</span>
 $ npm install -g spendcontrol-cli
 
@@ -1564,6 +1316,24 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                 </div>
             </div>
         </section>
+
+        <!-- CTA -->
+        <section class="cta-section">
+            <h2 class="fade-in-up">Ready to fund your agent?</h2>
+            <button class="btn-primary fade-in-up delay-1" onclick="handleConnect()" style="font-size:1.05rem;padding:14px 36px;">Launch App <span>&rarr;</span></button>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="landing-footer">
+            <div class="landing-footer-inner">
+                <div class="landing-footer-logo">SpendControl</div>
+                <div class="landing-footer-links">
+                    <a href="https://github.com/spendcontrol" target="_blank">GitHub</a>
+                    <a href="#developers">Docs</a>
+                    <a href="https://sepolia.basescan.org" target="_blank">Base Sepolia</a>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- ============ APP SECTION ============ -->
@@ -1578,7 +1348,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                     <div class="custom-dropdown" style="flex:1;position:relative;">
                         <div id="dropdownSelected" class="custom-dropdown-selected" onclick="toggleVaultDropdown()">
                             <span id="dropdownLabel">Select a vault...</span>
-                            <span class="dropdown-arrow">▾</span>
+                            <span class="dropdown-arrow">&#9662;</span>
                         </div>
                         <div id="dropdownOptions" class="custom-dropdown-options"></div>
                     </div>
@@ -1598,7 +1368,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                         <span class="hint">The wallet address your AI agent will use to spend</span>
                     </div>
                 </div>
-                <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0.75rem 0;">
+                <p style="color: #8a8f98; font-size: 0.85rem; margin: 0.75rem 0;">
                     After creating the vault, you'll set spending limits per token (e.g. "100 USDC/day" or "0.05 WETH/tx").
                 </p>
                 <button class="btn btn-gradient" id="createVaultBtn" onclick="createVault()">Create Vault</button>
@@ -1607,7 +1377,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
             <!-- Dashboard (hidden until vault selected) -->
             <div id="vaultDashboard" style="display:none;">
 
-                <!-- Row 1: Vault Controls Status Bar (full width, not in grid) -->
+                <!-- Row 1: Vault Controls Status Bar -->
                 <div class="vault-status-bar">
                     <span class="bar-label">Agent:</span>
                     <span class="bar-value mono" id="ruleAgent" style="font-size:0.78rem;">--</span>
@@ -1636,7 +1406,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
 
                         <!-- ETH Deposit -->
                         <div style="background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
-                            <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--accent-cyan);">Deposit ETH</div>
+                            <div style="font-weight: 600; margin-bottom: 0.5rem; color: #00d4ff;">Deposit ETH</div>
                             <p class="card-desc" style="margin-bottom: 0.75rem;">Send ETH directly. Auto-wraps to WETH inside the vault.</p>
                             <div style="display:flex; gap:0.75rem; align-items:end;">
                                 <div class="form-group" style="flex:1; margin-bottom:0;">
@@ -1676,7 +1446,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                     <input id="inputLimitToken" /><input id="inputTokenDailyLimit" /><input id="inputTokenPerTxLimit" />
                 </div>
 
-                <!-- Row 3: Lido ETH Staking (full width, Lido-branded) -->
+                <!-- Row 3: Lido ETH Staking -->
                 <div class="lido-section">
                     <h3 style="display:flex;align-items:center;gap:0.5rem;"><img src="https://s2.coinmarketcap.com/static/img/coins/200x200/8085.png" alt="Lido" style="width:24px;height:24px;border-radius:50%;" /> Lido ETH Staking</h3>
                     <div class="lido-subtitle">Earn ~3.5% APY. Yield accrues automatically via stETH rebase.</div>
@@ -1708,7 +1478,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                     </div>
                 </div>
 
-                <!-- Row 4: Activity Log (full width) -->
+                <!-- Row 4: Activity Log -->
                 <div class="dashboard-card full-width" style="margin-bottom:1.5rem;">
                     <h3>Agent Activity Log</h3>
                     <p class="card-desc">All AgentSpent events for this vault. Every transaction includes a reason for full auditability.</p>
@@ -1765,19 +1535,19 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- ============ FOOTER ============ -->
-    <footer class="footer">
-        <div class="footer-inner">
-            <div class="footer-logo">SpendControl</div>
-            <div class="footer-links">
-                <a href="https://github.com/spendcontrol" target="_blank">GitHub</a>
-                <a href="#developers">Docs</a>
-                <a href="https://sepolia.basescan.org" target="_blank">Base Sepolia</a>
+        <!-- App Footer -->
+        <footer class="footer">
+            <div class="footer-inner">
+                <div class="footer-logo">SpendControl</div>
+                <div class="footer-links">
+                    <a href="https://github.com/spendcontrol" target="_blank">GitHub</a>
+                    <a href="#developers">Docs</a>
+                    <a href="https://sepolia.basescan.org" target="_blank">Base Sepolia</a>
+                </div>
             </div>
-        </div>
-    </footer>
+        </footer>
+    </div>
 
     <!-- ============ MODAL CONTAINER ============ -->
     <div id="modalContainer"></div>
@@ -2021,12 +1791,17 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
         const appSection = document.getElementById('app-section');
         appSection.style.display = 'block';
         appSection.classList.add('active');
+        // Apply dark theme to body-level elements
+        document.body.classList.add('app-dark');
+        document.body.style.background = '#0a0b0f';
     }
 
     function scrollToTop() {
         document.getElementById('landing-section').style.display = '';
         document.getElementById('app-section').style.display = 'none';
         document.getElementById('app-section').classList.remove('active');
+        document.body.classList.remove('app-dark');
+        document.body.style.background = '';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -2279,22 +2054,22 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                 const fmt = (v) => parseFloat(ethers.formatUnits(v, decimals)).toLocaleString(undefined, {maximumFractionDigits: 6});
                 const hasLimits = effDaily > 0n;
                 const noLimitsWarning = !hasLimits
-                    ? `<div style="color:var(--orange);font-size:0.78rem;margin-top:0.35rem;">⚠️ No limits set — agent can't spend this token</div>`
+                    ? `<div style="color:var(--orange);font-size:0.78rem;margin-top:0.35rem;">&#9888;&#65039; No limits set — agent can't spend this token</div>`
                     : '';
 
-                html += `<div class="token-card" style="background:var(--bg-card);border:1px solid ${hasLimits ? 'var(--border)' : 'var(--orange)'};border-radius:12px;padding:1rem;margin-bottom:0.75rem;">
+                html += `<div class="token-card" style="background:rgba(15,16,22,0.6);border:1px solid ${hasLimits ? 'rgba(255,255,255,0.06)' : 'var(--orange)'};border-radius:12px;padding:1rem;margin-bottom:0.75rem;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
                         <div>
-                            <span style="font-weight:700;font-size:1.1rem;color:var(--text-primary);">${symbol}</span>
-                            <span style="color:var(--text-tertiary);font-size:0.78rem;margin-left:0.5rem;">${tokenAddr.slice(0,6)}...${tokenAddr.slice(-4)}</span>
+                            <span style="font-weight:700;font-size:1.1rem;color:#f0f0f5;">${symbol}</span>
+                            <span style="color:#5a5f6a;font-size:0.78rem;margin-left:0.5rem;">${tokenAddr.slice(0,6)}...${tokenAddr.slice(-4)}</span>
                         </div>
-                        <span style="font-size:1.2rem;font-weight:700;background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${fmt(balance)}</span>
+                        <span style="font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,#00d4ff,#7b61ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${fmt(balance)}</span>
                     </div>
                     ${hasLimits ? `
-                    <div style="display:flex;gap:1rem;font-size:0.82rem;color:var(--text-secondary);margin-bottom:0.35rem;">
-                        <span>Daily: <strong style="color:var(--text-primary);">${fmt(effDaily)}</strong></span>
-                        <span>Per-Tx: <strong style="color:var(--text-primary);">${fmt(effPerTx)}</strong></span>
-                        <span>Left today: <strong style="color:var(--green);">${fmt(remaining)}</strong></span>
+                    <div style="display:flex;gap:1rem;font-size:0.82rem;color:#8a8f98;margin-bottom:0.35rem;">
+                        <span>Daily: <strong style="color:#f0f0f5;">${fmt(effDaily)}</strong></span>
+                        <span>Per-Tx: <strong style="color:#f0f0f5;">${fmt(effPerTx)}</strong></span>
+                        <span>Left today: <strong style="color:#00c853;">${fmt(remaining)}</strong></span>
                     </div>` : ''}
                     ${noLimitsWarning}
                     <div style="margin-top:0.5rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;" id="editLimits_${tokenAddr}">
@@ -2307,8 +2082,8 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                     </div>
                 </div>`;
             } catch (e) {
-                html += `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:0.75rem;">
-                    <span class="mono" style="font-size:0.78rem;color:var(--text-tertiary);">${tokenAddr.slice(0,10)}...</span>
+                html += `<div style="background:rgba(15,16,22,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:1rem;margin-bottom:0.75rem;">
+                    <span class="mono" style="font-size:0.78rem;color:#5a5f6a;">${tokenAddr.slice(0,10)}...</span>
                     <span style="float:right;">--</span>
                 </div>`;
             }
@@ -2329,12 +2104,12 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
         container.innerHTML = `
             <div class="edit-limits-form" style="display:flex;gap:0.5rem;align-items:end;flex-wrap:wrap;margin-top:0.25rem;">
                 <div style="flex:1;min-width:100px;">
-                    <label style="font-size:0.72rem;color:var(--text-tertiary);display:block;margin-bottom:2px;">Daily (${symbol})</label>
-                    <input type="text" id="editDaily_${tokenAddr}" placeholder="100" style="width:100%;padding:6px 10px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.85rem;" />
+                    <label style="font-size:0.72rem;color:#5a5f6a;display:block;margin-bottom:2px;">Daily (${symbol})</label>
+                    <input type="text" id="editDaily_${tokenAddr}" placeholder="100" style="width:100%;padding:6px 10px;background:#0a0b0f;border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#f0f0f5;font-size:0.85rem;" />
                 </div>
                 <div style="flex:1;min-width:100px;">
-                    <label style="font-size:0.72rem;color:var(--text-tertiary);display:block;margin-bottom:2px;">Per-Tx (${symbol})</label>
-                    <input type="text" id="editPerTx_${tokenAddr}" placeholder="50" style="width:100%;padding:6px 10px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.85rem;" />
+                    <label style="font-size:0.72rem;color:#5a5f6a;display:block;margin-bottom:2px;">Per-Tx (${symbol})</label>
+                    <input type="text" id="editPerTx_${tokenAddr}" placeholder="50" style="width:100%;padding:6px 10px;background:#0a0b0f;border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#f0f0f5;font-size:0.85rem;" />
                 </div>
                 <button class="btn btn-gradient btn-sm" style="font-size:0.78rem;padding:6px 16px;height:34px;" onclick="saveTokenLimits('${tokenAddr}', ${decimals})">Save</button>
                 <button class="btn btn-outline btn-sm" style="font-size:0.78rem;padding:6px 12px;height:34px;" onclick="toggleEditLimits('${tokenAddr}', '${symbol}', ${decimals})">Cancel</button>
@@ -2370,7 +2145,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
 
         showModal({
             title: `Withdraw ${symbol}`,
-            description: `Available balance: <strong style="color:var(--text-primary);">${fmtBalance} ${symbol}</strong>`,
+            description: `Available balance: <strong style="color:#f0f0f5;">${fmtBalance} ${symbol}</strong>`,
             fields: [
                 { id: 'amount', label: 'Amount to withdraw', placeholder: '0.0', maxBtn: true, maxValue: fmtBalance }
             ],
@@ -2559,13 +2334,13 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
         if (!banner) {
             banner = document.createElement('div');
             banner.id = 'limitsAlertBanner';
-            banner.style.cssText = 'background:linear-gradient(135deg,rgba(0,212,255,0.12),rgba(123,97,255,0.12));border:1px solid var(--accent-cyan);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;animation:fadeInUp 0.3s ease;';
+            banner.style.cssText = 'background:linear-gradient(135deg,rgba(0,212,255,0.12),rgba(123,97,255,0.12));border:1px solid #00d4ff;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;animation:fadeInUp 0.3s ease;';
             const dashboard = document.getElementById('vaultDashboard');
             if (dashboard) dashboard.prepend(banner);
         }
         banner.innerHTML = `
-            <div style="font-weight:700;font-size:1.05rem;margin-bottom:0.5rem;color:var(--accent-cyan);">⚠️ Set spending limits for ${symbol}</div>
-            <p style="color:var(--text-secondary);margin-bottom:0.75rem;line-height:1.5;">
+            <div style="font-weight:700;font-size:1.05rem;margin-bottom:0.5rem;color:#00d4ff;">&#9888;&#65039; Set spending limits for ${symbol}</div>
+            <p style="color:#8a8f98;margin-bottom:0.75rem;line-height:1.5;">
                 You deposited ${symbol} but haven't set spending limits yet. <strong>Your agent can't spend until you set limits.</strong>
                 Scroll down to "Spending Rules" and set daily + per-tx limits for this token.
             </p>
@@ -2874,6 +2649,17 @@ cast call $VAULT "expenseCount()(uint256)" --rpc-url $RPC`;
         document.querySelectorAll('.dev-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(panelId).classList.add('active');
+    }
+
+    function copyDevPanel(btn) {
+        const pre = btn.closest('.dev-panel').querySelector('pre');
+        if (pre) {
+            navigator.clipboard.writeText(pre.textContent).then(() => {
+                const orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = orig, 1500);
+            });
+        }
     }
 
     function copyPanel(id) {
