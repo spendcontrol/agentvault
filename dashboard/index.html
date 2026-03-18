@@ -38,28 +38,7 @@
             --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
         }
 
-        /* ============ DARK THEME FOR APP SECTION ============ */
-        .app-dark {
-            --bg-primary: #0a0b0f;
-            --bg-secondary: #0f1016;
-            --bg-card: rgba(15, 16, 22, 0.6);
-            --bg-card-hover: rgba(20, 22, 30, 0.8);
-            --bg-input: rgba(15, 16, 22, 0.8);
-            --border: rgba(255, 255, 255, 0.06);
-            --border-hover: rgba(255, 255, 255, 0.12);
-            --border-focus: rgba(0, 212, 255, 0.3);
-            --text-primary: #f0f0f5;
-            --text-secondary: #8a8f98;
-            --text-tertiary: #5a5f6a;
-            --accent-cyan: #00d4ff;
-            --accent-purple: #7b61ff;
-            --accent-gradient: linear-gradient(135deg, #00d4ff 0%, #7b61ff 100%);
-            --accent-gradient-hover: linear-gradient(135deg, #00e5ff 0%, #8b71ff 100%);
-            --green: #00c853;
-            --red: #ff4757;
-            --orange: #ff9800;
-            --shadow-glow: 0 0 60px rgba(0, 212, 255, 0.08), 0 0 120px rgba(123, 97, 255, 0.04);
-        }
+        /* Dark theme block removed — app is now light, matching landing */
 
         html { scroll-behavior: smooth; }
 
@@ -183,23 +162,14 @@
             transform: translateY(-1px);
         }
 
-        /* App-dark navbar overrides */
-        .app-dark .navbar {
-            background: rgba(10, 11, 15, 0.8);
-            border-bottom-color: rgba(255,255,255,0.06);
+        /* App-mode navbar: subtle bottom border */
+        .navbar.app-mode {
+            border-bottom-color: #E5E7EB;
         }
-        .app-dark .navbar.scrolled {
-            background: rgba(10, 11, 15, 0.95);
-            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
-        }
-        .app-dark .navbar-logo { color: #f0f0f5; }
-        .app-dark .navbar-logo svg circle { stroke: url(#lg-dark); }
-        .app-dark .navbar-logo svg path { stroke: url(#lg-dark); }
-        .app-dark .navbar-links a { color: #8a8f98; }
-        .app-dark .navbar-links a:hover { color: #f0f0f5; }
-        .app-dark .nav-connect-btn {
-            background: linear-gradient(135deg, #00d4ff, #7b61ff);
-            color: white !important;
+        .navbar.app-mode.scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom-color: #E5E7EB;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
         .nav-connect-btn.connected {
             background: #F3F4F6;
@@ -208,11 +178,17 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.82rem !important;
         }
-        .app-dark .nav-connect-btn.connected {
-            background: rgba(15, 16, 22, 0.6);
-            border: 1px solid rgba(255,255,255,0.06);
-            color: #f0f0f5 !important;
+        .back-to-home {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+            display: none;
         }
+        .back-to-home:hover { color: var(--text-primary); }
+        .navbar.app-mode .back-to-home { display: inline; }
+        .navbar.app-mode .landing-nav-link { display: none; }
 
         /* ============ HERO ============ */
         .hero {
@@ -679,12 +655,12 @@
         }
         .landing-footer-links a:hover { color: var(--text-secondary); }
 
-        /* ============ APP SECTION (DARK THEME) ============ */
+        /* ============ APP SECTION (LIGHT THEME) ============ */
         #app-section {
             display: none;
             padding-top: 100px;
-            background: #0a0b0f;
-            color: #f0f0f5;
+            background: #FAFAFA;
+            color: #111111;
             min-height: 100vh;
         }
         #app-section.active { display: block; }
@@ -696,84 +672,86 @@
             padding: 0 2rem 4rem;
         }
 
-        /* ---- App-section internal styles (dark theme) ---- */
+        /* ---- App-section internal styles (light theme) ---- */
         #app-section .vault-selector { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
-        #app-section .vault-selector label { font-weight: 600; font-size: 0.92rem; color: #8a8f98; }
+        #app-section .vault-selector label { font-weight: 600; font-size: 0.92rem; color: #6B7280; }
         #app-section .vault-selector select {
-            background: rgba(15, 16, 22, 0.8); border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 12px; color: #f0f0f5; font-family: 'JetBrains Mono', monospace;
+            background: #FFFFFF; border: 1px solid #D1D5DB;
+            border-radius: 12px; color: #111111; font-family: 'JetBrains Mono', monospace;
             font-size: 0.82rem; padding: 10px 16px; min-width: 300px; cursor: pointer;
         }
-        #app-section .vault-selector select:focus { outline: none; border-color: rgba(0, 212, 255, 0.3); }
+        #app-section .vault-selector select:focus { outline: none; border-color: #111111; }
 
         #app-section .create-vault-card {
-            background: rgba(15, 16, 22, 0.6); border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 24px; padding: 2.5rem; backdrop-filter: blur(10px);
+            background: #FFFFFF; border: 1px solid #E5E7EB;
+            border-radius: 16px; padding: 2.5rem;
             margin-bottom: 2rem; position: relative; overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
         #app-section .create-vault-card::before {
             content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(135deg, #00d4ff, #7b61ff);
+            background: #111111;
         }
-        #app-section .create-vault-card h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.4rem; }
-        #app-section .card-desc { color: #8a8f98; font-size: 0.9rem; margin-bottom: 2rem; }
+        #app-section .create-vault-card h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.4rem; color: #111111; }
+        #app-section .card-desc { color: #6B7280; font-size: 0.9rem; margin-bottom: 2rem; }
 
         #app-section .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
         #app-section .form-group { display: flex; flex-direction: column; gap: 6px; }
-        #app-section .form-group label { font-size: 0.82rem; font-weight: 600; color: #8a8f98; }
+        #app-section .form-group label { font-size: 0.82rem; font-weight: 600; color: #6B7280; }
         #app-section .form-group input, #app-section .form-group select {
-            background: rgba(15, 16, 22, 0.8); border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 12px; color: #f0f0f5; font-family: 'Inter', sans-serif;
+            background: #FFFFFF; border: 1px solid #D1D5DB;
+            border-radius: 12px; color: #111111; font-family: 'Inter', sans-serif;
             font-size: 0.9rem; padding: 12px 16px; transition: border-color 0.2s;
         }
-        #app-section .form-group input::placeholder { color: #5a5f6a; }
-        #app-section .form-group input:focus, #app-section .form-group select:focus { outline: none; border-color: rgba(0,212,255,0.3); }
-        #app-section .form-group .hint { font-size: 0.75rem; color: #5a5f6a; }
+        #app-section .form-group input::placeholder { color: #9CA3AF; }
+        #app-section .form-group input:focus, #app-section .form-group select:focus { outline: none; border-color: #111111; }
+        #app-section .form-group .hint { font-size: 0.75rem; color: #9CA3AF; }
 
         /* Dashboard Grid */
         #app-section .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
         #app-section .dashboard-card {
-            background: rgba(15, 16, 22, 0.6); border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 20px; padding: 2rem; backdrop-filter: blur(10px); transition: border-color 0.3s;
+            background: #FFFFFF; border: 1px solid #E5E7EB;
+            border-radius: 16px; padding: 2rem; transition: border-color 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
-        #app-section .dashboard-card:hover { border-color: rgba(255,255,255,0.12); }
-        #app-section .dashboard-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.3rem; }
-        #app-section .dashboard-card .card-desc { color: #8a8f98; font-size: 0.82rem; margin-bottom: 1.25rem; }
+        #app-section .dashboard-card:hover { border-color: #D1D5DB; }
+        #app-section .dashboard-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.3rem; color: #111111; }
+        #app-section .dashboard-card .card-desc { color: #6B7280; font-size: 0.82rem; margin-bottom: 1.25rem; }
         #app-section .dashboard-card.full-width { grid-column: 1 / -1; }
 
         /* Custom Vault Dropdown */
         #app-section .custom-dropdown-selected {
-            background: rgba(15, 16, 22, 0.6); border: 1px solid rgba(255,255,255,0.06);
+            background: #FFFFFF; border: 1px solid #D1D5DB;
             border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between;
-            align-items: center; cursor: pointer; font-size: 0.9rem; color: #f0f0f5; transition: border-color 0.2s;
+            align-items: center; cursor: pointer; font-size: 0.9rem; color: #111111; transition: border-color 0.2s;
         }
-        #app-section .custom-dropdown-selected:hover { border-color: #00d4ff; }
-        #app-section .custom-dropdown-selected .dropdown-arrow { color: #5a5f6a; transition: transform 0.2s; }
+        #app-section .custom-dropdown-selected:hover { border-color: #111111; }
+        #app-section .custom-dropdown-selected .dropdown-arrow { color: #9CA3AF; transition: transform 0.2s; }
         #app-section .custom-dropdown.open .dropdown-arrow { transform: rotate(180deg); }
         #app-section .custom-dropdown-options {
             display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
-            background: #0f1016; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px;
-            overflow: hidden; z-index: 100; box-shadow: 0 8px 30px rgba(0,0,0,0.4); max-height: 240px; overflow-y: auto;
+            background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px;
+            overflow: hidden; z-index: 100; box-shadow: 0 8px 30px rgba(0,0,0,0.12); max-height: 240px; overflow-y: auto;
         }
         #app-section .custom-dropdown.open .custom-dropdown-options { display: block; }
         #app-section .custom-dropdown-option {
             padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between;
-            align-items: center; font-size: 0.85rem; transition: background 0.15s;
+            align-items: center; font-size: 0.85rem; transition: background 0.15s; color: #111111;
         }
-        #app-section .custom-dropdown-option:hover { background: rgba(0, 212, 255, 0.08); }
-        #app-section .custom-dropdown-option.active { background: rgba(0, 212, 255, 0.12); border-left: 2px solid #00d4ff; }
-        #app-section .custom-dropdown-option .opt-addr { font-family: 'JetBrains Mono', monospace; color: #f0f0f5; }
-        #app-section .custom-dropdown-option .opt-meta { font-size: 0.78rem; color: #5a5f6a; }
+        #app-section .custom-dropdown-option:hover { background: #F3F4F6; }
+        #app-section .custom-dropdown-option.active { background: #F3F4F6; border-left: 2px solid #111111; }
+        #app-section .custom-dropdown-option .opt-addr { font-family: 'JetBrains Mono', monospace; color: #111111; }
+        #app-section .custom-dropdown-option .opt-meta { font-size: 0.78rem; color: #9CA3AF; }
 
         /* Vault Controls Status Bar */
         #app-section .vault-status-bar {
-            background: rgba(15, 16, 22, 0.6); border-bottom: 1px solid rgba(255,255,255,0.06);
+            background: #F3F4F6; border: 1px solid #E5E7EB;
             border-radius: 12px; padding: 0.75rem 1.25rem; display: flex; align-items: center;
-            gap: 1.25rem; margin-bottom: 1.5rem; backdrop-filter: blur(10px); flex-wrap: wrap;
+            gap: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap;
         }
-        #app-section .vault-status-bar .bar-label { font-size: 0.78rem; color: #5a5f6a; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-        #app-section .vault-status-bar .bar-value { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #8a8f98; }
-        #app-section .vault-status-bar .bar-separator { color: #5a5f6a; font-size: 0.8rem; user-select: none; }
+        #app-section .vault-status-bar .bar-label { font-size: 0.78rem; color: #9CA3AF; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+        #app-section .vault-status-bar .bar-value { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #6B7280; }
+        #app-section .vault-status-bar .bar-separator { color: #D1D5DB; font-size: 0.8rem; user-select: none; }
         #app-section .vault-status-bar .bar-actions { margin-left: auto; display: flex; gap: 0.5rem; }
 
         /* Token list */
@@ -781,102 +759,103 @@
         #app-section .token-list .token-card { padding: 0.6rem 0.85rem !important; margin-bottom: 0.35rem !important; border-radius: 8px !important; }
         #app-section .token-row {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 16px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);
+            padding: 12px 16px; background: #F9FAFB; border-radius: 12px; border: 1px solid #E5E7EB;
         }
-        #app-section .token-row .token-symbol { font-weight: 700; font-size: 0.95rem; }
-        #app-section .token-row .token-balance { font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: #8a8f98; }
-        #app-section .token-empty { text-align: center; padding: 1.5rem; color: #5a5f6a; font-size: 0.85rem; }
+        #app-section .token-row .token-symbol { font-weight: 700; font-size: 0.95rem; color: #111111; }
+        #app-section .token-row .token-balance { font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: #6B7280; }
+        #app-section .token-empty { text-align: center; padding: 1.5rem; color: #9CA3AF; font-size: 0.85rem; }
 
         /* Lido Branded Section (app) */
         #app-section .lido-section {
-            background: rgba(0, 163, 255, 0.04); border: 1px solid rgba(255,255,255,0.06);
-            border-left: 3px solid #00A3FF; border-radius: 20px; padding: 2rem;
-            backdrop-filter: blur(10px); margin-bottom: 1.5rem; transition: border-color 0.3s;
+            background: #F0FDF4; border: 1px solid #E5E7EB;
+            border-left: 3px solid #10B981; border-radius: 16px; padding: 2rem;
+            margin-bottom: 1.5rem; transition: border-color 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
-        #app-section .lido-section:hover { border-color: rgba(255,255,255,0.12); border-left-color: #00A3FF; }
-        #app-section .lido-section h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.2rem; }
-        #app-section .lido-section .lido-subtitle { font-size: 0.82rem; color: #5a5f6a; margin-bottom: 1.25rem; }
+        #app-section .lido-section:hover { border-color: #D1D5DB; border-left-color: #10B981; }
+        #app-section .lido-section h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.2rem; color: #111111; }
+        #app-section .lido-section .lido-subtitle { font-size: 0.82rem; color: #6B7280; margin-bottom: 1.25rem; }
 
         /* Staking Stats */
         #app-section .staking-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
         #app-section .staking-stat {
-            background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06);
+            background: #FFFFFF; border: 1px solid #E5E7EB;
             border-radius: 12px; padding: 14px; text-align: center;
         }
-        #app-section .staking-stat .stat-label { font-size: 0.72rem; font-weight: 600; color: #5a5f6a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        #app-section .staking-stat .stat-label { font-size: 0.72rem; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
         #app-section .staking-stat .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 600; }
-        #app-section .staking-stat .stat-value.cyan { color: #00d4ff; }
-        #app-section .staking-stat .stat-value.green { color: #00c853; }
-        #app-section .staking-stat .stat-value.purple { color: #7b61ff; }
+        #app-section .staking-stat .stat-value.cyan { color: #111111; }
+        #app-section .staking-stat .stat-value.green { color: #10B981; }
+        #app-section .staking-stat .stat-value.purple { color: #6B7280; }
 
         /* Stake form row */
         #app-section .stake-form-row { display: flex; gap: 0.75rem; align-items: flex-end; }
         #app-section .stake-form-row .form-group { flex: 1; }
         #app-section .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 0.75rem; }
-        #app-section .checkbox-row input[type="checkbox"] { accent-color: #00d4ff; width: 16px; height: 16px; }
-        #app-section .checkbox-row label { font-size: 0.85rem; color: #8a8f98; cursor: pointer; }
+        #app-section .checkbox-row input[type="checkbox"] { accent-color: #111111; width: 16px; height: 16px; }
+        #app-section .checkbox-row label { font-size: 0.85rem; color: #6B7280; cursor: pointer; }
 
         /* Token preset buttons */
         #app-section .token-presets { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
         #app-section .token-preset-btn {
-            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 8px; color: #8a8f98; font-size: 0.78rem; font-weight: 600;
+            background: #F3F4F6; border: 1px solid #E5E7EB;
+            border-radius: 8px; color: #6B7280; font-size: 0.78rem; font-weight: 600;
             padding: 6px 14px; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
         }
-        #app-section .token-preset-btn:hover { border-color: #00d4ff; color: #00d4ff; }
+        #app-section .token-preset-btn:hover { border-color: #111111; color: #111111; }
 
         /* Activity Table */
         #app-section .activity-table-wrap { overflow-x: auto; }
         #app-section .activity-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         #app-section .activity-table th {
             text-align: left; padding: 10px 14px; font-size: 0.72rem; font-weight: 600;
-            color: #5a5f6a; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid rgba(255,255,255,0.06);
+            color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #E5E7EB;
         }
-        #app-section .activity-table td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #8a8f98; }
+        #app-section .activity-table td { padding: 12px 14px; border-bottom: 1px solid #F3F4F6; color: #6B7280; }
         #app-section .activity-table tr:last-child td { border-bottom: none; }
         #app-section .activity-table .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
         #app-section .activity-table .reason-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        #app-section .activity-table a { color: #00d4ff; text-decoration: none; font-size: 0.8rem; }
+        #app-section .activity-table a { color: #111111; text-decoration: none; font-size: 0.8rem; font-weight: 600; }
         #app-section .activity-table a:hover { text-decoration: underline; }
-        #app-section .activity-empty { text-align: center; padding: 2.5rem; color: #5a5f6a; font-size: 0.88rem; }
+        #app-section .activity-empty { text-align: center; padding: 2.5rem; color: #9CA3AF; font-size: 0.88rem; }
 
         /* Connect agent card */
-        #app-section .agent-connect-card .agent-tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 1.25rem; }
+        #app-section .agent-connect-card .agent-tabs { display: flex; gap: 0; border-bottom: 1px solid #E5E7EB; margin-bottom: 1.25rem; }
         #app-section .agent-tab {
-            padding: 8px 18px; background: none; border: none; color: #5a5f6a;
+            padding: 8px 18px; background: none; border: none; color: #9CA3AF;
             font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 600; cursor: pointer;
             transition: color 0.2s; position: relative;
         }
-        #app-section .agent-tab:hover { color: #8a8f98; }
-        #app-section .agent-tab.active { color: #00d4ff; }
+        #app-section .agent-tab:hover { color: #6B7280; }
+        #app-section .agent-tab.active { color: #111111; }
         #app-section .agent-tab.active::after {
             content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px;
-            background: linear-gradient(135deg, #00d4ff, #7b61ff);
+            background: #111111;
         }
         #app-section .agent-panel { display: none; }
         #app-section .agent-panel.active { display: block; }
         #app-section .agent-panel pre {
-            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06);
+            background: #F3F4F6; border: 1px solid #E5E7EB;
             border-radius: 12px; padding: 1.25rem; overflow-x: auto;
-            font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; line-height: 1.7; color: #8a8f98;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; line-height: 1.7; color: #374151;
         }
 
         /* Buttons (app) */
         #app-section .btn {
-            padding: 10px 24px; border-radius: 12px; font-weight: 600; font-size: 0.88rem;
+            padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 0.88rem;
             border: none; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
             display: inline-flex; align-items: center; gap: 8px;
         }
-        #app-section .btn-gradient { background: linear-gradient(135deg, #00d4ff, #7b61ff); color: white; }
-        #app-section .btn-gradient:hover { opacity: 0.9; transform: translateY(-1px); }
+        #app-section .btn-gradient { background: #111111; color: white; }
+        #app-section .btn-gradient:hover { opacity: 0.85; transform: translateY(-1px); }
         #app-section .btn-gradient:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-        #app-section .btn-outline { background: transparent; color: #f0f0f5; border: 1px solid rgba(255,255,255,0.06); }
-        #app-section .btn-outline:hover { border-color: rgba(255,255,255,0.12); background: rgba(15,16,22,0.6); }
-        #app-section .btn-danger { background: rgba(255,71,87,0.1); color: #ff4757; border: 1px solid rgba(255,71,87,0.2); }
-        #app-section .btn-danger:hover { background: rgba(255,71,87,0.2); }
+        #app-section .btn-outline { background: #FFFFFF; color: #111111; border: 1px solid #E5E7EB; }
+        #app-section .btn-outline:hover { border-color: #D1D5DB; background: #F9FAFB; }
+        #app-section .btn-danger { background: rgba(239,68,68,0.08); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); }
+        #app-section .btn-danger:hover { background: rgba(239,68,68,0.15); }
         #app-section .btn-sm { padding: 8px 16px; font-size: 0.82rem; }
         #app-section .btn .spinner {
-            width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
+            width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.15);
             border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;
         }
 
@@ -885,26 +864,27 @@
             display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
             border-radius: 100px; font-size: 0.78rem; font-weight: 600;
         }
-        #app-section .status-badge.active { background: rgba(0,200,83,0.1); color: #00c853; border: 1px solid rgba(0,200,83,0.2); }
-        #app-section .status-badge.paused { background: rgba(255,71,87,0.1); color: #ff4757; border: 1px solid rgba(255,71,87,0.2); }
+        #app-section .status-badge.active { background: rgba(16,185,129,0.08); color: #10B981; border: 1px solid rgba(16,185,129,0.2); }
+        #app-section .status-badge.paused { background: rgba(239,68,68,0.08); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); }
         #app-section .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
         /* Vault card list (app) */
         #app-section .vault-card-item {
             display: flex; align-items: center; gap: 1rem;
-            background: rgba(15,16,22,0.6); border: 1px solid rgba(255,255,255,0.06);
+            background: #FFFFFF; border: 1px solid #E5E7EB;
             border-radius: 12px; padding: 0.85rem 1.25rem; cursor: pointer;
             transition: all 0.2s; border-left: 3px solid transparent; margin-bottom: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
-        #app-section .vault-card-item:hover { border-color: rgba(255,255,255,0.12); background: rgba(20,22,30,0.8); }
-        #app-section .vault-card-item.selected { border-left-color: #00d4ff; background: rgba(0,212,255,0.04); border-color: rgba(0,212,255,0.15); }
-        #app-section .vault-card-addr { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #f0f0f5; font-weight: 600; min-width: 140px; }
-        #app-section .vault-card-meta { display: flex; align-items: center; gap: 1rem; flex: 1; font-size: 0.82rem; color: #8a8f98; }
+        #app-section .vault-card-item:hover { border-color: #D1D5DB; background: #F9FAFB; }
+        #app-section .vault-card-item.selected { border-left-color: #111111; background: #F9FAFB; border-color: #D1D5DB; }
+        #app-section .vault-card-addr { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #111111; font-weight: 600; min-width: 140px; }
+        #app-section .vault-card-meta { display: flex; align-items: center; gap: 1rem; flex: 1; font-size: 0.82rem; color: #6B7280; }
         #app-section .vault-card-meta .vault-status-dot { display: inline-flex; align-items: center; gap: 4px; }
         #app-section .vault-card-meta .vault-status-dot .dot { width: 6px; height: 6px; border-radius: 50%; }
-        #app-section .vault-card-meta .vault-status-dot .dot.active { background: #00c853; }
-        #app-section .vault-card-meta .vault-status-dot .dot.paused { background: #ff4757; }
-        #app-section .vault-card-selected-label { font-size: 0.72rem; font-weight: 600; color: #00d4ff; text-transform: uppercase; letter-spacing: 0.05em; }
+        #app-section .vault-card-meta .vault-status-dot .dot.active { background: #10B981; }
+        #app-section .vault-card-meta .vault-status-dot .dot.paused { background: #EF4444; }
+        #app-section .vault-card-selected-label { font-size: 0.72rem; font-weight: 600; color: #111111; text-transform: uppercase; letter-spacing: 0.05em; }
 
         /* Collapsible */
         .collapsible-header {
@@ -912,7 +892,7 @@
             cursor: pointer; padding: 0; user-select: none;
         }
         .collapsible-header:hover { opacity: 0.85; }
-        .collapse-arrow { font-size: 1.2rem; color: #5a5f6a; transition: transform 0.3s ease; display: inline-block; }
+        .collapse-arrow { font-size: 1.2rem; color: #9CA3AF; transition: transform 0.3s ease; display: inline-block; }
         .collapse-arrow.expanded { transform: rotate(180deg); }
         .collapsible-body { overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease; max-height: 0; opacity: 0; }
         .collapsible-body.expanded { max-height: 2000px; opacity: 1; }
@@ -920,65 +900,68 @@
         /* Toast */
         .toast-container { position: fixed; top: 72px; right: 2rem; z-index: 200; display: flex; flex-direction: column; gap: 0.75rem; }
         .toast {
-            background: #0f1016; border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 12px; padding: 14px 20px; backdrop-filter: blur(20px);
+            background: #FFFFFF; border: 1px solid #E5E7EB;
+            border-radius: 12px; padding: 14px 20px;
             min-width: 300px; animation: slideDown 0.3s ease; display: flex;
-            align-items: center; gap: 10px; font-size: 0.88rem; color: #f0f0f5;
+            align-items: center; gap: 10px; font-size: 0.88rem; color: #111111;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 3px solid #E5E7EB;
         }
-        .toast.success { border-color: rgba(0, 200, 83, 0.3); }
-        .toast.error { border-color: rgba(255, 71, 87, 0.3); }
+        .toast.success { border-left-color: #10B981; }
+        .toast.error { border-left-color: #EF4444; }
         .toast .toast-icon { font-size: 1.1rem; }
 
         /* App Footer */
         #app-section .footer {
-            border-top: 1px solid rgba(255,255,255,0.06); padding: 3rem 2rem; text-align: center;
+            border-top: 1px solid #E5E7EB; padding: 3rem 2rem; text-align: center;
+            background: #FFFFFF;
         }
         #app-section .footer-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
         #app-section .footer-logo {
             font-size: 1.1rem; font-weight: 800;
-            background: linear-gradient(135deg, #00d4ff, #7b61ff);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            color: #111111;
         }
         #app-section .footer-links { display: flex; gap: 2rem; }
-        #app-section .footer-links a { color: #5a5f6a; text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
-        #app-section .footer-links a:hover { color: #8a8f98; }
+        #app-section .footer-links a { color: #9CA3AF; text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+        #app-section .footer-links a:hover { color: #6B7280; }
 
         /* Modals */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
             display: flex; align-items: center; justify-content: center;
             z-index: 10000; animation: fadeIn 0.2s;
         }
         .modal-box {
-            background: #0f1016; border: 1px solid rgba(255,255,255,0.06);
+            background: #FFFFFF; border: 1px solid #E5E7EB;
             border-radius: 16px; padding: 2rem; max-width: 420px; width: 90%;
-            animation: fadeInUp 0.2s; color: #f0f0f5;
+            animation: fadeInUp 0.2s; color: #111111;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
         }
-        .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem; }
-        .modal-desc { color: #8a8f98; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5; }
+        .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem; color: #111111; }
+        .modal-desc { color: #6B7280; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5; }
         .modal-field { margin-bottom: 0.75rem; }
-        .modal-field label { display: block; font-size: 0.82rem; font-weight: 600; color: #8a8f98; margin-bottom: 4px; }
+        .modal-field label { display: block; font-size: 0.82rem; font-weight: 600; color: #6B7280; margin-bottom: 4px; }
         .modal-field input, .modal-field select {
-            width: 100%; background: rgba(15,16,22,0.8); border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 12px; color: #f0f0f5; font-family: 'Inter', sans-serif;
+            width: 100%; background: #FFFFFF; border: 1px solid #D1D5DB;
+            border-radius: 12px; color: #111111; font-family: 'Inter', sans-serif;
             font-size: 0.9rem; padding: 10px 14px; transition: border-color 0.2s;
         }
-        .modal-field input:focus, .modal-field select:focus { outline: none; border-color: rgba(0,212,255,0.3); }
+        .modal-field input:focus, .modal-field select:focus { outline: none; border-color: #111111; }
         .modal-field .input-with-btn { display: flex; gap: 0.5rem; }
         .modal-field .input-with-btn input { flex: 1; }
         .modal-field .input-with-btn .btn-max {
-            background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2);
-            color: #00d4ff; border-radius: 8px; padding: 0 14px; font-weight: 600;
+            background: #F3F4F6; border: 1px solid #E5E7EB;
+            color: #111111; border-radius: 8px; padding: 0 14px; font-weight: 600;
             font-size: 0.82rem; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
         }
-        .modal-field .input-with-btn .btn-max:hover { background: rgba(0,212,255,0.2); }
+        .modal-field .input-with-btn .btn-max:hover { background: #E5E7EB; }
         .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
-        .modal-actions .btn { padding: 10px 24px; border-radius: 12px; font-weight: 600; font-size: 0.88rem; border: none; cursor: pointer; font-family: 'Inter', sans-serif; }
-        .modal-actions .modal-cancel-btn { background: transparent; color: #f0f0f5; border: 1px solid rgba(255,255,255,0.06); }
-        .modal-actions .modal-confirm-btn { background: linear-gradient(135deg, #00d4ff, #7b61ff); color: white; }
+        .modal-actions .btn { padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; border: none; cursor: pointer; font-family: 'Inter', sans-serif; }
+        .modal-actions .modal-cancel-btn { background: #FFFFFF; color: #111111; border: 1px solid #E5E7EB; }
+        .modal-actions .modal-confirm-btn { background: #111111; color: white; }
         .modal-toggle { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
-        .modal-toggle label { font-size: 0.88rem; color: #8a8f98; cursor: pointer; }
+        .modal-toggle label { font-size: 0.88rem; color: #6B7280; cursor: pointer; }
 
         /* ============ RESPONSIVE ============ */
         @media (max-width: 900px) {
@@ -1032,9 +1015,10 @@
                 SpendControl
             </div>
             <div class="navbar-links">
-                <a href="#how-it-works">How It Works</a>
-                <a href="#features">Features</a>
-                <a href="#developers">Developers</a>
+                <a href="#how-it-works" class="landing-nav-link">How It Works</a>
+                <a href="#features" class="landing-nav-link">Features</a>
+                <a href="#developers" class="landing-nav-link">Developers</a>
+                <a href="#" class="back-to-home" onclick="scrollToTop(); return false;">&larr; Back to Home</a>
                 <button class="nav-connect-btn" id="connectBtn" onclick="handleConnect()">Launch App</button>
             </div>
         </div>
@@ -1368,7 +1352,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                         <span class="hint">The wallet address your AI agent will use to spend</span>
                     </div>
                 </div>
-                <p style="color: #8a8f98; font-size: 0.85rem; margin: 0.75rem 0;">
+                <p style="color: #6B7280; font-size: 0.85rem; margin: 0.75rem 0;">
                     After creating the vault, you'll set spending limits per token (e.g. "100 USDC/day" or "0.05 WETH/tx").
                 </p>
                 <button class="btn btn-gradient" id="createVaultBtn" onclick="createVault()">Create Vault</button>
@@ -1405,8 +1389,8 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                         <h3>Deposit Funds</h3>
 
                         <!-- ETH Deposit -->
-                        <div style="background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
-                            <div style="font-weight: 600; margin-bottom: 0.5rem; color: #00d4ff;">Deposit ETH</div>
+                        <div style="background: #F3F4F6; border: 1px solid #E5E7EB; border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+                            <div style="font-weight: 600; margin-bottom: 0.5rem; color: #111111;">Deposit ETH</div>
                             <p class="card-desc" style="margin-bottom: 0.75rem;">Send ETH directly. Auto-wraps to WETH inside the vault.</p>
                             <div style="display:flex; gap:0.75rem; align-items:end;">
                                 <div class="form-group" style="flex:1; margin-bottom:0;">
@@ -1791,17 +1775,14 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
         const appSection = document.getElementById('app-section');
         appSection.style.display = 'block';
         appSection.classList.add('active');
-        // Apply dark theme to body-level elements
-        document.body.classList.add('app-dark');
-        document.body.style.background = '#0a0b0f';
+        document.getElementById('navbar').classList.add('app-mode');
     }
 
     function scrollToTop() {
         document.getElementById('landing-section').style.display = '';
         document.getElementById('app-section').style.display = 'none';
         document.getElementById('app-section').classList.remove('active');
-        document.body.classList.remove('app-dark');
-        document.body.style.background = '';
+        document.getElementById('navbar').classList.remove('app-mode');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -2057,19 +2038,19 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                     ? `<div style="color:var(--orange);font-size:0.78rem;margin-top:0.35rem;">&#9888;&#65039; No limits set — agent can't spend this token</div>`
                     : '';
 
-                html += `<div class="token-card" style="background:rgba(15,16,22,0.6);border:1px solid ${hasLimits ? 'rgba(255,255,255,0.06)' : 'var(--orange)'};border-radius:12px;padding:1rem;margin-bottom:0.75rem;">
+                html += `<div class="token-card" style="background:#FFFFFF;border:1px solid ${hasLimits ? '#E5E7EB' : '#F59E0B'};border-radius:12px;padding:1rem;margin-bottom:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
                         <div>
-                            <span style="font-weight:700;font-size:1.1rem;color:#f0f0f5;">${symbol}</span>
-                            <span style="color:#5a5f6a;font-size:0.78rem;margin-left:0.5rem;">${tokenAddr.slice(0,6)}...${tokenAddr.slice(-4)}</span>
+                            <span style="font-weight:700;font-size:1.1rem;color:#111111;">${symbol}</span>
+                            <span style="color:#9CA3AF;font-size:0.78rem;margin-left:0.5rem;">${tokenAddr.slice(0,6)}...${tokenAddr.slice(-4)}</span>
                         </div>
-                        <span style="font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,#00d4ff,#7b61ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${fmt(balance)}</span>
+                        <span style="font-size:1.2rem;font-weight:700;color:#111111;">${fmt(balance)}</span>
                     </div>
                     ${hasLimits ? `
-                    <div style="display:flex;gap:1rem;font-size:0.82rem;color:#8a8f98;margin-bottom:0.35rem;">
-                        <span>Daily: <strong style="color:#f0f0f5;">${fmt(effDaily)}</strong></span>
-                        <span>Per-Tx: <strong style="color:#f0f0f5;">${fmt(effPerTx)}</strong></span>
-                        <span>Left today: <strong style="color:#00c853;">${fmt(remaining)}</strong></span>
+                    <div style="display:flex;gap:1rem;font-size:0.82rem;color:#6B7280;margin-bottom:0.35rem;">
+                        <span>Daily: <strong style="color:#111111;">${fmt(effDaily)}</strong></span>
+                        <span>Per-Tx: <strong style="color:#111111;">${fmt(effPerTx)}</strong></span>
+                        <span>Left today: <strong style="color:#10B981;">${fmt(remaining)}</strong></span>
                     </div>` : ''}
                     ${noLimitsWarning}
                     <div style="margin-top:0.5rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;" id="editLimits_${tokenAddr}">
@@ -2082,8 +2063,8 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                     </div>
                 </div>`;
             } catch (e) {
-                html += `<div style="background:rgba(15,16,22,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:1rem;margin-bottom:0.75rem;">
-                    <span class="mono" style="font-size:0.78rem;color:#5a5f6a;">${tokenAddr.slice(0,10)}...</span>
+                html += `<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:12px;padding:1rem;margin-bottom:0.75rem;">
+                    <span class="mono" style="font-size:0.78rem;color:#9CA3AF;">${tokenAddr.slice(0,10)}...</span>
                     <span style="float:right;">--</span>
                 </div>`;
             }
@@ -2104,12 +2085,12 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
         container.innerHTML = `
             <div class="edit-limits-form" style="display:flex;gap:0.5rem;align-items:end;flex-wrap:wrap;margin-top:0.25rem;">
                 <div style="flex:1;min-width:100px;">
-                    <label style="font-size:0.72rem;color:#5a5f6a;display:block;margin-bottom:2px;">Daily (${symbol})</label>
-                    <input type="text" id="editDaily_${tokenAddr}" placeholder="100" style="width:100%;padding:6px 10px;background:#0a0b0f;border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#f0f0f5;font-size:0.85rem;" />
+                    <label style="font-size:0.72rem;color:#9CA3AF;display:block;margin-bottom:2px;">Daily (${symbol})</label>
+                    <input type="text" id="editDaily_${tokenAddr}" placeholder="100" style="width:100%;padding:6px 10px;background:#FFFFFF;border:1px solid #D1D5DB;border-radius:8px;color:#111111;font-size:0.85rem;" />
                 </div>
                 <div style="flex:1;min-width:100px;">
-                    <label style="font-size:0.72rem;color:#5a5f6a;display:block;margin-bottom:2px;">Per-Tx (${symbol})</label>
-                    <input type="text" id="editPerTx_${tokenAddr}" placeholder="50" style="width:100%;padding:6px 10px;background:#0a0b0f;border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#f0f0f5;font-size:0.85rem;" />
+                    <label style="font-size:0.72rem;color:#9CA3AF;display:block;margin-bottom:2px;">Per-Tx (${symbol})</label>
+                    <input type="text" id="editPerTx_${tokenAddr}" placeholder="50" style="width:100%;padding:6px 10px;background:#FFFFFF;border:1px solid #D1D5DB;border-radius:8px;color:#111111;font-size:0.85rem;" />
                 </div>
                 <button class="btn btn-gradient btn-sm" style="font-size:0.78rem;padding:6px 16px;height:34px;" onclick="saveTokenLimits('${tokenAddr}', ${decimals})">Save</button>
                 <button class="btn btn-outline btn-sm" style="font-size:0.78rem;padding:6px 12px;height:34px;" onclick="toggleEditLimits('${tokenAddr}', '${symbol}', ${decimals})">Cancel</button>
@@ -2145,7 +2126,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
 
         showModal({
             title: `Withdraw ${symbol}`,
-            description: `Available balance: <strong style="color:#f0f0f5;">${fmtBalance} ${symbol}</strong>`,
+            description: `Available balance: <strong style="color:#111111;">${fmtBalance} ${symbol}</strong>`,
             fields: [
                 { id: 'amount', label: 'Amount to withdraw', placeholder: '0.0', maxBtn: true, maxValue: fmtBalance }
             ],
@@ -2334,13 +2315,13 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
         if (!banner) {
             banner = document.createElement('div');
             banner.id = 'limitsAlertBanner';
-            banner.style.cssText = 'background:linear-gradient(135deg,rgba(0,212,255,0.12),rgba(123,97,255,0.12));border:1px solid #00d4ff;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;animation:fadeInUp 0.3s ease;';
+            banner.style.cssText = 'background:#FEF3C7;border:1px solid #F59E0B;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;animation:fadeInUp 0.3s ease;';
             const dashboard = document.getElementById('vaultDashboard');
             if (dashboard) dashboard.prepend(banner);
         }
         banner.innerHTML = `
-            <div style="font-weight:700;font-size:1.05rem;margin-bottom:0.5rem;color:#00d4ff;">&#9888;&#65039; Set spending limits for ${symbol}</div>
-            <p style="color:#8a8f98;margin-bottom:0.75rem;line-height:1.5;">
+            <div style="font-weight:700;font-size:1.05rem;margin-bottom:0.5rem;color:#92400E;">&#9888;&#65039; Set spending limits for ${symbol}</div>
+            <p style="color:#6B7280;margin-bottom:0.75rem;line-height:1.5;">
                 You deposited ${symbol} but haven't set spending limits yet. <strong>Your agent can't spend until you set limits.</strong>
                 Scroll down to "Spending Rules" and set daily + per-tx limits for this token.
             </p>
