@@ -1517,59 +1517,152 @@ cast send <span class="code-var">$VAULT</span> \
 
                     <!-- Connect Your Agent -->
                     <div class="app-section agent-connect-section" id="agentConnectSection">
-                        <h2>Connect Your Agent</h2>
-                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem; line-height: 1.6;">
-                            Your vault is ready. Use one of these snippets to connect your AI agent. Replace placeholder values with your vault address and agent key.
+                        <h2>Next Step: Connect Your Agent</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.7;">
+                            Your vault is live and funded. Now your AI agent needs to know how to use it.
+                            The agent will call the vault contract to check its budget and spend yield.
+                            Here's how to set it up depending on what kind of agent you run:
                         </p>
+
+                        <!-- Step-by-step -->
+                        <div style="background: rgba(0,212,255,0.04); border: 1px solid rgba(0,212,255,0.12); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+                            <div style="font-weight: 600; margin-bottom: 0.75rem; color: var(--accent-cyan);">What your agent needs:</div>
+                            <div style="display: grid; gap: 0.5rem;">
+                                <div style="display: flex; gap: 0.75rem; align-items: start;">
+                                    <span style="color: var(--accent-cyan); font-weight: 700; min-width: 20px;">1.</span>
+                                    <div>
+                                        <strong>Vault address</strong> — <code id="copyVaultAddr" style="background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; cursor: pointer;" onclick="navigator.clipboard.writeText(this.textContent);toast('Copied!')">loading...</code>
+                                        <div style="color: var(--text-tertiary); font-size: 0.8rem; margin-top: 2px;">The smart contract your agent talks to</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.75rem; align-items: start;">
+                                    <span style="color: var(--accent-cyan); font-weight: 700; min-width: 20px;">2.</span>
+                                    <div>
+                                        <strong>Agent's private key</strong> — the key for the wallet you set as "Agent Address" when creating the vault
+                                        <div style="color: var(--text-tertiary); font-size: 0.8rem; margin-top: 2px;">Only this wallet can spend from the vault. Keep it safe.</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.75rem; align-items: start;">
+                                    <span style="color: var(--accent-cyan); font-weight: 700; min-width: 20px;">3.</span>
+                                    <div>
+                                        <strong>RPC URL</strong> — <code style="background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px; font-size: 0.85rem;">https://sepolia.base.org</code>
+                                        <div style="color: var(--text-tertiary); font-size: 0.8rem; margin-top: 2px;">Base Sepolia testnet. Switch to mainnet RPC for production.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- What the agent can do -->
+                        <div style="background: rgba(123,97,255,0.04); border: 1px solid rgba(123,97,255,0.12); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+                            <div style="font-weight: 600; margin-bottom: 0.75rem; color: var(--accent-purple);">What your agent can do:</div>
+                            <div style="display: grid; gap: 0.4rem; color: var(--text-secondary); font-size: 0.9rem;">
+                                <div><code style="color: var(--accent-cyan);">check_budget()</code> — see how much yield is available to spend</div>
+                                <div><code style="color: var(--accent-cyan);">spend(to, amount)</code> — send wstETH from yield to any address</div>
+                                <div><code style="color: var(--accent-cyan);">spend_and_swap(token, amount)</code> — swap yield to USDC via Uniswap, then pay</div>
+                                <div><code style="color: var(--accent-cyan);">get_history()</code> — see all past transactions</div>
+                            </div>
+                        </div>
+
+                        <div style="font-weight: 600; margin-bottom: 0.75rem; font-size: 1.05rem;">Choose your setup:</div>
+
                         <div class="code-tabs" id="agentCodeTabs">
-                            <button class="code-tab active" onclick="switchAgentTab('agent-python')">Python SDK</button>
-                            <button class="code-tab" onclick="switchAgentTab('agent-claude')">Claude Code</button>
-                            <button class="code-tab" onclick="switchAgentTab('agent-curl')">curl / cast</button>
+                            <button class="code-tab active" onclick="switchAgentTab('agent-python')">Python Agent</button>
+                            <button class="code-tab" onclick="switchAgentTab('agent-claude')">Claude Code / LLM</button>
+                            <button class="code-tab" onclick="switchAgentTab('agent-curl')">Terminal (cast)</button>
                         </div>
                         <div class="code-block-wrapper">
                             <button class="code-copy-btn" onclick="copyAgentCode(this)">Copy</button>
                             <div class="code-block active" id="agentCode-agent-python">
-<pre><span class="code-keyword">from</span> yieldvault <span class="code-keyword">import</span> YieldVaultAgent
+<pre><span class="code-comment"># 1. Install the SDK</span>
+pip install yieldvault
 
-agent = YieldVaultAgent(
-    vault_address=<span class="code-string">"<span class="vault-addr-placeholder">0xYourVault</span>"</span>,
-    private_key=os.environ[<span class="code-string">"AGENT_PRIVATE_KEY"</span>],
-    rpc_url=<span class="code-string">"https://sepolia.base.org"</span>
+<span class="code-comment"># 2. Set environment variables</span>
+export VAULT_ADDRESS="<span class="vault-addr-placeholder">0xYourVault</span>"
+export AGENT_PRIVATE_KEY="0xYourAgentPrivateKey"
+export RPC_URL="https://sepolia.base.org"
+
+<span class="code-comment"># 3. In your agent's code:</span>
+<span class="code-keyword">from</span> yieldvault <span class="code-keyword">import</span> VaultClient
+
+client = VaultClient(
+    rpc_url=os.environ[<span class="code-string">"RPC_URL"</span>],
+    vault_address=os.environ[<span class="code-string">"VAULT_ADDRESS"</span>],
+    agent_private_key=os.environ[<span class="code-string">"AGENT_PRIVATE_KEY"</span>],
 )
 
-<span class="code-comment"># Your agent can now spend yield autonomously</span>
-<span class="code-keyword">if</span> agent.remaining_daily_budget() > <span class="code-number">0</span>:
-    agent.spend(to=<span class="code-string">"0xService..."</span>, amount=<span class="code-string">"0.001"</span>)</pre>
+<span class="code-comment"># Check how much budget the agent has</span>
+budget = client.check_budget()
+print(f<span class="code-string">"Available: {budget['available_yield']} wei"</span>)
+
+<span class="code-comment"># Spend yield to pay for something</span>
+tx = client.spend(to_address=<span class="code-string">"0xServiceAddress"</span>, amount_wei=<span class="code-number">1000000000000000</span>)
+
+<span class="code-comment"># Or swap yield to USDC first, then pay</span>
+tx = client.spend_and_swap(
+    token_out=<span class="code-string">"0xUSDC_ADDRESS"</span>,
+    fee=<span class="code-number">3000</span>,
+    amount_in_wei=<span class="code-number">1000000000000000</span>,
+    amount_out_minimum=<span class="code-number">0</span>,
+    to_address=client.address,
+)</pre>
                             </div>
                             <div class="code-block" id="agentCode-agent-claude">
-<pre><span class="code-comment">// Claude Code tool definition</span>
-<span class="code-keyword">const</span> VAULT = <span class="code-string">"<span class="vault-addr-placeholder">0xYourVault</span>"</span>;
-<span class="code-keyword">const</span> signer = <span class="code-keyword">new</span> ethers.Wallet(
-  process.env.AGENT_KEY,
-  <span class="code-keyword">new</span> ethers.JsonRpcProvider(<span class="code-string">"https://sepolia.base.org"</span>)
-);
-<span class="code-keyword">const</span> vault = <span class="code-keyword">new</span> ethers.Contract(VAULT, VAULT_ABI, signer);
+<pre><span class="code-comment"># If you use Claude Code, OpenClaw, Cursor, or any LLM agent,
+# just paste this into your agent's system prompt or context:</span>
 
-<span class="code-comment">// Tool: check_budget</span>
-<span class="code-keyword">const</span> yield_ = <span class="code-keyword">await</span> vault.availableYield();
-<span class="code-keyword">const</span> daily = <span class="code-keyword">await</span> vault.remainingDailyBudget();
+You have access to a YieldVault on Base Sepolia.
+Your vault address: <span class="vault-addr-placeholder">0xYourVault</span>
+Your wallet private key is in the AGENT_PRIVATE_KEY env variable.
+RPC: https://sepolia.base.org
 
-<span class="code-comment">// Tool: spend</span>
-<span class="code-keyword">await</span> vault.spend(recipientAddr, ethers.parseEther(<span class="code-string">"0.001"</span>));</pre>
+To manage your budget, use the YieldVault Python SDK:
+  pip install yieldvault
+
+  from yieldvault import VaultClient
+  client = VaultClient(rpc_url, vault_address, agent_key)
+
+Available commands:
+  client.check_budget()     → how much yield you can spend
+  client.spend(to, amount)  → send wstETH to an address
+  client.spend_and_swap()   → swap yield to USDC via Uniswap
+  client.get_history()      → your past transactions
+
+Rules:
+  - You can ONLY spend yield (profit from staking), never the principal
+  - Daily limit and per-tx limit are enforced by the smart contract
+  - If you exceed limits, the transaction will revert
+  - Check budget before every spend</pre>
                             </div>
                             <div class="code-block" id="agentCode-agent-curl">
-<pre><span class="code-comment"># Set your vault address</span>
+<pre><span class="code-comment"># Set your vault address and agent key</span>
 <span class="code-var">VAULT</span>=<span class="code-string">"<span class="vault-addr-placeholder">0xYourVault</span>"</span>
+<span class="code-var">AGENT_KEY</span>=<span class="code-string">"0xYourAgentPrivateKey"</span>
+<span class="code-var">RPC</span>=<span class="code-string">"https://sepolia.base.org"</span>
 
-<span class="code-comment"># Check available yield</span>
-cast call <span class="code-var">$VAULT</span> <span class="code-string">"availableYield()(uint256)"</span> \
-  --rpc-url https://sepolia.base.org
+<span class="code-comment"># Check available budget (yield)</span>
+cast call $VAULT <span class="code-string">"availableYield()(uint256)"</span> --rpc-url $RPC
 
-<span class="code-comment"># Spend yield</span>
-cast send <span class="code-var">$VAULT</span> \
-  <span class="code-string">"spend(address,uint256)"</span> <span class="code-var">$TO</span> <span class="code-number">1000000000000000</span> \
-  --private-key <span class="code-var">$AGENT_KEY</span> \
-  --rpc-url https://sepolia.base.org</pre>
+<span class="code-comment"># Check daily budget remaining</span>
+cast call $VAULT <span class="code-string">"remainingDailyBudget()(uint256)"</span> --rpc-url $RPC
+
+<span class="code-comment"># Agent spends 0.001 wstETH from yield</span>
+cast send $VAULT \
+  <span class="code-string">"spend(address,uint256)"</span> \
+  0xRecipientAddress \
+  1000000000000000 \
+  --private-key $AGENT_KEY \
+  --rpc-url $RPC
+
+<span class="code-comment"># Check full vault stats</span>
+cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,uint256,uint256)"</span> --rpc-url $RPC</pre>
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(0,200,83,0.04); border: 1px solid rgba(0,200,83,0.12); border-radius: var(--radius-md); padding: 1rem; margin-top: 1.25rem;">
+                            <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--green);">That's it!</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                                Once your agent has the vault address and its private key, it can autonomously check its budget and spend yield.
+                                You'll see every transaction in the Activity Log above. The agent can never exceed the limits you set or touch your principal.
                             </div>
                         </div>
                     </div>
@@ -1888,6 +1981,8 @@ cast send <span class="code-var">$VAULT</span> \
         document.querySelectorAll('.vault-addr-placeholder').forEach(el => {
             el.textContent = addr;
         });
+        const copyEl = document.getElementById('copyVaultAddr');
+        if (copyEl) copyEl.textContent = addr;
 
         try {
             const [principal, balance, yield_, spent, dailyLeft] = await currentVault.getStats();
