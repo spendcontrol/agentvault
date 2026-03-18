@@ -73,7 +73,7 @@ contract AgentVault {
     // --- Events ---
     event Deposited(address indexed owner, address indexed token, uint256 amount);
     event Withdrawn(address indexed owner, address indexed token, uint256 amount);
-    event StakedETH(address indexed owner, uint256 ethAmount, uint256 wstETHReceived);
+    event StakedETH(address indexed owner, uint256 ethAmount, uint256 wstETHReceived, bool yieldOnly);
     event AgentSpent(address indexed agent, address indexed token, address indexed to, uint256 amount, string reason);
     event AgentUpdated(address indexed oldAgent, address indexed newAgent);
     event LimitsUpdated(uint256 dailyLimit, uint256 perTxLimit);
@@ -117,6 +117,10 @@ contract AgentVault {
     // Lido integration (optional, set to 0x0 if not needed)
     address public immutable stETH;
     address public immutable wstETH;
+
+    // Yield-only mode for staked ETH
+    uint256 public stakedPrincipal;     // wstETH amount locked as principal
+    bool public yieldOnly;              // if true, agent can only spend yield from wstETH
 
     // Uniswap (optional)
     address public immutable swapRouter;
@@ -183,8 +187,9 @@ contract AgentVault {
         emit Deposited(msg.sender, token, amount);
     }
 
-    /// @notice Stake ETH via Lido → get wstETH in the vault (optional feature)
-    function stakeETH() external payable onlyOwner nonReentrant {
+    /// @notice Stake ETH via Lido → get wstETH in the vault
+    /// @param _yieldOnly If true, agent can only spend yield (principal is locked)
+    function stakeETH(bool _yieldOnly) external payable onlyOwner nonReentrant {
         if (msg.value == 0) revert ZeroAmount();
         require(stETH != address(0) && wstETH != address(0), "Lido not configured");
 
@@ -200,8 +205,39 @@ contract AgentVault {
         IWstETH(wstETH).wrap(stETHReceived);
         uint256 wstETHReceived = IERC20(wstETH).balanceOf(address(this)) - wstETHBefore;
 
+        // Record principal if yield-only mode
+        if (_yieldOnly) {
+            stakedPrincipal += wstETHReceived;
+            yieldOnly = true;
+        }
+
         _addToken(wstETH);
-        emit StakedETH(msg.sender, msg.value, wstETHReceived);
+        emit StakedETH(msg.sender, msg.value, wstETHReceived, _yieldOnly);
+    }
+
+    // =============================================
+    // VIEW: Yield from staking
+    // =============================================
+
+    /// @notice Available yield from staked ETH (wstETH balance minus locked principal)
+    function availableYield() public view returns (uint256) {
+        if (wstETH == address(0)) return 0;
+        uint256 balance = IERC20(wstETH).balanceOf(address(this));
+        if (balance <= stakedPrincipal) return 0;
+        return balance - stakedPrincipal;
+    }
+
+    /// @notice Owner can withdraw staked principal
+    function withdrawPrincipal(uint256 amount) external onlyOwner nonReentrant {
+        if (amount > stakedPrincipal) revert ExceedsBudget();
+        stakedPrincipal -= amount;
+        IERC20(wstETH).safeTransfer(owner, amount);
+        emit Withdrawn(owner, wstETH, amount);
+    }
+
+    /// @notice Owner toggles yield-only mode
+    function setYieldOnly(bool _yieldOnly) external onlyOwner {
+        yieldOnly = _yieldOnly;
     }
 
     // =============================================
@@ -334,7 +370,14 @@ contract AgentVault {
         if (to == address(0)) revert ZeroAddress();
         if (amount == 0) revert ZeroAmount();
         if (!supportedTokens[token]) revert TokenNotSupported();
-        if (amount > IERC20(token).balanceOf(address(this))) revert ExceedsBudget();
+
+        // If yield-only mode is on and this is wstETH, can only spend yield
+        if (yieldOnly && token == wstETH) {
+            if (amount > availableYield()) revert ExceedsBudget();
+        } else {
+            if (amount > IERC20(token).balanceOf(address(this))) revert ExceedsBudget();
+        }
+
         if (amount > perTxLimit) revert ExceedsPerTxLimit();
         uint256 today = block.timestamp / 1 days;
         if (dailySpent[token][today] + amount > dailyLimit) revert ExceedsDailyLimit();

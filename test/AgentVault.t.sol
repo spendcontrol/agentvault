@@ -76,10 +76,77 @@ contract AgentVaultTest is Test {
 
     function test_stakeETH() public {
         vm.prank(owner);
-        vault.stakeETH{value: 5 ether}();
+        vault.stakeETH{value: 5 ether}(false);
 
         assertEq(vault.balanceOf(address(wstETHMock)), 5 ether);
         assertTrue(vault.supportedTokens(address(wstETHMock)));
+        assertEq(vault.stakedPrincipal(), 0); // not yield-only
+    }
+
+    function test_stakeETH_yieldOnly() public {
+        vm.prank(owner);
+        vault.stakeETH{value: 10 ether}(true);
+
+        assertEq(vault.stakedPrincipal(), 10 ether);
+        assertTrue(vault.yieldOnly());
+        assertEq(vault.availableYield(), 0); // no yield yet
+    }
+
+    function test_yieldOnly_agentCanSpendOnlyYield() public {
+        // Create vault with ETH-scale limits
+        vm.prank(owner);
+        address vAddr = factory.createVault(agent, 10 ether, 5 ether);
+        AgentVault yVault = AgentVault(vAddr);
+
+        // Stake with yield-only
+        vm.prank(owner);
+        yVault.stakeETH{value: 10 ether}(true);
+
+        // Agent tries to spend — no yield yet, should fail
+        vm.prank(agent);
+        vm.expectRevert(AgentVault.ExceedsBudget.selector);
+        yVault.spend(address(wstETHMock), recipient, 0.1 ether);
+
+        // Simulate yield: mint extra wstETH to vault
+        wstETHMock.mint(address(yVault), 0.5 ether);
+
+        // Now agent can spend yield
+        assertEq(yVault.availableYield(), 0.5 ether);
+
+        vm.prank(agent);
+        yVault.spend(address(wstETHMock), recipient, 0.3 ether, "Paid from yield");
+
+        assertEq(wstETHMock.balanceOf(recipient), 0.3 ether);
+        assertEq(yVault.availableYield(), 0.2 ether);
+        // Principal untouched
+        assertEq(yVault.stakedPrincipal(), 10 ether);
+    }
+
+    function test_yieldOnly_ownerCanWithdrawPrincipal() public {
+        vm.prank(owner);
+        vault.stakeETH{value: 10 ether}(true);
+
+        vm.prank(owner);
+        vault.withdrawPrincipal(5 ether);
+
+        assertEq(vault.stakedPrincipal(), 5 ether);
+        assertEq(wstETHMock.balanceOf(owner), 5 ether);
+    }
+
+    function test_yieldOnly_normalTokensUnaffected() public {
+        // Stake ETH in yield-only mode
+        vm.prank(owner);
+        vault.stakeETH{value: 1 ether}(true);
+
+        // Also deposit USDC normally
+        vm.prank(owner);
+        vault.deposit(address(usdc), 5_000e6);
+
+        // Agent can freely spend USDC (not affected by yieldOnly)
+        vm.prank(agent);
+        vault.spend(address(usdc), recipient, 100e6, "USDC payment");
+
+        assertEq(usdc.balanceOf(recipient), 100e6);
     }
 
     // --- Agent spend ---
@@ -258,7 +325,7 @@ contract AgentVaultTest is Test {
 
         // Owner stakes ETH → wstETH
         vm.prank(owner);
-        ethVault.stakeETH{value: 10 ether}();
+        ethVault.stakeETH{value: 10 ether}(false);
 
         // Agent spends wstETH
         vm.prank(agent);
