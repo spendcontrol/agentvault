@@ -1,7 +1,7 @@
-"""Minimal ABIs for YieldVault and YieldVaultFactory contracts."""
+"""Minimal ABIs for AgentVault and AgentVaultFactory contracts."""
 
-YIELD_VAULT_ABI = [
-    # --- State variables (auto-generated getters) ---
+AGENT_VAULT_ABI = [
+    # --- State variables ---
     {
         "inputs": [],
         "name": "owner",
@@ -18,14 +18,21 @@ YIELD_VAULT_ABI = [
     },
     {
         "inputs": [],
-        "name": "principalWstETH",
+        "name": "token",
+        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+        "stateMutability": "view",
+        "type": "function",
+    },
+    {
+        "inputs": [],
+        "name": "totalDeposited",
         "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
         "stateMutability": "view",
         "type": "function",
     },
     {
         "inputs": [],
-        "name": "totalYieldSpent",
+        "name": "totalSpent",
         "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
         "stateMutability": "view",
         "type": "function",
@@ -54,7 +61,7 @@ YIELD_VAULT_ABI = [
     # --- View functions ---
     {
         "inputs": [],
-        "name": "availableYield",
+        "name": "availableBudget",
         "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
         "stateMutability": "view",
         "type": "function",
@@ -70,12 +77,19 @@ YIELD_VAULT_ABI = [
         "inputs": [],
         "name": "getStats",
         "outputs": [
-            {"internalType": "uint256", "name": "_principal", "type": "uint256"},
-            {"internalType": "uint256", "name": "_currentBalance", "type": "uint256"},
-            {"internalType": "uint256", "name": "_availableYield", "type": "uint256"},
-            {"internalType": "uint256", "name": "_totalYieldSpent", "type": "uint256"},
+            {"internalType": "uint256", "name": "_balance", "type": "uint256"},
+            {"internalType": "uint256", "name": "_totalDeposited", "type": "uint256"},
+            {"internalType": "uint256", "name": "_totalSpent", "type": "uint256"},
+            {"internalType": "uint256", "name": "_availableBudget", "type": "uint256"},
             {"internalType": "uint256", "name": "_remainingDailyBudget", "type": "uint256"},
         ],
+        "stateMutability": "view",
+        "type": "function",
+    },
+    {
+        "inputs": [],
+        "name": "expenseCount",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
         "stateMutability": "view",
         "type": "function",
     },
@@ -99,11 +113,36 @@ YIELD_VAULT_ABI = [
     },
     {
         "inputs": [
+            {"internalType": "address", "name": "to", "type": "address"},
+            {"internalType": "uint256", "name": "amount", "type": "uint256"},
+            {"internalType": "string", "name": "reason", "type": "string"},
+        ],
+        "name": "spend",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "inputs": [
             {"internalType": "address", "name": "tokenOut", "type": "address"},
             {"internalType": "uint24", "name": "fee", "type": "uint24"},
             {"internalType": "uint256", "name": "amountIn", "type": "uint256"},
             {"internalType": "uint256", "name": "amountOutMinimum", "type": "uint256"},
             {"internalType": "address", "name": "to", "type": "address"},
+        ],
+        "name": "spendAndSwap",
+        "outputs": [{"internalType": "uint256", "name": "amountOut", "type": "uint256"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "tokenOut", "type": "address"},
+            {"internalType": "uint24", "name": "fee", "type": "uint24"},
+            {"internalType": "uint256", "name": "amountIn", "type": "uint256"},
+            {"internalType": "uint256", "name": "amountOutMinimum", "type": "uint256"},
+            {"internalType": "address", "name": "to", "type": "address"},
+            {"internalType": "string", "name": "reason", "type": "string"},
         ],
         "name": "spendAndSwap",
         "outputs": [{"internalType": "uint256", "name": "amountOut", "type": "uint256"}],
@@ -117,53 +156,22 @@ YIELD_VAULT_ABI = [
             {"indexed": True, "internalType": "address", "name": "agent", "type": "address"},
             {"indexed": True, "internalType": "address", "name": "to", "type": "address"},
             {"indexed": False, "internalType": "uint256", "name": "amount", "type": "uint256"},
+            {"indexed": False, "internalType": "string", "name": "reason", "type": "string"},
         ],
-        "name": "YieldWithdrawn",
+        "name": "AgentSpent",
         "type": "event",
     },
     {
         "anonymous": False,
         "inputs": [
-            {"indexed": True, "internalType": "address", "name": "owner", "type": "address"},
-            {"indexed": False, "internalType": "uint256", "name": "ethAmount", "type": "uint256"},
-            {"indexed": False, "internalType": "uint256", "name": "wstETHReceived", "type": "uint256"},
+            {"indexed": True, "internalType": "address", "name": "agent", "type": "address"},
+            {"indexed": True, "internalType": "address", "name": "tokenOut", "type": "address"},
+            {"indexed": False, "internalType": "uint256", "name": "amountIn", "type": "uint256"},
+            {"indexed": False, "internalType": "uint256", "name": "amountOut", "type": "uint256"},
+            {"indexed": True, "internalType": "address", "name": "to", "type": "address"},
+            {"indexed": False, "internalType": "string", "name": "reason", "type": "string"},
         ],
-        "name": "Deposited",
-        "type": "event",
-    },
-    {
-        "anonymous": False,
-        "inputs": [
-            {"indexed": True, "internalType": "address", "name": "oldAgent", "type": "address"},
-            {"indexed": True, "internalType": "address", "name": "newAgent", "type": "address"},
-        ],
-        "name": "AgentUpdated",
-        "type": "event",
-    },
-    {
-        "anonymous": False,
-        "inputs": [
-            {"indexed": False, "internalType": "uint256", "name": "dailyLimit", "type": "uint256"},
-            {"indexed": False, "internalType": "uint256", "name": "perTxLimit", "type": "uint256"},
-        ],
-        "name": "LimitsUpdated",
-        "type": "event",
-    },
-    {
-        "anonymous": False,
-        "inputs": [
-            {"indexed": True, "internalType": "address", "name": "addr", "type": "address"},
-            {"indexed": False, "internalType": "bool", "name": "status", "type": "bool"},
-        ],
-        "name": "WhitelistUpdated",
-        "type": "event",
-    },
-    {
-        "anonymous": False,
-        "inputs": [
-            {"indexed": False, "internalType": "bool", "name": "paused", "type": "bool"},
-        ],
-        "name": "Paused",
+        "name": "AgentSwapped",
         "type": "event",
     },
     {
@@ -172,15 +180,16 @@ YIELD_VAULT_ABI = [
             {"indexed": True, "internalType": "address", "name": "owner", "type": "address"},
             {"indexed": False, "internalType": "uint256", "name": "amount", "type": "uint256"},
         ],
-        "name": "PrincipalWithdrawn",
+        "name": "Deposited",
         "type": "event",
     },
 ]
 
-YIELD_VAULT_FACTORY_ABI = [
+AGENT_VAULT_FACTORY_ABI = [
     {
         "inputs": [
             {"internalType": "address", "name": "agent", "type": "address"},
+            {"internalType": "address", "name": "token", "type": "address"},
             {"internalType": "uint256", "name": "dailyLimit", "type": "uint256"},
             {"internalType": "uint256", "name": "perTxLimit", "type": "uint256"},
         ],
@@ -211,3 +220,7 @@ YIELD_VAULT_FACTORY_ABI = [
         "type": "function",
     },
 ]
+
+# Keep old names as aliases for backwards compatibility
+YIELD_VAULT_ABI = AGENT_VAULT_ABI
+YIELD_VAULT_FACTORY_ABI = AGENT_VAULT_FACTORY_ABI

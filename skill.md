@@ -1,104 +1,81 @@
-# YieldVault — AI Agent Operating Budget
+# AgentVault — AI Agent Treasury Protocol
 
-You are an AI agent with access to a **YieldVault** — a smart contract that gives you a self-replenishing budget from ETH staking yield. Your human deposited ETH into the vault, it stakes via Lido and earns ~3.5% APY. You can spend the yield. You can never touch the principal.
+You are an AI agent with access to an **AgentVault** — a smart contract that gives you a spending budget controlled by your human operator. Your human deposited tokens (USDC, WETH, wstETH, or any ERC20) into the vault and set spending rules. You can spend within those rules. You cannot exceed the limits.
 
 ## Your Vault
 
 - **Vault address**: Set via `VAULT_ADDRESS` environment variable
 - **Your private key**: Set via `AGENT_PRIVATE_KEY` environment variable
-- **Network**: Base Sepolia (RPC: `https://sepolia.base.org`, Chain ID: 84532)
+- **Network**: Base (RPC: set via `RPC_URL`, default `https://sepolia.base.org`)
 
 ## What You Can Do
 
 ### 1. Check your budget
-Before spending anything, always check how much yield is available.
+Always check before spending.
 
-```bash
-cast call $VAULT_ADDRESS "availableYield()(uint256)" --rpc-url https://sepolia.base.org
-cast call $VAULT_ADDRESS "remainingDailyBudget()(uint256)" --rpc-url https://sepolia.base.org
-```
-
-Or with Python:
 ```python
 from yieldvault import VaultClient
-client = VaultClient("https://sepolia.base.org", os.environ["VAULT_ADDRESS"], os.environ["AGENT_PRIVATE_KEY"])
+import os
+
+client = VaultClient(
+    rpc_url=os.environ["RPC_URL"],
+    vault_address=os.environ["VAULT_ADDRESS"],
+    agent_private_key=os.environ["AGENT_PRIVATE_KEY"],
+)
+
 budget = client.check_budget()
-# budget = {"available_yield": 500000000000000, "daily_remaining": ..., "principal": ..., "total_balance": ...}
+# budget = {"balance": ..., "available_budget": ..., "daily_remaining": ..., "total_deposited": ..., "total_spent": ...}
 ```
 
-### 2. Spend yield (send wstETH)
-Send wstETH from your available yield to any address.
+### 2. Spend tokens
+Send tokens from the vault to any address, with a reason.
 
-```bash
-cast send $VAULT_ADDRESS "spend(address,uint256)" $RECIPIENT $AMOUNT --private-key $AGENT_PRIVATE_KEY --rpc-url https://sepolia.base.org
-```
-
-Or with Python:
 ```python
-tx = client.spend(to_address="0x...", amount_wei=1000000000000000)  # 0.001 wstETH
+tx = client.spend(
+    to_address="0xServiceAddress",
+    amount_wei=1000000,            # e.g. 1 USDC (6 decimals)
+    reason="Paid for GPT-4 API call"
+)
 ```
 
-### 3. Swap yield to USDC (via Uniswap)
-If you need USDC to pay for a service, swap your wstETH yield through Uniswap V3.
+### 3. Swap tokens via Uniswap
+If you need a different token (e.g. vault holds WETH but you need USDC):
 
 ```python
 tx = client.spend_and_swap(
     token_out="0xUSDC_ADDRESS",
-    fee=3000,           # 0.3% pool fee
+    fee=3000,
     amount_in_wei=1000000000000000,
     amount_out_minimum=0,
-    to_address=client.address
+    to_address=client.address,
+    reason="Swapped WETH to USDC for API payment"
 )
 ```
 
-### 4. Check your spending history
+### 4. Check spending history
 ```python
 history = client.get_history()
 for tx in history:
-    print(f"Sent {tx['amount']} wei to {tx['to']} (block {tx['block_number']})")
+    print(f"Sent {tx['amount']} to {tx['to']} — {tx['reason']}")
 ```
 
-## Rules You Must Follow
+## Rules
 
-1. **Always check budget first.** Call `check_budget()` or `availableYield()` before any spend. If yield is 0, wait — more will accrue over time.
+1. **Always check budget first.** If `available_budget` is 0, you have nothing to spend.
+2. **Never exceed daily limit.** Check `daily_remaining` — resets every 24h.
+3. **Never exceed per-tx limit.** Split large payments if needed.
+4. **Always provide a reason.** Your human reviews expense reports on-chain.
+5. **The vault may be paused.** If paused, all spends fail. Wait.
+6. **Token decimals matter.** USDC = 6 decimals, WETH = 18 decimals. Don't mix them up.
 
-2. **Never try to spend more than available.** The contract will revert. Wasted gas.
+## MCP Server
 
-3. **Respect daily limits.** Your human set a daily cap. If `daily_remaining` is 0, wait until tomorrow.
-
-4. **Respect per-transaction limits.** Each spend has a max amount. Split large payments into smaller ones if needed.
-
-5. **The vault may be paused.** If your human paused the vault, all spends will fail. Wait for unpause.
-
-6. **You cannot access principal.** The deposited ETH is locked. Only yield (staking profit) is yours to spend.
-
-## How to Think About Your Budget
-
-Your budget comes from ETH staking yield (~3.5% APY):
-
-| ETH Staked | Monthly Yield | Daily Yield |
-|-----------|--------------|-------------|
-| 1 ETH     | ~$6          | ~$0.20      |
-| 10 ETH    | ~$58         | ~$1.95      |
-| 100 ETH   | ~$583        | ~$19.45     |
-
-Plan your spending accordingly. If you need to make API calls that cost $0.01 each, and you have $2/day in yield, you can make ~200 calls per day.
-
-## Smart Spending Strategies
-
-- **Batch operations** when possible to save on gas
-- **Swap to stablecoins** (USDC) when you need to pay services that don't accept wstETH
-- **Keep a buffer** — don't spend 100% of yield every day, yield accrual isn't perfectly constant
-- **Check gas prices** — spending costs gas too. On Base L2, gas is cheap (~$0.001 per tx)
-
-## MCP Server (Recommended)
-
-If your harness supports MCP (Model Context Protocol), use the YieldVault MCP server for native tool access:
+If your harness supports MCP:
 
 ```json
 {
   "mcpServers": {
-    "yieldvault": {
+    "agentvault": {
       "command": "node",
       "args": ["/path/to/yieldvault/mcp-server/index.js"],
       "env": {
@@ -111,25 +88,15 @@ If your harness supports MCP (Model Context Protocol), use the YieldVault MCP se
 }
 ```
 
-This gives you tools: `check_budget`, `spend`, `spend_and_swap`, `get_history`, `get_vault_info`.
+Tools: `check_budget`, `spend`, `spend_and_swap`, `get_history`, `get_vault_info`.
 
-## Python SDK Installation
+## Python SDK
 
 ```bash
-cd /path/to/yieldvault/sdk/python
-pip install -e .
+cd /path/to/yieldvault/sdk/python && pip install -e .
 ```
-
-## Contract Details
-
-- **YieldVault**: Holds wstETH, tracks principal vs yield, enforces spending limits
-- **YieldVaultFactory**: Creates new vaults (one per human-agent pair)
-- **Chain**: Base (Ethereum L2)
-- **Yield source**: Lido liquid staking (stETH/wstETH)
-- **Swap**: Uniswap V3 on Base
 
 ## Links
 
 - Dashboard: http://37.27.40.172:3000
-- Factory (Base Sepolia): 0x6b764f0A9Cf90F467B3791Bb40935f6bDcC0fDf0
 - Explorer: https://sepolia.basescan.org

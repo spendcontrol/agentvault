@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YieldVault — Stake ETH. Fund Your Agent Forever.</title>
+    <title>AgentVault — Fund Your Agent. Control Every Dollar.</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1043,11 +1043,11 @@
                         </linearGradient>
                     </defs>
                 </svg>
-                YieldVault
+                AgentVault
             </div>
             <div class="navbar-links" id="navLinks">
                 <a href="#how-it-works" onclick="closeMobile()">How it Works</a>
-                <a href="#why" onclick="closeMobile()">Why YieldVault</a>
+                <a href="#why" onclick="closeMobile()">Why AgentVault</a>
                 <a href="#developers" onclick="closeMobile()">Developers</a>
                 <a class="nav-launch-btn" href="#" onclick="event.preventDefault(); closeMobile(); launchApp();">Launch App</a>
             </div>
@@ -1074,11 +1074,11 @@
                     Live on Base Sepolia
                 </div>
                 <h1>
-                    Stake ETH.<br>
-                    <span class="gradient-text">Fund Your Agent Forever.</span>
+                    Fund Your Agent.<br>
+                    <span class="gradient-text">Control Every Dollar.</span>
                 </h1>
                 <p class="hero-subtitle">
-                    Deposit ETH once — it stakes automatically and earns yield. Your AI agent pays for itself from the profits. You keep your principal. No top-ups. No babysitting. Fully on-chain.
+                    Deposit any token — USDC, WETH, wstETH, or any ERC20. Set spending rules. Your AI agent operates within hard limits enforced by smart contracts. Full transparency. Full control. Fully on-chain.
                 </p>
                 <div class="hero-buttons">
                     <button class="btn-hero-primary" onclick="launchApp()">Launch App</button>
@@ -1091,7 +1091,7 @@
                     </div>
                     <div class="hero-stat">
                         <div class="hero-stat-value" id="statTotalETH">--</div>
-                        <div class="hero-stat-label">Total ETH Staked</div>
+                        <div class="hero-stat-label">Total Deposited</div>
                     </div>
                     <div class="hero-stat">
                         <div class="hero-stat-value">100%</div>
@@ -1107,7 +1107,7 @@
                 <div class="section-header fade-in-up">
                     <div class="section-label">How it Works</div>
                     <h2 class="section-title">Set it up once. Walk away.</h2>
-                    <p class="section-subtitle">Your agent handles its own finances from staking yield. You just deposit ETH and set the rules.</p>
+                    <p class="section-subtitle">Your agent handles its own finances within the rules you define. Deposit tokens, set limits, and let it operate.</p>
                 </div>
                 <div class="steps-grid">
                     <div class="step-card fade-in-up delay-1">
@@ -1115,8 +1115,8 @@
                             <span class="step-number">1</span>
                             <span style="font-size:2rem;">&#9954;</span>
                         </div>
-                        <div class="step-title">Deposit ETH</div>
-                        <div class="step-desc">Drop ETH into your vault. It auto-stakes via Lido and starts earning ~3.5% APY immediately. That's it.</div>
+                        <div class="step-title">Deposit Tokens</div>
+                        <div class="step-desc">Fund your vault with any ERC20 token — USDC, WETH, wstETH, or whatever your agent needs. Simple approve + deposit.</div>
                     </div>
                     <div class="step-card fade-in-up delay-2">
                         <div class="step-icon">
@@ -1131,16 +1131,16 @@
                             <span class="step-number">3</span>
                             <span style="font-size:2rem;">&#129302;</span>
                         </div>
-                        <div class="step-title">Agent Pays for Itself</div>
-                        <div class="step-desc">Your agent spends yield on whatever it needs — API calls, compute, swaps via Uniswap. You don't lift a finger.</div>
+                        <div class="step-title">Agent Operates</div>
+                        <div class="step-desc">Your agent spends from the vault on whatever it needs — API calls, compute, swaps via Uniswap. You don't lift a finger.</div>
                     </div>
                     <div class="step-card fade-in-up delay-4">
                         <div class="step-icon">
                             <span class="step-number">4</span>
                             <span style="font-size:2rem;">&#128269;</span>
                         </div>
-                        <div class="step-title">Sleep Easy</div>
-                        <div class="step-desc">Every cent is tracked on-chain. Your principal is untouchable. Check in whenever you want — or don't.</div>
+                        <div class="step-title">Full Audit Trail</div>
+                        <div class="step-desc">Every cent is tracked on-chain with reasons. Pause anytime. Withdraw anytime. Check in whenever you want — or don't.</div>
                     </div>
                 </div>
             </div>
@@ -1150,7 +1150,7 @@
         <section class="why-section" id="why">
             <div class="section-container">
                 <div class="section-header fade-in-up">
-                    <div class="section-label">Why YieldVault</div>
+                    <div class="section-label">Why AgentVault</div>
                     <h2 class="section-title">Your money. Your rules. Math enforces them.</h2>
                     <p class="section-subtitle">No trust required. No admin panel. No one can change the rules — not even you — without on-chain proof.</p>
                 </div>
@@ -1159,8 +1159,8 @@
                         <div class="feature-icon feature-icon-shield">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                         </div>
-                        <div class="feature-title">Your ETH Stays Yours</div>
-                        <div class="feature-desc">Principal is locked in the contract. The agent only touches yield — the profits from staking. Want your ETH back? Withdraw anytime.</div>
+                        <div class="feature-title">Your Tokens Stay Yours</div>
+                        <div class="feature-desc">You control the vault. The agent can only spend within your limits. Want your tokens back? Withdraw anytime. Pause the agent instantly.</div>
                     </div>
                     <div class="feature-card fade-in-up delay-2">
                         <div class="feature-icon feature-icon-lock">
@@ -1173,8 +1173,8 @@
                         <div class="feature-icon feature-icon-cycle">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00c853" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
                         </div>
-                        <div class="feature-title">Zero Maintenance</div>
-                        <div class="feature-desc">Lido yield flows in automatically. Agent manages its own budget. No top-ups, no invoices, no monthly payments. Deposit and forget.</div>
+                        <div class="feature-title">Any Token, One Interface</div>
+                        <div class="feature-desc">USDC, WETH, wstETH — pick any ERC20. Agent manages its own budget within your rules. Swap to other tokens via Uniswap if needed.</div>
                     </div>
                 </div>
             </div>
@@ -1197,28 +1197,29 @@
                     <div class="code-block-wrapper">
                         <button class="code-copy-btn" onclick="copyDevCode(this)">Copy</button>
                         <div class="code-block active" id="devCode-python">
-<pre><span class="code-keyword">from</span> yieldvault <span class="code-keyword">import</span> YieldVaultAgent
+<pre><span class="code-keyword">from</span> agentvault <span class="code-keyword">import</span> AgentVaultClient
 
 <span class="code-comment"># Initialize agent with your vault</span>
-agent = YieldVaultAgent(
+agent = AgentVaultClient(
     vault_address=<span class="code-string">"0xYourVault..."</span>,
     private_key=<span class="code-string">"0xAgentKey..."</span>,
     rpc_url=<span class="code-string">"https://sepolia.base.org"</span>
 )
 
 <span class="code-comment"># Check available budget</span>
-budget = agent.available_yield()
+budget = agent.available_budget()
 daily_left = agent.remaining_daily_budget()
-<span class="code-function">print</span>(<span class="code-string">f"Available: <span class="code-var">{budget}</span> wstETH, Daily left: <span class="code-var">{daily_left}</span>"</span>)
+<span class="code-function">print</span>(<span class="code-string">f"Available: <span class="code-var">{budget}</span>, Daily left: <span class="code-var">{daily_left}</span>"</span>)
 
-<span class="code-comment"># Spend yield to pay for a service</span>
+<span class="code-comment"># Spend tokens to pay for a service</span>
 tx = agent.spend(
     to=<span class="code-string">"0xServiceProvider..."</span>,
-    amount=<span class="code-string">"0.001"</span>  <span class="code-comment"># wstETH</span>
+    amount=<span class="code-string">"100"</span>,  <span class="code-comment"># in token units</span>
+    reason=<span class="code-string">"API credits"</span>
 )
 
-<span class="code-comment"># Swap yield for USDC via Uniswap</span>
-tx = agent.swap(
+<span class="code-comment"># Swap vault token for another via Uniswap</span>
+tx = agent.spend_and_swap(
     token_out=<span class="code-string">"0xUSDC..."</span>,
     amount_in=<span class="code-string">"0.005"</span>,
     min_out=<span class="code-string">"10.0"</span>,
@@ -1232,25 +1233,25 @@ tx = agent.swap(
 <span class="code-keyword">const</span> tools = [
   {
     name: <span class="code-string">"check_budget"</span>,
-    description: <span class="code-string">"Check available yield balance and daily budget"</span>,
+    description: <span class="code-string">"Check available budget and daily remaining"</span>,
     <span class="code-keyword">async</span> execute() {
       <span class="code-keyword">const</span> vault = <span class="code-keyword">new</span> ethers.Contract(VAULT, VAULT_ABI, signer);
-      <span class="code-keyword">const</span> [principal, , yield_, spent, daily] =
+      <span class="code-keyword">const</span> [balance, deposited, spent, available, daily] =
         <span class="code-keyword">await</span> vault.getStats();
       <span class="code-keyword">return</span> {
-        available_yield: ethers.formatEther(yield_),
-        daily_remaining: ethers.formatEther(daily),
-        total_spent: ethers.formatEther(spent)
+        available_budget: ethers.formatUnits(available, decimals),
+        daily_remaining: ethers.formatUnits(daily, decimals),
+        total_spent: ethers.formatUnits(spent, decimals)
       };
     }
   },
   {
-    name: <span class="code-string">"spend_yield"</span>,
-    description: <span class="code-string">"Send wstETH yield to an address"</span>,
-    <span class="code-keyword">async</span> execute({ to, amount }) {
+    name: <span class="code-string">"spend"</span>,
+    description: <span class="code-string">"Send tokens to an address with a reason"</span>,
+    <span class="code-keyword">async</span> execute({ to, amount, reason }) {
       <span class="code-keyword">const</span> vault = <span class="code-keyword">new</span> ethers.Contract(VAULT, VAULT_ABI, signer);
-      <span class="code-keyword">const</span> tx = <span class="code-keyword">await</span> vault.spend(
-        to, ethers.parseEther(amount)
+      <span class="code-keyword">const</span> tx = <span class="code-keyword">await</span> vault[<span class="code-string">"spend(address,uint256,string)"</span>](
+        to, ethers.parseUnits(amount, decimals), reason
       );
       <span class="code-keyword">return await</span> tx.wait();
     }
@@ -1258,9 +1259,9 @@ tx = agent.swap(
 ];</pre>
                         </div>
                         <div class="code-block" id="devCode-curl">
-<pre><span class="code-comment"># Check available yield (read-only, no auth needed)</span>
+<pre><span class="code-comment"># Check available budget (read-only, no auth needed)</span>
 cast call <span class="code-var">$VAULT</span> \
-  <span class="code-string">"availableYield()(uint256)"</span> \
+  <span class="code-string">"availableBudget()(uint256)"</span> \
   --rpc-url https://sepolia.base.org
 
 <span class="code-comment"># Check remaining daily budget</span>
@@ -1268,17 +1269,17 @@ cast call <span class="code-var">$VAULT</span> \
   <span class="code-string">"remainingDailyBudget()(uint256)"</span> \
   --rpc-url https://sepolia.base.org
 
-<span class="code-comment"># Spend yield (agent wallet required)</span>
+<span class="code-comment"># Spend tokens (agent wallet required)</span>
 cast send <span class="code-var">$VAULT</span> \
-  <span class="code-string">"spend(address,uint256)"</span> \
-  <span class="code-var">$RECIPIENT</span> <span class="code-number">1000000000000000</span> \
+  <span class="code-string">"spend(address,uint256,string)"</span> \
+  <span class="code-var">$RECIPIENT</span> <span class="code-number">1000000000000000</span> <span class="code-string">"API credits"</span> \
   --private-key <span class="code-var">$AGENT_KEY</span> \
   --rpc-url https://sepolia.base.org
 
-<span class="code-comment"># Swap yield for USDC via Uniswap</span>
+<span class="code-comment"># Swap vault token for USDC via Uniswap</span>
 cast send <span class="code-var">$VAULT</span> \
-  <span class="code-string">"spendAndSwap(address,uint24,uint256,uint256,address)"</span> \
-  <span class="code-var">$USDC</span> <span class="code-number">3000</span> <span class="code-number">5000000000000000</span> <span class="code-number">0</span> <span class="code-var">$RECIPIENT</span> \
+  <span class="code-string">"spendAndSwap(address,uint24,uint256,uint256,address,string)"</span> \
+  <span class="code-var">$USDC</span> <span class="code-number">3000</span> <span class="code-number">5000000000000000</span> <span class="code-number">0</span> <span class="code-var">$RECIPIENT</span> <span class="code-string">"swap for payment"</span> \
   --private-key <span class="code-var">$AGENT_KEY</span> \
   --rpc-url https://sepolia.base.org</pre>
                         </div>
@@ -1308,7 +1309,7 @@ cast send <span class="code-var">$VAULT</span> \
         <!-- FOOTER -->
         <footer class="footer">
             <div class="footer-inner">
-                <div class="footer-text">YieldVault Protocol -- Base Sepolia Testnet</div>
+                <div class="footer-text">AgentVault Protocol -- Base Sepolia Testnet</div>
                 <div class="footer-links">
                     <a href="https://sepolia.basescan.org/address/0x6b764f0A9Cf90F467B3791Bb40935f6bDcC0fDf0" target="_blank">Factory Contract</a>
                     <a href="#developers">Docs</a>
@@ -1345,7 +1346,7 @@ cast send <span class="code-var">$VAULT</span> \
                     </div>
                     <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem;">Connect Your Wallet</h2>
                     <p style="color: var(--text-secondary); margin-bottom: 2rem; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-                        Connect with MetaMask to create vaults, deposit ETH, and manage your AI agent's operating budget.
+                        Connect with MetaMask to create vaults, deposit tokens, and manage your AI agent's operating budget.
                     </p>
                     <button class="btn btn-primary" style="padding: 14px 40px; font-size: 1rem;" onclick="connectWallet()">
                         Connect Wallet
@@ -1382,7 +1383,7 @@ cast send <span class="code-var">$VAULT</span> \
                 <div class="app-section hidden" id="createVaultSection">
                     <h2>Create a Vault for Your Agent</h2>
                     <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
-                        A vault is a personal treasury for your AI agent. You deposit ETH, it auto-stakes via Lido, and the agent can only spend the yield — never the principal.
+                        A vault is a personal treasury for your AI agent. You deposit any ERC20 token and the agent can only spend within the limits you set.
                     </p>
 
                     <div class="form-row">
@@ -1390,23 +1391,38 @@ cast send <span class="code-var">$VAULT</span> \
                             <label>Agent Wallet Address</label>
                             <input type="text" id="newAgentAddr" placeholder="0x... (the wallet your agent uses to sign transactions)">
                             <p style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 0.3rem;">
-                                This is the Ethereum address of your AI agent. Only this wallet can spend yield from the vault.
+                                This is the Ethereum address of your AI agent. Only this wallet can spend from the vault.
                             </p>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Daily Spending Limit</label>
-                            <input type="number" id="newDailyLimit" value="0.1" step="0.01">
+                            <label>Token</label>
+                            <select id="newTokenPreset" onchange="onTokenPresetChange()">
+                                <option value="0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48">USDC</option>
+                                <option value="0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2">WETH</option>
+                                <option value="0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0">wstETH</option>
+                                <option value="custom">Custom Token...</option>
+                            </select>
+                        </div>
+                        <div class="form-group hidden" id="customTokenGroup">
+                            <label>Custom Token Address</label>
+                            <input type="text" id="newTokenAddr" placeholder="0x... ERC20 token contract address">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Daily Spending Limit (<span class="create-token-symbol">USDC</span>)</label>
+                            <input type="number" id="newDailyLimit" value="100" step="0.01">
                             <p style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 0.3rem;">
-                                Max wstETH the agent can spend per day. Example: 0.1 wstETH ≈ $200 at current prices.
+                                Max tokens the agent can spend per day.
                             </p>
                         </div>
                         <div class="form-group">
-                            <label>Per-Transaction Limit</label>
-                            <input type="number" id="newPerTxLimit" value="0.05" step="0.01">
+                            <label>Per-Transaction Limit (<span class="create-token-symbol">USDC</span>)</label>
+                            <input type="number" id="newPerTxLimit" value="50" step="0.01">
                             <p style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 0.3rem;">
-                                Max wstETH per single transaction. Prevents the agent from draining the budget in one go.
+                                Max tokens per single transaction. Prevents the agent from draining the budget in one go.
                             </p>
                         </div>
                     </div>

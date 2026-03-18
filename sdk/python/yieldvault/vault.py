@@ -1,4 +1,4 @@
-"""VaultClient -- Python SDK for interacting with YieldVault contracts."""
+"""VaultClient -- Python SDK for interacting with AgentVault contracts."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from web3.exceptions import ContractLogicError
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
 
-from .abi import YIELD_VAULT_ABI, YIELD_VAULT_FACTORY_ABI
+from .abi import AGENT_VAULT_ABI, AGENT_VAULT_FACTORY_ABI
 
 
 # ---------------------------------------------------------------------------
@@ -18,11 +18,11 @@ from .abi import YIELD_VAULT_ABI, YIELD_VAULT_FACTORY_ABI
 # ---------------------------------------------------------------------------
 
 class YieldVaultError(Exception):
-    """Base exception for all YieldVault SDK errors."""
+    """Base exception for all AgentVault SDK errors."""
 
 
 class InsufficientYieldError(YieldVaultError):
-    """Raised when trying to spend more than available yield."""
+    """Raised when trying to spend more than available budget."""
 
 
 class ExceedsDailyLimitError(YieldVaultError):
@@ -45,20 +45,17 @@ class TransactionFailedError(YieldVaultError):
     """Raised when a transaction reverts or cannot be sent."""
 
 
-# Maps Solidity custom-error selectors to Python exceptions.
 _ERROR_MAP: dict[str, type[YieldVaultError]] = {
-    "ExceedsYield": InsufficientYieldError,
+    "ExceedsBudget": InsufficientYieldError,
     "ExceedsDailyLimit": ExceedsDailyLimitError,
     "ExceedsPerTxLimit": ExceedsPerTxLimitError,
     "VaultPaused": VaultPausedError,
     "OnlyAgent": NotAuthorizedError,
     "OnlyOwner": NotAuthorizedError,
-    "OnlyOwnerOrAgent": NotAuthorizedError,
 }
 
 
 def _translate_revert(err: Exception) -> YieldVaultError:
-    """Try to match a ContractLogicError message to a typed exception."""
     msg = str(err)
     for selector, exc_cls in _ERROR_MAP.items():
         if selector in msg:
@@ -66,19 +63,41 @@ def _translate_revert(err: Exception) -> YieldVaultError:
     return TransactionFailedError(msg)
 
 
+def _build_tx(w3: Web3, address: str, fn, gas: int = 300_000) -> dict:
+    return fn.build_transaction({
+        "from": address,
+        "nonce": w3.eth.get_transaction_count(address),
+        "gas": gas,
+        "maxFeePerGas": w3.eth.gas_price * 2,
+        "maxPriorityFeePerGas": w3.to_wei(0.1, "gwei"),
+    })
+
+
+def _send_tx(w3: Web3, account: LocalAccount, tx: dict) -> str:
+    signed = account.sign_transaction(tx)
+    try:
+        tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
+    except Exception as exc:
+        raise TransactionFailedError(f"send_raw_transaction failed: {exc}") from exc
+    receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+    if receipt.status != 1:
+        raise TransactionFailedError(f"Transaction reverted (tx_hash={tx_hash.hex()})")
+    return tx_hash.hex()
+
+
 # ---------------------------------------------------------------------------
 # VaultClient
 # ---------------------------------------------------------------------------
 
 class VaultClient:
-    """High-level client for an AI agent to interact with a single YieldVault.
+    """High-level client for an AI agent to interact with an AgentVault.
 
     Parameters
     ----------
     rpc_url : str
-        JSON-RPC endpoint (e.g. ``https://mainnet.base.org``).
+        JSON-RPC endpoint.
     vault_address : str
-        Address of the deployed ``YieldVault`` contract.
+        Address of the deployed AgentVault contract.
     agent_private_key : str
         Hex-encoded private key of the agent wallet.
     """
@@ -93,152 +112,84 @@ class VaultClient:
 
         self.vault: Contract = self.w3.eth.contract(
             address=Web3.to_checksum_address(vault_address),
-            abi=YIELD_VAULT_ABI,
+            abi=AGENT_VAULT_ABI,
         )
 
-    # ------------------------------------------------------------------
-    # Read helpers
-    # ------------------------------------------------------------------
-
     def check_budget(self) -> dict[str, int]:
-        """Return the current budget snapshot.
-
-        Returns
-        -------
-        dict
-            Keys: ``available_yield``, ``daily_remaining``, ``principal``,
-            ``total_balance``.  All values are ``int`` in wei.
-        """
+        """Return the current budget snapshot."""
         try:
             stats = self.vault.functions.getStats().call()
         except ContractLogicError as exc:
             raise _translate_revert(exc) from exc
 
         return {
-            "principal": stats[0],
-            "total_balance": stats[1],
-            "available_yield": stats[2],
-            "total_yield_spent": stats[3],
+            "balance": stats[0],
+            "total_deposited": stats[1],
+            "total_spent": stats[2],
+            "available_budget": stats[3],
             "daily_remaining": stats[4],
         }
 
     def get_stats(self) -> dict[str, int]:
-        """Call ``getStats()`` and return a labelled dict.
-
-        Returns
-        -------
-        dict
-            Keys: ``principal``, ``current_balance``, ``available_yield``,
-            ``total_yield_spent``, ``remaining_daily_budget``.
-        """
+        """Alias for check_budget with different key names."""
         try:
             s = self.vault.functions.getStats().call()
         except ContractLogicError as exc:
             raise _translate_revert(exc) from exc
-
         return {
-            "principal": s[0],
-            "current_balance": s[1],
-            "available_yield": s[2],
-            "total_yield_spent": s[3],
+            "balance": s[0],
+            "total_deposited": s[1],
+            "total_spent": s[2],
+            "available_budget": s[3],
             "remaining_daily_budget": s[4],
         }
 
     def get_history(self, from_block: int = 0) -> list[dict[str, Any]]:
-        """Fetch all ``YieldWithdrawn`` events emitted by the vault.
-
-        Parameters
-        ----------
-        from_block : int, optional
-            Block number to start scanning from (default ``0``).
-
-        Returns
-        -------
-        list[dict]
-            Each dict contains ``agent``, ``to``, ``amount``, ``block_number``,
-            and ``tx_hash``.
-        """
+        """Fetch all AgentSpent events."""
         try:
-            event_filter = self.vault.events.YieldWithdrawn.get_logs(
-                from_block=from_block,
-            )
+            events = self.vault.events.AgentSpent.get_logs(from_block=from_block)
         except Exception as exc:
-            raise YieldVaultError(f"Failed to fetch YieldWithdrawn events: {exc}") from exc
+            raise YieldVaultError(f"Failed to fetch events: {exc}") from exc
 
         results: list[dict[str, Any]] = []
-        for entry in event_filter:
-            results.append(
-                {
-                    "agent": entry.args.agent,
-                    "to": entry.args.to,
-                    "amount": entry.args.amount,
-                    "block_number": entry.blockNumber,
-                    "tx_hash": entry.transactionHash.hex(),
-                }
-            )
+        for entry in events:
+            results.append({
+                "agent": entry.args.agent,
+                "to": entry.args.to,
+                "amount": entry.args.amount,
+                "reason": entry.args.reason,
+                "block_number": entry.blockNumber,
+                "tx_hash": entry.transactionHash.hex(),
+            })
         return results
 
-    # ------------------------------------------------------------------
-    # Write helpers
-    # ------------------------------------------------------------------
-
-    def spend(self, to_address: str, amount_wei: int) -> str:
-        """Spend available yield by sending wstETH to *to_address*.
+    def spend(self, to_address: str, amount_wei: int, reason: str = "") -> str:
+        """Spend tokens from the vault.
 
         Parameters
         ----------
         to_address : str
             Recipient address.
         amount_wei : int
-            Amount of wstETH in wei to transfer.
+            Amount in token's smallest unit (e.g. wei for WETH, 6-decimal units for USDC).
+        reason : str, optional
+            Why the agent is spending (stored on-chain).
 
         Returns
         -------
         str
             Transaction hash (hex).
-
-        Raises
-        ------
-        InsufficientYieldError
-            If ``amount_wei`` exceeds available yield.
-        ExceedsDailyLimitError
-            If spend would exceed the daily budget.
-        ExceedsPerTxLimitError
-            If ``amount_wei`` exceeds the per-transaction cap.
-        VaultPausedError
-            If the vault is currently paused.
-        NotAuthorizedError
-            If the signer is not the registered agent.
-        TransactionFailedError
-            For any other on-chain revert.
         """
         to_address = Web3.to_checksum_address(to_address)
-
         try:
-            tx = self.vault.functions.spend(to_address, amount_wei).build_transaction(
-                {
-                    "from": self.address,
-                    "nonce": self.w3.eth.get_transaction_count(self.address),
-                    "gas": 250_000,
-                    "maxFeePerGas": self.w3.eth.gas_price * 2,
-                    "maxPriorityFeePerGas": self.w3.to_wei(0.1, "gwei"),
-                }
-            )
+            if reason:
+                fn = self.vault.functions.spend(to_address, amount_wei, reason)
+            else:
+                fn = self.vault.functions.spend(to_address, amount_wei)
+            tx = _build_tx(self.w3, self.address, fn)
         except ContractLogicError as exc:
             raise _translate_revert(exc) from exc
-
-        signed = self.account.sign_transaction(tx)
-        try:
-            tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
-        except Exception as exc:
-            raise TransactionFailedError(f"send_raw_transaction failed: {exc}") from exc
-
-        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
-        if receipt.status != 1:
-            raise TransactionFailedError(
-                f"Transaction reverted (tx_hash={tx_hash.hex()})"
-            )
-        return tx_hash.hex()
+        return _send_tx(self.w3, self.account, tx)
 
     def spend_and_swap(
         self,
@@ -247,100 +198,63 @@ class VaultClient:
         amount_in_wei: int,
         amount_out_minimum: int,
         to_address: str,
+        reason: str = "",
     ) -> str:
-        """Spend yield by swapping wstETH → token_out via Uniswap V3.
-
-        Parameters
-        ----------
-        token_out : str
-            Address of the output token (e.g. USDC).
-        fee : int
-            Uniswap pool fee tier (e.g. 3000 for 0.3%, 500 for 0.05%).
-        amount_in_wei : int
-            Amount of wstETH (in wei) to swap.
-        amount_out_minimum : int
-            Minimum output tokens to accept (slippage protection).
-        to_address : str
-            Recipient of the output tokens.
-
-        Returns
-        -------
-        str
-            Transaction hash (hex).
-        """
+        """Swap vault token → another token via Uniswap V3."""
         token_out = Web3.to_checksum_address(token_out)
         to_address = Web3.to_checksum_address(to_address)
-
         try:
-            tx = self.vault.functions.spendAndSwap(
-                token_out, fee, amount_in_wei, amount_out_minimum, to_address
-            ).build_transaction(
-                {
-                    "from": self.address,
-                    "nonce": self.w3.eth.get_transaction_count(self.address),
-                    "gas": 500_000,
-                    "maxFeePerGas": self.w3.eth.gas_price * 2,
-                    "maxPriorityFeePerGas": self.w3.to_wei(0.1, "gwei"),
-                }
-            )
+            if reason:
+                fn = self.vault.functions.spendAndSwap(
+                    token_out, fee, amount_in_wei, amount_out_minimum, to_address, reason
+                )
+            else:
+                fn = self.vault.functions.spendAndSwap(
+                    token_out, fee, amount_in_wei, amount_out_minimum, to_address
+                )
+            tx = _build_tx(self.w3, self.address, fn, gas=500_000)
         except ContractLogicError as exc:
             raise _translate_revert(exc) from exc
+        return _send_tx(self.w3, self.account, tx)
 
-        signed = self.account.sign_transaction(tx)
-        try:
-            tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
-        except Exception as exc:
-            raise TransactionFailedError(f"send_raw_transaction failed: {exc}") from exc
-
-        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
-        if receipt.status != 1:
-            raise TransactionFailedError(
-                f"Transaction reverted (tx_hash={tx_hash.hex()})"
-            )
-        return tx_hash.hex()
-
-    # ------------------------------------------------------------------
-    # Convenience properties
-    # ------------------------------------------------------------------
-
+    # Properties
     @property
     def is_paused(self) -> bool:
-        """Return ``True`` if the vault is currently paused."""
         return self.vault.functions.paused().call()
 
     @property
     def daily_limit(self) -> int:
-        """Return the vault's daily spend limit in wei."""
         return self.vault.functions.dailyLimit().call()
 
     @property
     def per_tx_limit(self) -> int:
-        """Return the vault's per-transaction spend limit in wei."""
         return self.vault.functions.perTxLimit().call()
 
     @property
     def vault_owner(self) -> str:
-        """Return the vault owner address."""
         return self.vault.functions.owner().call()
 
     @property
     def vault_agent(self) -> str:
-        """Return the vault's registered agent address."""
         return self.vault.functions.agent().call()
+
+    @property
+    def vault_token(self) -> str:
+        return self.vault.functions.token().call()
 
 
 # ---------------------------------------------------------------------------
-# FactoryClient (bonus helper)
+# FactoryClient
 # ---------------------------------------------------------------------------
 
 class FactoryClient:
-    """Read-only client for querying the YieldVaultFactory."""
+    """Read-only client for querying the AgentVaultFactory."""
 
     def __init__(self, rpc_url: str, factory_address: str) -> None:
         self.w3 = Web3(Web3.HTTPProvider(rpc_url))
         self.factory: Contract = self.w3.eth.contract(
             address=Web3.to_checksum_address(factory_address),
-            abi=YIELD_VAULT_FACTORY_ABI,
+            abi=AGENT_VAULT_FACTORY_ABI,
         )
 
     def total_vaults(self) -> int:

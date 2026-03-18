@@ -14,21 +14,26 @@ const RPC_URL = process.env.RPC_URL || "https://sepolia.base.org";
 // ABI
 // ---------------------------------------------------------------------------
 const VAULT_ABI = [
-  "function depositETH() payable",
+  "function deposit(uint256 amount)",
+  "function withdraw(uint256 amount)",
   "function spend(address to, uint256 amount)",
+  "function spend(address to, uint256 amount, string reason)",
   "function spendAndSwap(address tokenOut, uint24 fee, uint256 amountIn, uint256 amountOutMinimum, address to) returns (uint256)",
-  "function availableYield() view returns (uint256)",
+  "function spendAndSwap(address tokenOut, uint24 fee, uint256 amountIn, uint256 amountOutMinimum, address to, string reason) returns (uint256)",
+  "function availableBudget() view returns (uint256)",
   "function remainingDailyBudget() view returns (uint256)",
   "function getStats() view returns (uint256, uint256, uint256, uint256, uint256)",
-  "function principalWstETH() view returns (uint256)",
-  "function totalYieldSpent() view returns (uint256)",
+  "function totalDeposited() view returns (uint256)",
+  "function totalSpent() view returns (uint256)",
   "function owner() view returns (address)",
   "function agent() view returns (address)",
+  "function token() view returns (address)",
   "function dailyLimit() view returns (uint256)",
   "function perTxLimit() view returns (uint256)",
   "function paused() view returns (bool)",
-  "event YieldWithdrawn(address indexed agent, address indexed to, uint256 amount)",
-  "event YieldSwapped(address indexed agent, address indexed tokenOut, uint256 amountIn, uint256 amountOut, address indexed to)",
+  "function expenseCount() view returns (uint256)",
+  "event AgentSpent(address indexed agent, address indexed to, uint256 amount, string reason)",
+  "event AgentSwapped(address indexed agent, address indexed tokenOut, uint256 amountIn, uint256 amountOut, address indexed to, string reason)",
 ];
 
 // ---------------------------------------------------------------------------
@@ -67,28 +72,21 @@ const server = new McpServer({
 // ---- check_budget ----
 server.tool(
   "check_budget",
-  "Returns available yield, daily remaining budget, principal, and total balance in human-readable format",
+  "Returns available budget, daily remaining, total deposited and spent in human-readable format",
   {},
   async () => {
     try {
       const vault = getVault(getProvider());
 
-      const [availableYield, dailyRemaining, principal, totalYieldSpent] =
-        await Promise.all([
-          vault.availableYield(),
-          vault.remainingDailyBudget(),
-          vault.principalWstETH(),
-          vault.totalYieldSpent(),
-        ]);
-
-      const totalBalance = principal + availableYield;
+      const [balance, totalDeposited, totalSpent, availableBudget, dailyRemaining] =
+        await vault.getStats();
 
       const text = [
-        `Available Yield:    ${fmtEth(availableYield)} wstETH`,
-        `Daily Remaining:    ${fmtEth(dailyRemaining)} wstETH`,
-        `Principal:          ${fmtEth(principal)} wstETH`,
-        `Total Balance:      ${fmtEth(totalBalance)} wstETH`,
-        `Total Yield Spent:  ${fmtEth(totalYieldSpent)} wstETH`,
+        `Available Budget:   ${fmtEth(availableBudget)}`,
+        `Daily Remaining:    ${fmtEth(dailyRemaining)}`,
+        `Vault Balance:      ${fmtEth(balance)}`,
+        `Total Deposited:    ${fmtEth(totalDeposited)}`,
+        `Total Spent:        ${fmtEth(totalSpent)}`,
       ].join("\n");
 
       return { content: [{ type: "text", text }] };
@@ -104,12 +102,13 @@ server.tool(
 // ---- spend ----
 server.tool(
   "spend",
-  "Spend wstETH from yield to an address",
+  "Spend tokens from the vault to an address, with an optional reason",
   {
     to: z.string().describe("Recipient address"),
-    amount: z.string().describe('Amount of wstETH to spend (e.g. "0.001")'),
+    amount: z.string().describe('Amount of tokens to spend (e.g. "0.001" or "100" for USDC)'),
+    reason: z.string().optional().describe("Why you are spending (stored on-chain)"),
   },
-  async ({ to, amount }) => {
+  async ({ to, amount, reason }) => {
     try {
       if (!ethers.isAddress(to)) {
         throw new Error(`Invalid recipient address: ${to}`);
@@ -121,20 +120,23 @@ server.tool(
       }
 
       const vault = getVault(getSigner());
-      const tx = await vault.spend(to, amountWei);
+      const tx = reason
+        ? await vault["spend(address,uint256,string)"](to, amountWei, reason)
+        : await vault["spend(address,uint256)"](to, amountWei);
       const receipt = await tx.wait();
 
       const text = [
         `Spend successful!`,
         `To:      ${to}`,
-        `Amount:  ${amount} wstETH`,
+        `Amount:  ${amount}`,
+        reason ? `Reason:  ${reason}` : null,
         `Tx Hash: ${receipt.hash}`,
-      ].join("\n");
+      ].filter(Boolean).join("\n");
 
       return { content: [{ type: "text", text }] };
     } catch (err) {
       return {
-        content: [{ type: "text", text: `Error spending yield: ${err.message}` }],
+        content: [{ type: "text", text: `Error spending: ${err.message}` }],
         isError: true,
       };
     }
@@ -144,10 +146,10 @@ server.tool(
 // ---- spend_and_swap ----
 server.tool(
   "spend_and_swap",
-  "Swap yield wstETH to another token via Uniswap and send to an address",
+  "Swap vault tokens to another token via Uniswap V3 and send to an address",
   {
     token_out: z.string().describe("Address of the token to receive"),
-    amount: z.string().describe('Amount of wstETH to swap (e.g. "0.01")'),
+    amount: z.string().describe('Amount of vault tokens to swap (e.g. "0.01")'),
     min_out: z
       .string()
       .default("0")
@@ -188,7 +190,7 @@ server.tool(
             topics: log.topics,
             data: log.data,
           });
-          if (parsed && parsed.name === "YieldSwapped") {
+          if (parsed && parsed.name === "AgentSwapped") {
             amountOutStr = fmtEth(parsed.args.amountOut);
             break;
           }
@@ -233,8 +235,8 @@ server.tool(
       const fromBlock = Math.max(0, currentBlock - 302_400);
 
       const [withdrawEvents, swapEvents] = await Promise.all([
-        vault.queryFilter("YieldWithdrawn", fromBlock, currentBlock),
-        vault.queryFilter("YieldSwapped", fromBlock, currentBlock),
+        vault.queryFilter("AgentSpent", fromBlock, currentBlock),
+        vault.queryFilter("AgentSwapped", fromBlock, currentBlock),
       ]);
 
       const entries = [];
