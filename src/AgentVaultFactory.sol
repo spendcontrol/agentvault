@@ -12,6 +12,7 @@ contract AgentVaultFactory {
         address vault
     );
 
+    address public immutable weth;
     address public immutable stETH;
     address public immutable wstETH;
     address public immutable swapRouter;
@@ -20,16 +21,13 @@ contract AgentVaultFactory {
     mapping(address => address[]) public vaultsByOwner;
     mapping(address => address[]) public vaultsByAgent;
 
-    constructor(address _stETH, address _wstETH, address _swapRouter) {
+    constructor(address _weth, address _stETH, address _wstETH, address _swapRouter) {
+        weth = _weth;
         stETH = _stETH;
         wstETH = _wstETH;
         swapRouter = _swapRouter;
     }
 
-    /// @notice Create a new AgentVault
-    /// @param agent The agent's wallet address
-    /// @param dailyLimit Max tokens agent can spend per day (per token)
-    /// @param perTxLimit Max tokens agent can spend per transaction
     function createVault(
         address agent,
         uint256 dailyLimit,
@@ -38,6 +36,7 @@ contract AgentVaultFactory {
         AgentVault vault = new AgentVault(
             msg.sender,
             agent,
+            weth,
             stETH,
             wstETH,
             swapRouter,

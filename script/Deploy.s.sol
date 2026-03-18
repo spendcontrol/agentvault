@@ -6,11 +6,12 @@ import {AgentVaultFactory} from "../src/AgentVaultFactory.sol";
 
 contract DeployScript is Script {
     function run() external {
+        address weth = vm.envOr("WETH_ADDRESS", address(0));
         address stETH = vm.envOr("STETH_ADDRESS", address(0));
         address wstETH = vm.envOr("WSTETH_ADDRESS", address(0));
         address swapRouter = vm.envOr("SWAP_ROUTER", address(0));
         vm.startBroadcast();
-        new AgentVaultFactory(stETH, wstETH, swapRouter);
+        new AgentVaultFactory(weth, stETH, wstETH, swapRouter);
         vm.stopBroadcast();
     }
 }

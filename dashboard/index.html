@@ -1407,8 +1407,24 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                 <div class="dashboard-grid">
                     <!-- Deposit -->
                     <div class="dashboard-card">
-                        <h3>Deposit Tokens</h3>
-                        <p class="card-desc">Add ERC20 tokens to this vault. The agent can spend them within limits.</p>
+                        <h3>Deposit Funds</h3>
+
+                        <!-- ETH Deposit -->
+                        <div style="background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.15); border-radius: 12px; padding: 1rem; margin-bottom: 1.25rem;">
+                            <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--accent-cyan);">Deposit ETH</div>
+                            <p class="card-desc" style="margin-bottom: 0.75rem;">Send ETH directly. Auto-wraps to WETH inside the vault.</p>
+                            <div style="display:flex; gap:0.75rem; align-items:end;">
+                                <div class="form-group" style="flex:1; margin-bottom:0;">
+                                    <label>Amount (ETH)</label>
+                                    <input type="text" id="inputDepositETHAmount" placeholder="0.1" />
+                                </div>
+                                <button class="btn btn-gradient btn-sm" onclick="depositETH()" style="height:42px;">Deposit ETH</button>
+                            </div>
+                        </div>
+
+                        <!-- ERC20 Deposit -->
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Or deposit ERC20 tokens</div>
+                        <p class="card-desc">USDC, WETH, DAI, or any token address.</p>
                         <div class="token-presets">
                             <button class="token-preset-btn" onclick="setTokenPreset('USDC', '0x036CbD53842c5426634e7929541eC2318f3dCF7e')">USDC</button>
                             <button class="token-preset-btn" onclick="setTokenPreset('WETH', '0x4200000000000000000000000000000000000006')">WETH</button>
@@ -1527,7 +1543,7 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     // CONFIG
     // ==========================================
     const CONFIG = {
-        factoryAddress: '0x536e5B4EdF59ed1e2d057Fc97Ee3722209DB198C',
+        factoryAddress: '0x46D28d8A440dcBE5E78C2B6272D0E54F309b04A1',
         chainId: 84532,
         chainIdHex: '0x14a34',
         rpcUrl: 'https://sepolia.base.org',
@@ -1544,6 +1560,7 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
 
     const VAULT_ABI = [
         'function deposit(address token, uint256 amount)',
+        'function depositETH() payable',
         'function withdraw(address token, uint256 amount)',
         'function stakeETH(bool yieldOnly) payable',
         'function harvestYield()',
@@ -1912,6 +1929,23 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
             showToast('Token approved!', 'success');
         } catch (err) {
             showToast('Approval failed: ' + (err.reason || err.message), 'error');
+        }
+    }
+
+    async function depositETH() {
+        const amount = document.getElementById('inputDepositETHAmount').value.trim();
+        if (!amount || parseFloat(amount) <= 0) {
+            showToast('Enter an ETH amount.', 'error');
+            return;
+        }
+        try {
+            const tx = await currentVaultContract.depositETH({value: ethers.parseEther(amount)});
+            showToast('Depositing ETH...', 'success');
+            await tx.wait();
+            showToast('ETH deposited!', 'success');
+            await loadVaultData();
+        } catch (err) {
+            showToast('Deposit failed: ' + (err.reason || err.message), 'error');
         }
     }
 

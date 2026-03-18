@@ -7,12 +7,13 @@ import {AgentVaultFactory} from "../src/AgentVaultFactory.sol";
 import {ERC20Mock} from "./mocks/ERC20Mock.sol";
 import {MockStETH} from "../src/MockStETH.sol";
 import {MockWstETH} from "../src/MockWstETH.sol";
+import {MockWETH} from "./mocks/MockWETH.sol";
 
 contract AgentVaultTest is Test {
     AgentVault vault;
     AgentVaultFactory factory;
     ERC20Mock usdc;
-    ERC20Mock weth;
+    MockWETH wethToken;
     MockStETH stETH;
     MockWstETH wstETHMock;
 
@@ -25,12 +26,12 @@ contract AgentVaultTest is Test {
 
     function setUp() public {
         usdc = new ERC20Mock("USD Coin", "USDC");
-        weth = new ERC20Mock("Wrapped ETH", "WETH");
+        wethToken = new MockWETH();
         stETH = new MockStETH();
         wstETHMock = new MockWstETH();
         wstETHMock.setStETH(address(stETH));
 
-        factory = new AgentVaultFactory(address(stETH), address(wstETHMock), address(0));
+        factory = new AgentVaultFactory(address(wethToken), address(stETH), address(wstETHMock), address(0));
 
         vm.prank(owner);
         address vaultAddr = factory.createVault(agent, dailyLimit, perTxLimit);
@@ -38,12 +39,10 @@ contract AgentVaultTest is Test {
 
         // Fund owner
         usdc.mint(owner, 100_000e6);
-        weth.mint(owner, 100 ether);
         vm.deal(owner, 100 ether);
 
         vm.startPrank(owner);
         usdc.approve(address(vault), type(uint256).max);
-        weth.approve(address(vault), type(uint256).max);
         vm.stopPrank();
     }
 
@@ -63,10 +62,10 @@ contract AgentVaultTest is Test {
         vault.deposit(address(usdc), 5_000e6);
 
         vm.prank(owner);
-        vault.deposit(address(weth), 2 ether);
+        vault.depositETH{value: 2 ether}();
 
         assertEq(vault.balanceOf(address(usdc)), 5_000e6);
-        assertEq(vault.balanceOf(address(weth)), 2 ether);
+        assertEq(vault.balanceOf(address(wethToken)), 2 ether);
 
         address[] memory tokens = vault.getTokens();
         assertEq(tokens.length, 2);
@@ -197,21 +196,28 @@ contract AgentVaultTest is Test {
         assertEq(vault.expenseCount(), 1);
     }
 
+    function test_depositETH() public {
+        vm.prank(owner);
+        vault.depositETH{value: 5 ether}();
+
+        assertEq(vault.balanceOf(address(wethToken)), 5 ether);
+        assertTrue(vault.supportedTokens(address(wethToken)));
+    }
+
     function test_agentSpendWETH() public {
         // Create a vault with ETH-scale limits
         vm.prank(owner);
         address vAddr = factory.createVault(agent, 10 ether, 5 ether);
         AgentVault ethVault = AgentVault(vAddr);
 
+        // Deposit ETH → auto-wraps to WETH
         vm.prank(owner);
-        weth.approve(address(ethVault), type(uint256).max);
-        vm.prank(owner);
-        ethVault.deposit(address(weth), 10 ether);
+        ethVault.depositETH{value: 10 ether}();
 
         vm.prank(agent);
-        ethVault.spend(address(weth), recipient, 0.5 ether, "Gas refill");
+        ethVault.spend(address(wethToken), recipient, 0.5 ether, "Gas refill");
 
-        assertEq(weth.balanceOf(recipient), 0.5 ether);
+        assertEq(wethToken.balanceOf(recipient), 0.5 ether);
     }
 
     function test_agentCannotSpendUnsupportedToken() public {

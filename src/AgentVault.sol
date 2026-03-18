@@ -27,6 +27,11 @@ library SafeERC20 {
     }
 }
 
+/// @dev WETH — wrap/unwrap ETH
+interface IWETH {
+    function deposit() external payable;
+}
+
 /// @dev Lido stETH
 interface ILido {
     function submit(address _referral) external payable returns (uint256);
@@ -115,6 +120,9 @@ contract AgentVault {
     // Total tracking per token
     mapping(address => uint256) public totalSpent;
 
+    // WETH for ETH deposits
+    address public immutable weth;
+
     // Lido integration (optional, set to 0x0 if not needed)
     address public immutable stETH;     // stETH is a rebase token — balance grows as yield accrues
     address public immutable wstETH;    // kept for compatibility
@@ -159,6 +167,7 @@ contract AgentVault {
     constructor(
         address _owner,
         address _agent,
+        address _weth,
         address _stETH,
         address _wstETH,
         address _swapRouter,
@@ -169,6 +178,7 @@ contract AgentVault {
         if (_agent == address(0)) revert ZeroAddress();
         owner = _owner;
         agent = _agent;
+        weth = _weth;
         stETH = _stETH;
         wstETH = _wstETH;
         swapRouter = _swapRouter;
@@ -189,6 +199,17 @@ contract AgentVault {
         _addToken(token);
 
         emit Deposited(msg.sender, token, amount);
+    }
+
+    /// @notice Deposit ETH — auto-wraps to WETH and deposits into vault
+    function depositETH() external payable onlyOwner nonReentrant {
+        if (msg.value == 0) revert ZeroAmount();
+        require(weth != address(0), "WETH not configured");
+
+        IWETH(weth).deposit{value: msg.value}();
+        _addToken(weth);
+
+        emit Deposited(msg.sender, weth, msg.value);
     }
 
     /// @notice Stake ETH via Lido → stETH stays in vault, yield accrues via rebase
