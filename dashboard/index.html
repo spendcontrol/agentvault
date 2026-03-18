@@ -1924,7 +1924,7 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
         try {
             const vaultAddr = await currentVaultContract.getAddress();
             const currentBlock = await provider.getBlockNumber();
-            const fromBlock = Math.max(0, currentBlock - 100000);
+            const fromBlock = Math.max(0, currentBlock - 5000);
 
             // Use raw getLogs with the event topic — more reliable than queryFilter
             const eventTopic = ethers.id("AgentSpent(address,address,address,uint256,string)");
