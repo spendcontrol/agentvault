@@ -3,7 +3,21 @@ pragma solidity ^0.8.20;
 
 import {AgentVault} from "./AgentVault.sol";
 
-/// @title AgentVaultFactory — Create multi-token agent treasuries
+/// @dev EIP-1167 Minimal Proxy — deploys cheap clones (~$0.50 instead of $20)
+library Clones {
+    function clone(address implementation) internal returns (address instance) {
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
+            mstore(add(ptr, 0x14), shl(0x60, implementation))
+            mstore(add(ptr, 0x28), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
+            instance := create(0, ptr, 0x37)
+            if iszero(instance) { revert(0, 0) }
+        }
+    }
+}
+
+/// @title AgentVaultFactory — Create multi-token agent treasuries (cheap via EIP-1167 proxy)
 contract AgentVaultFactory {
 
     event VaultCreated(
@@ -12,6 +26,7 @@ contract AgentVaultFactory {
         address vault
     );
 
+    address public immutable implementation;  // The master AgentVault contract
     address public immutable weth;
     address public immutable stETH;
     address public immutable wstETH;
@@ -26,11 +41,18 @@ contract AgentVaultFactory {
         stETH = _stETH;
         wstETH = _wstETH;
         swapRouter = _swapRouter;
+
+        // Deploy one master implementation
+        implementation = address(new AgentVault());
     }
 
-    /// @notice Create a new AgentVault — just agent address, set limits per token later
+    /// @notice Create a new AgentVault — cheap clone (~$0.50 on L1)
     function createVault(address agent) external returns (address) {
-        AgentVault vault = new AgentVault(
+        // Clone the implementation (EIP-1167 minimal proxy)
+        address vault = Clones.clone(implementation);
+
+        // Initialize the clone
+        AgentVault(vault).initialize(
             msg.sender,
             agent,
             weth,
@@ -39,12 +61,12 @@ contract AgentVaultFactory {
             swapRouter
         );
 
-        allVaults.push(address(vault));
-        vaultsByOwner[msg.sender].push(address(vault));
-        vaultsByAgent[agent].push(address(vault));
+        allVaults.push(vault);
+        vaultsByOwner[msg.sender].push(vault);
+        vaultsByAgent[agent].push(vault);
 
-        emit VaultCreated(msg.sender, agent, address(vault));
-        return address(vault);
+        emit VaultCreated(msg.sender, agent, vault);
+        return vault;
     }
 
     function totalVaults() external view returns (uint256) {

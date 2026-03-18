@@ -124,11 +124,11 @@ contract AgentVault {
     mapping(address => uint256) public totalSpent;
 
     // WETH for ETH deposits
-    address public immutable weth;
+    address public weth;
 
     // Lido integration (optional, set to 0x0 if not needed)
-    address public immutable stETH;     // stETH is a rebase token — balance grows as yield accrues
-    address public immutable wstETH;    // kept for compatibility
+    address public stETH;     // stETH is a rebase token — balance grows as yield accrues
+    address public wstETH;    // kept for compatibility
 
     // Yield tracking for staked ETH (stETH)
     uint256 public stakedPrincipal;     // stETH amount recorded at deposit (doesn't grow)
@@ -138,7 +138,10 @@ contract AgentVault {
     bool public yieldOnly;              // if true, agent can only spend harvested yield from stETH
 
     // Uniswap (optional)
-    address public immutable swapRouter;
+    address public swapRouter;
+
+    // Initializable guard
+    bool private _initialized;
 
     // Reentrancy guard
     uint256 private _locked = 1;
@@ -166,17 +169,20 @@ contract AgentVault {
         _locked = 1;
     }
 
-    // --- Constructor ---
-    constructor(
+    // --- Initialize (used by proxy clones instead of constructor) ---
+    function initialize(
         address _owner,
         address _agent,
         address _weth,
         address _stETH,
         address _wstETH,
         address _swapRouter
-    ) {
+    ) external {
+        require(!_initialized, "Already initialized");
         if (_owner == address(0)) revert ZeroAddress();
         if (_agent == address(0)) revert ZeroAddress();
+        _initialized = true;
+        _locked = 1;
         owner = _owner;
         agent = _agent;
         weth = _weth;
