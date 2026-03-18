@@ -1854,9 +1854,12 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                         <span>Left today: <strong style="color:var(--green);">${fmt(remaining)}</strong></span>
                     </div>` : ''}
                     ${noLimitsWarning}
-                    <div style="margin-top:0.5rem;" id="editLimits_${tokenAddr}">
+                    <div style="margin-top:0.5rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;" id="editLimits_${tokenAddr}">
                         <button class="btn btn-outline btn-sm" style="font-size:0.78rem;padding:4px 12px;" onclick="toggleEditLimits('${tokenAddr}', '${symbol}', ${decimals})">
                             ${hasLimits ? 'Edit Limits' : 'Set Limits'}
+                        </button>
+                        <button class="btn btn-outline btn-sm" style="font-size:0.78rem;padding:4px 12px;border-color:var(--red);color:var(--red);" onclick="promptWithdraw('${tokenAddr}', '${symbol}', ${decimals})">
+                            Withdraw
                         </button>
                     </div>
                 </div>`;
@@ -1915,6 +1918,29 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
             await refreshDashboard();
         } catch (err) {
             showToast('Failed: ' + (err.reason || err.message), 'error');
+        }
+    }
+
+    async function promptWithdraw(tokenAddr, symbol, decimals) {
+        const balance = await currentVaultContract.balanceOf(tokenAddr);
+        const fmtBalance = ethers.formatUnits(balance, decimals);
+        const amount = prompt(`Withdraw ${symbol}\n\nAvailable: ${fmtBalance} ${symbol}\n\nAmount to withdraw (or "max" for all):`);
+        if (!amount) return;
+
+        try {
+            let withdrawAmount;
+            if (amount.toLowerCase() === 'max' || amount.toLowerCase() === 'all') {
+                withdrawAmount = balance;
+            } else {
+                withdrawAmount = ethers.parseUnits(amount, decimals);
+            }
+            const tx = await currentVaultContract.withdraw(tokenAddr, withdrawAmount);
+            showToast(`Withdrawing ${symbol}...`, 'success');
+            await tx.wait();
+            showToast(`${symbol} withdrawn to your wallet!`, 'success');
+            await refreshDashboard();
+        } catch (err) {
+            showToast('Withdraw failed: ' + (err.reason || err.message), 'error');
         }
     }
 
