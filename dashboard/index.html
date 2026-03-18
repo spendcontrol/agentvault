@@ -1437,55 +1437,28 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                         </div>
                     </div>
 
-                    <!-- Spending Rules -->
+                    <!-- Vault Controls -->
                     <div class="dashboard-card">
-                        <h3>Spending Rules</h3>
-                        <p class="card-desc">Set limits per token. Agent can't exceed these — enforced by smart contract.</p>
-                        <div class="rules-grid">
-                            <div class="rule-item">
-                                <div class="rule-label">Default Daily Limit</div>
-                                <div class="rule-value" id="ruleDailyLimit">--</div>
+                        <h3>Vault Controls</h3>
+                        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:0.75rem;">
+                            <div style="flex:1;min-width:150px;">
+                                <div style="color:var(--text-tertiary);font-size:0.78rem;">Agent</div>
+                                <div class="mono" id="ruleAgent" style="font-size:0.78rem;color:var(--text-secondary);">--</div>
                             </div>
-                            <div class="rule-item">
-                                <div class="rule-label">Default Per-Tx Limit</div>
-                                <div class="rule-value" id="rulePerTxLimit">--</div>
-                            </div>
-                            <div class="rule-item">
-                                <div class="rule-label">Agent</div>
-                                <div class="rule-value mono" id="ruleAgent" style="font-size:0.72rem;">--</div>
-                            </div>
-                            <div class="rule-item">
-                                <div class="rule-label">Status</div>
+                            <div>
+                                <div style="color:var(--text-tertiary);font-size:0.78rem;">Status</div>
                                 <div id="ruleStatus">--</div>
                             </div>
                         </div>
-
-                        <!-- Per-token limits -->
-                        <div style="background: rgba(123,97,255,0.05); border: 1px solid rgba(123,97,255,0.15); border-radius: 10px; padding: 1rem; margin: 1rem 0;">
-                            <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Set limits for a specific token</div>
-                            <p class="card-desc" style="margin-bottom: 0.75rem;">Override default limits for a token. E.g. "100 USDC/day" or "0.05 WETH/tx".</p>
-                            <div class="form-group" style="margin-bottom: 0.5rem;">
-                                <label>Token Address</label>
-                                <input type="text" id="inputLimitToken" placeholder="0x... (or use a token already in vault)" />
-                            </div>
-                            <div style="display:flex; gap:0.75rem; margin-bottom: 0.75rem;">
-                                <div class="form-group" style="flex:1;">
-                                    <label>Daily Limit</label>
-                                    <input type="text" id="inputTokenDailyLimit" placeholder="100" />
-                                </div>
-                                <div class="form-group" style="flex:1;">
-                                    <label>Per-Tx Limit</label>
-                                    <input type="text" id="inputTokenPerTxLimit" placeholder="50" />
-                                </div>
-                            </div>
-                            <button class="btn btn-gradient btn-sm" onclick="setTokenLimits()">Set Token Limits</button>
-                        </div>
-
                         <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-                            <button class="btn btn-outline btn-sm" onclick="promptSetLimits()">Update Default Limits</button>
                             <button class="btn btn-outline btn-sm" onclick="promptWhitelist()">Manage Whitelist</button>
                             <button class="btn btn-danger btn-sm" id="pauseBtn" onclick="togglePause()">Pause Vault</button>
                         </div>
+                    </div>
+                    <!-- hidden elements referenced by old code -->
+                    <div style="display:none;">
+                        <span id="ruleDailyLimit"></span><span id="rulePerTxLimit"></span>
+                        <input id="inputLimitToken" /><input id="inputTokenDailyLimit" /><input id="inputTokenPerTxLimit" />
                     </div>
                 </div>
 
