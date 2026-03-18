@@ -1596,6 +1596,7 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
         'function expenseCount() view returns (uint256)',
         'function owner() view returns (address)',
         'function agent() view returns (address)',
+        'function weth() view returns (address)',
         'function stETH() view returns (address)',
         'function dailyLimit() view returns (uint256)',
         'function perTxLimit() view returns (uint256)',
@@ -1953,6 +1954,11 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
             await tx.wait();
             showToast('ETH deposited!', 'success');
             await loadVaultData();
+            // Get WETH address from vault and prompt to set limits
+            try {
+                const wethAddr = await currentVaultContract.weth();
+                promptSetLimitsForToken(wethAddr, 'WETH');
+            } catch(e) {}
         } catch (err) {
             showToast('Deposit failed: ' + (err.reason || err.message), 'error');
         }
@@ -1968,15 +1974,39 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
         try {
             const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, provider);
             const decimals = await tokenContract.decimals();
+            const symbol = await tokenContract.symbol().catch(() => 'TOKEN');
             const parsedAmount = ethers.parseUnits(amount, decimals);
             const tx = await currentVaultContract.deposit(tokenAddr, parsedAmount);
             showToast('Deposit submitted...', 'success');
             await tx.wait();
             showToast('Deposit successful!', 'success');
             await refreshDashboard();
+            // Prompt to set limits for this token
+            promptSetLimitsForToken(tokenAddr, symbol);
         } catch (err) {
             showToast('Deposit failed: ' + (err.reason || err.message), 'error');
         }
+    }
+
+    function promptSetLimitsForToken(tokenAddr, symbol) {
+        // Check if limits already set
+        currentVaultContract.effectiveDailyLimit(tokenAddr).then(limit => {
+            if (limit > 0n) return; // already has limits
+
+            // Auto-fill the token limits form and scroll to it
+            document.getElementById('inputLimitToken').value = tokenAddr;
+            document.getElementById('inputTokenDailyLimit').placeholder = symbol === 'USDC' ? '100' : '0.1';
+            document.getElementById('inputTokenPerTxLimit').placeholder = symbol === 'USDC' ? '50' : '0.05';
+
+            // Highlight the limits section
+            const limitsSection = document.getElementById('inputLimitToken').closest('.dashboard-card');
+            if (limitsSection) {
+                limitsSection.style.border = '1px solid var(--accent-cyan)';
+                limitsSection.scrollIntoView({behavior: 'smooth', block: 'center'});
+                showToast(`Set spending limits for ${symbol} so your agent can use it.`, 'success');
+                setTimeout(() => { limitsSection.style.border = ''; }, 5000);
+            }
+        }).catch(() => {});
     }
 
     // ==========================================
