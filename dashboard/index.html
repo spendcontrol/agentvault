@@ -1848,23 +1848,97 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
         for (const tokenAddr of tokens) {
             try {
                 const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, provider);
-                const [symbol, decimals, balance] = await Promise.all([
-                    tokenContract.symbol().catch(() => 'UNKNOWN'),
+                const [symbol, decimals, balance, effDaily, effPerTx, remaining] = await Promise.all([
+                    tokenContract.symbol().catch(() => '???'),
                     tokenContract.decimals().catch(() => 18),
-                    currentVaultContract.balanceOf(tokenAddr)
+                    currentVaultContract.balanceOf(tokenAddr),
+                    currentVaultContract.effectiveDailyLimit(tokenAddr),
+                    currentVaultContract.effectivePerTxLimit(tokenAddr),
+                    currentVaultContract.remainingDailyBudget(tokenAddr),
                 ]);
-                html += `<div class="token-row">
-                    <span class="token-symbol">${symbol}</span>
-                    <span class="token-balance">${parseFloat(ethers.formatUnits(balance, decimals)).toLocaleString(undefined, { maximumFractionDigits: 6 })}</span>
+                const fmt = (v) => parseFloat(ethers.formatUnits(v, decimals)).toLocaleString(undefined, {maximumFractionDigits: 6});
+                const hasLimits = effDaily > 0n;
+                const noLimitsWarning = !hasLimits
+                    ? `<div style="color:var(--orange);font-size:0.78rem;margin-top:0.35rem;">⚠️ No limits set — agent can't spend this token</div>`
+                    : '';
+
+                html += `<div class="token-card" style="background:var(--bg-card);border:1px solid ${hasLimits ? 'var(--border)' : 'var(--orange)'};border-radius:12px;padding:1rem;margin-bottom:0.75rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                        <div>
+                            <span style="font-weight:700;font-size:1.1rem;color:var(--text-primary);">${symbol}</span>
+                            <span style="color:var(--text-tertiary);font-size:0.78rem;margin-left:0.5rem;">${tokenAddr.slice(0,6)}...${tokenAddr.slice(-4)}</span>
+                        </div>
+                        <span style="font-size:1.2rem;font-weight:700;background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">${fmt(balance)}</span>
+                    </div>
+                    ${hasLimits ? `
+                    <div style="display:flex;gap:1rem;font-size:0.82rem;color:var(--text-secondary);margin-bottom:0.35rem;">
+                        <span>Daily: <strong style="color:var(--text-primary);">${fmt(effDaily)}</strong></span>
+                        <span>Per-Tx: <strong style="color:var(--text-primary);">${fmt(effPerTx)}</strong></span>
+                        <span>Left today: <strong style="color:var(--green);">${fmt(remaining)}</strong></span>
+                    </div>` : ''}
+                    ${noLimitsWarning}
+                    <div style="margin-top:0.5rem;" id="editLimits_${tokenAddr}">
+                        <button class="btn btn-outline btn-sm" style="font-size:0.78rem;padding:4px 12px;" onclick="toggleEditLimits('${tokenAddr}', '${symbol}', ${decimals})">
+                            ${hasLimits ? 'Edit Limits' : 'Set Limits'}
+                        </button>
+                    </div>
                 </div>`;
             } catch (e) {
-                html += `<div class="token-row">
-                    <span class="token-symbol mono" style="font-size:0.75rem;">${tokenAddr.slice(0,8)}...</span>
-                    <span class="token-balance">--</span>
+                html += `<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:0.75rem;">
+                    <span class="mono" style="font-size:0.78rem;color:var(--text-tertiary);">${tokenAddr.slice(0,10)}...</span>
+                    <span style="float:right;">--</span>
                 </div>`;
             }
         }
         container.innerHTML = html;
+    }
+
+    function toggleEditLimits(tokenAddr, symbol, decimals) {
+        const container = document.getElementById('editLimits_' + tokenAddr);
+        if (!container) return;
+
+        // Check if already expanded
+        if (container.querySelector('.edit-limits-form')) {
+            container.innerHTML = `<button class="btn btn-outline btn-sm" style="font-size:0.78rem;padding:4px 12px;" onclick="toggleEditLimits('${tokenAddr}', '${symbol}', ${decimals})">Edit Limits</button>`;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="edit-limits-form" style="display:flex;gap:0.5rem;align-items:end;flex-wrap:wrap;margin-top:0.25rem;">
+                <div style="flex:1;min-width:100px;">
+                    <label style="font-size:0.72rem;color:var(--text-tertiary);display:block;margin-bottom:2px;">Daily (${symbol})</label>
+                    <input type="text" id="editDaily_${tokenAddr}" placeholder="100" style="width:100%;padding:6px 10px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.85rem;" />
+                </div>
+                <div style="flex:1;min-width:100px;">
+                    <label style="font-size:0.72rem;color:var(--text-tertiary);display:block;margin-bottom:2px;">Per-Tx (${symbol})</label>
+                    <input type="text" id="editPerTx_${tokenAddr}" placeholder="50" style="width:100%;padding:6px 10px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.85rem;" />
+                </div>
+                <button class="btn btn-gradient btn-sm" style="font-size:0.78rem;padding:6px 16px;height:34px;" onclick="saveTokenLimits('${tokenAddr}', ${decimals})">Save</button>
+                <button class="btn btn-outline btn-sm" style="font-size:0.78rem;padding:6px 12px;height:34px;" onclick="toggleEditLimits('${tokenAddr}', '${symbol}', ${decimals})">Cancel</button>
+            </div>
+        `;
+    }
+
+    async function saveTokenLimits(tokenAddr, decimals) {
+        const daily = document.getElementById('editDaily_' + tokenAddr)?.value?.trim();
+        const perTx = document.getElementById('editPerTx_' + tokenAddr)?.value?.trim();
+        if (!daily || !perTx) {
+            showToast('Enter both daily and per-tx limits.', 'error');
+            return;
+        }
+        try {
+            const tx = await currentVaultContract.setTokenLimits(
+                tokenAddr,
+                ethers.parseUnits(daily, decimals),
+                ethers.parseUnits(perTx, decimals)
+            );
+            showToast('Setting limits...', 'success');
+            await tx.wait();
+            showToast('Limits updated!', 'success');
+            await refreshDashboard();
+        } catch (err) {
+            showToast('Failed: ' + (err.reason || err.message), 'error');
+        }
     }
 
     async function loadActivity() {
