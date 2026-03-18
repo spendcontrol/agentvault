@@ -1020,6 +1020,7 @@
                 <a href="#developers" class="landing-nav-link">Developers</a>
                 <a href="#" class="back-to-home" onclick="scrollToTop(); return false;">&larr; Back to Home</a>
                 <button class="nav-connect-btn" id="connectBtn" onclick="handleConnect()">Launch App</button>
+                <button class="nav-connect-btn" id="disconnectBtn" onclick="disconnectWallet()" style="display:none;background:transparent;border:1px solid #D1D5DB;color:#6B7280;font-size:0.78rem;padding:6px 12px;">Disconnect</button>
             </div>
         </div>
     </nav>
@@ -1752,10 +1753,11 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                 }
             }
 
-            // Update button
+            // Update buttons
             const btn = document.getElementById('connectBtn');
             btn.textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
             btn.classList.add('connected');
+            document.getElementById('disconnectBtn').style.display = 'inline-block';
 
             // Init factory
             if (CONFIG.factoryAddress) {
@@ -1776,6 +1778,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
         appSection.style.display = 'block';
         appSection.classList.add('active');
         document.getElementById('navbar').classList.add('app-mode');
+        history.pushState(null, '', '#app');
     }
 
     function scrollToTop() {
@@ -1783,7 +1786,38 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
         document.getElementById('app-section').style.display = 'none';
         document.getElementById('app-section').classList.remove('active');
         document.getElementById('navbar').classList.remove('app-mode');
+        history.pushState(null, '', location.pathname);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', () => {
+        if (location.hash === '#app' && userAddress) {
+            showApp();
+        } else {
+            document.getElementById('landing-section').style.display = '';
+            document.getElementById('app-section').style.display = 'none';
+            document.getElementById('app-section').classList.remove('active');
+            document.getElementById('navbar').classList.remove('app-mode');
+        }
+    });
+
+    function disconnectWallet() {
+        userAddress = null;
+        provider = null;
+        signer = null;
+        factoryContract = null;
+        currentVaultContract = null;
+
+        const btn = document.getElementById('connectBtn');
+        btn.textContent = 'Launch App';
+        btn.classList.remove('connected');
+
+        // Hide disconnect button
+        document.getElementById('disconnectBtn').style.display = 'none';
+
+        scrollToTop();
+        showToast('Wallet disconnected', 'success');
     }
 
     // ==========================================
@@ -2644,8 +2678,26 @@ cast call $VAULT "expenseCount()(uint256)" --rpc-url $RPC`;
     }
 
     function copyPanel(id) {
-        const text = document.getElementById(id)?.textContent || '';
-        navigator.clipboard.writeText(text).then(() => showToast('Copied!', 'success'));
+        const el = document.getElementById(id);
+        if (!el) { showToast('Nothing to copy', 'error'); return; }
+        const text = el.textContent || el.innerText || '';
+        if (!text || text === 'Loading...') { showToast('Content not loaded yet — select a vault first', 'error'); return; }
+        try {
+            navigator.clipboard.writeText(text).then(() => showToast('Copied!', 'success')).catch(() => {
+                // Fallback for non-HTTPS
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('Copied!', 'success');
+            });
+        } catch(e) {
+            showToast('Copy failed — try selecting text manually', 'error');
+        }
     }
 
     function switchAgentTab(btn, panelId) {
@@ -2700,6 +2752,11 @@ cast call $VAULT "expenseCount()(uint256)" --rpc-url $RPC`;
                     await handleConnect();
                 }
             } catch(_) {}
+        }
+
+        // Handle #app in URL on page load
+        if (location.hash === '#app' && userAddress) {
+            showApp();
         }
     })();
     </script>
