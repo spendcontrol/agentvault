@@ -1019,9 +1019,22 @@
                 <a href="#features" class="landing-nav-link">Features</a>
                 <a href="#developers" class="landing-nav-link">Developers</a>
                 <a href="#" class="back-to-home" onclick="scrollToTop(); return false;">&larr; Back to Home</a>
-                <div class="network-switcher back-to-home" style="display:inline-flex;gap:2px;background:#F3F4F6;border-radius:8px;padding:2px;">
-                    <button class="network-switch-btn active" data-network="mainnet" onclick="switchNetwork('mainnet')" style="padding:5px 12px;border:none;border-radius:6px;font-size:0.78rem;cursor:pointer;font-family:inherit;transition:all 0.15s;background:#111;color:#fff;">Mainnet</button>
-                    <button class="network-switch-btn" data-network="testnet" onclick="switchNetwork('testnet')" style="padding:5px 12px;border:none;border-radius:6px;font-size:0.78rem;cursor:pointer;font-family:inherit;transition:all 0.15s;background:transparent;color:#6B7280;">Testnet</button>
+                <div class="back-to-home" style="position:relative;display:inline-block;">
+                    <button id="networkBtn" onclick="toggleNetworkDropdown()" style="display:flex;align-items:center;gap:6px;padding:6px 14px;background:#fff;border:1px solid #E5E7EB;border-radius:8px;cursor:pointer;font-family:inherit;font-size:0.82rem;color:#111;transition:border-color 0.15s;">
+                        <span id="networkDot" style="width:8px;height:8px;border-radius:50%;background:#10B981;"></span>
+                        <span id="networkBtnLabel">Ethereum</span>
+                        <span style="color:#9CA3AF;font-size:0.7rem;">▾</span>
+                    </button>
+                    <div id="networkDropdown" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #E5E7EB;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.12);overflow:hidden;z-index:200;min-width:200px;">
+                        <div onclick="switchNetwork('mainnet')" class="network-option" data-network="mainnet" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.85rem;transition:background 0.15s;">
+                            <span style="width:8px;height:8px;border-radius:50%;background:#627EEA;"></span>
+                            <span>Ethereum Mainnet</span>
+                        </div>
+                        <div onclick="switchNetwork('testnet')" class="network-option" data-network="testnet" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.85rem;transition:background 0.15s;border-top:1px solid #F3F4F6;">
+                            <span style="width:8px;height:8px;border-radius:50%;background:#0052FF;"></span>
+                            <span>Base Sepolia</span>
+                        </div>
+                    </div>
                 </div>
                 <div style="position:relative;display:inline-block;">
                     <button class="nav-connect-btn" id="connectBtn" onclick="handleConnectClick()">Launch App</button>
@@ -1585,34 +1598,80 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
     let currentNetwork = 'mainnet';
     let CONFIG = { ...NETWORKS[currentNetwork] };
 
-    function switchNetwork(network) {
+    async function switchNetwork(network) {
+        document.getElementById('networkDropdown').style.display = 'none';
         if (network === currentNetwork) return;
+
         currentNetwork = network;
         CONFIG = { ...NETWORKS[network] };
 
-        // Reset state
+        // Update button label
+        document.getElementById('networkBtnLabel').textContent = CONFIG.chainName;
+        document.getElementById('networkDot').style.background = CONFIG.color;
+
+        // Highlight active option
+        document.querySelectorAll('.network-option').forEach(el => {
+            el.style.background = el.dataset.network === network ? '#F3F4F6' : '';
+        });
+
+        // Reset vault state
         currentVaultContract = null;
         currentVaultAddress = null;
         factoryContract = null;
-
-        // Update UI
-        updateNetworkSwitcher();
         document.getElementById('vaultDashboard').style.display = 'none';
 
-        // Reconnect if wallet connected
-        if (userAddress) {
-            handleConnect();
+        // Ask MetaMask to switch chain
+        if (window.ethereum && userAddress) {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: CONFIG.chainIdHex }]
+                });
+            } catch (switchErr) {
+                if (switchErr.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: CONFIG.chainIdHex,
+                                chainName: CONFIG.chainName,
+                                rpcUrls: [CONFIG.rpcUrl],
+                                blockExplorerUrls: [CONFIG.explorerUrl],
+                                nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
+                            }]
+                        });
+                    } catch(e) {
+                        showToast('Failed to add network', 'error');
+                        return;
+                    }
+                } else {
+                    showToast('Please switch network in MetaMask', 'error');
+                    return;
+                }
+            }
+
+            // Reconnect with new network
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+            factoryContract = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, signer);
+            await loadUserVaults();
+            showToast('Switched to ' + CONFIG.chainName, 'success');
         }
     }
 
-    function updateNetworkSwitcher() {
-        document.querySelectorAll('.network-switch-btn').forEach(btn => {
-            const isActive = btn.dataset.network === currentNetwork;
-            btn.classList.toggle('active', isActive);
-            btn.style.background = isActive ? '#111' : 'transparent';
-            btn.style.color = isActive ? '#fff' : '#6B7280';
-        });
+    function toggleNetworkDropdown() {
+        const dd = document.getElementById('networkDropdown');
+        dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
     }
+
+    // Close network dropdown on outside click
+    document.addEventListener('click', (e) => {
+        const dd = document.getElementById('networkDropdown');
+        const btn = document.getElementById('networkBtn');
+        if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target)) {
+            dd.style.display = 'none';
+        }
+    });
 
     const FACTORY_ABI = [
         'function createVault(address agent) returns (address)',
