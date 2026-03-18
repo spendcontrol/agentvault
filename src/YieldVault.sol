@@ -3,6 +3,30 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 
+/// @dev SafeERC20 — handles non-standard tokens (USDT doesn't return bool)
+library SafeERC20 {
+    function safeTransfer(IERC20 token, address to, uint256 amount) internal {
+        (bool success, bytes memory data) = address(token).call(
+            abi.encodeWithSelector(token.transfer.selector, to, amount)
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeERC20: transfer failed");
+    }
+
+    function safeTransferFrom(IERC20 token, address from, address to, uint256 amount) internal {
+        (bool success, bytes memory data) = address(token).call(
+            abi.encodeWithSelector(token.transferFrom.selector, from, to, amount)
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeERC20: transferFrom failed");
+    }
+
+    function safeApprove(IERC20 token, address spender, uint256 amount) internal {
+        (bool success, bytes memory data) = address(token).call(
+            abi.encodeWithSelector(token.approve.selector, spender, amount)
+        );
+        require(success && (data.length == 0 || abi.decode(data, (bool))), "SafeERC20: approve failed");
+    }
+}
+
 /// @dev Lido stETH — submit ETH, receive stETH
 interface ILido {
     function submit(address _referral) external payable returns (uint256);
@@ -34,6 +58,8 @@ interface ISwapRouter {
 /// @notice Stake ETH via Lido. Agent lives off the yield. Principal stays untouched.
 /// @dev Uses wstETH internally for simpler accounting (no rebasing)
 contract YieldVault {
+    using SafeERC20 for IERC20;
+
     // --- Errors ---
     error OnlyOwner();
     error OnlyAgent();
@@ -43,7 +69,9 @@ contract YieldVault {
     error ExceedsPerTxLimit();
     error RecipientNotWhitelisted();
     error ZeroAmount();
+    error ZeroAddress();
     error VaultPaused();
+    error Reentrancy();
 
     // --- Events ---
     event Deposited(address indexed owner, uint256 ethAmount, uint256 wstETHReceived);
@@ -93,6 +121,9 @@ contract YieldVault {
     // Uniswap V3 SwapRouter
     address public swapRouter;
 
+    // Reentrancy guard
+    uint256 private _locked = 1;
+
     // --- Modifiers ---
     modifier onlyOwner() {
         if (msg.sender != owner) revert OnlyOwner();
@@ -109,6 +140,13 @@ contract YieldVault {
         _;
     }
 
+    modifier nonReentrant() {
+        if (_locked != 1) revert Reentrancy();
+        _locked = 2;
+        _;
+        _locked = 1;
+    }
+
     // --- Constructor ---
     constructor(
         address _owner,
@@ -119,6 +157,10 @@ contract YieldVault {
         uint256 _dailyLimit,
         uint256 _perTxLimit
     ) {
+        if (_owner == address(0)) revert ZeroAddress();
+        if (_agent == address(0)) revert ZeroAddress();
+        if (_wstETH == address(0)) revert ZeroAddress();
+        if (_stETH == address(0)) revert ZeroAddress();
         owner = _owner;
         agent = _agent;
         wstETH = _wstETH;
@@ -132,7 +174,7 @@ contract YieldVault {
 
     /// @notice Deposit ETH — auto-stakes via Lido → stETH → wstETH
     /// @dev This is the main entry point. Human sends ETH, contract handles everything.
-    function depositETH() external payable onlyOwner {
+    function depositETH() external payable onlyOwner nonReentrant {
         if (msg.value == 0) revert ZeroAmount();
 
         // 1. Stake ETH in Lido → receive stETH
@@ -140,8 +182,9 @@ contract YieldVault {
         ILido(stETH).submit{value: msg.value}(address(0));
         uint256 stETHReceived = IERC20(stETH).balanceOf(address(this)) - stETHBefore;
 
-        // 2. Approve wstETH contract to spend our stETH
-        IERC20(stETH).approve(wstETH, stETHReceived);
+        // 2. Approve wstETH contract to spend our stETH (reset first to handle non-zero allowance)
+        IERC20(stETH).safeApprove(wstETH, 0);
+        IERC20(stETH).safeApprove(wstETH, stETHReceived);
 
         // 3. Wrap stETH → wstETH
         uint256 wstETHBefore = IERC20(wstETH).balanceOf(address(this));
@@ -155,9 +198,9 @@ contract YieldVault {
 
     /// @notice Deposit wstETH directly (for users who already have wstETH)
     /// @param amount Amount of wstETH to deposit
-    function deposit(uint256 amount) external onlyOwner {
+    function deposit(uint256 amount) external onlyOwner nonReentrant {
         if (amount == 0) revert ZeroAmount();
-        IERC20(wstETH).transferFrom(msg.sender, address(this), amount);
+        IERC20(wstETH).safeTransferFrom(msg.sender, address(this), amount);
         principalWstETH += amount;
         emit Deposited(msg.sender, amount, amount);
     }
@@ -184,7 +227,7 @@ contract YieldVault {
     /// @param to Recipient address
     /// @param amount wstETH amount to send
     /// @param reason Why the agent is spending (stored on-chain)
-    function spend(address to, uint256 amount, string calldata reason) external onlyAgent whenNotPaused {
+    function spend(address to, uint256 amount, string calldata reason) external onlyAgent whenNotPaused nonReentrant {
         _validateSpend(to, amount);
 
         dailySpent[block.timestamp / 1 days] += amount;
@@ -199,12 +242,12 @@ contract YieldVault {
         }));
         expenseCount++;
 
-        IERC20(wstETH).transfer(to, amount);
+        IERC20(wstETH).safeTransfer(to, amount);
         emit YieldWithdrawn(msg.sender, to, amount, reason);
     }
 
     /// @notice Agent spends without a reason (backwards compatible)
-    function spend(address to, uint256 amount) external onlyAgent whenNotPaused {
+    function spend(address to, uint256 amount) external onlyAgent whenNotPaused nonReentrant {
         _validateSpend(to, amount);
 
         dailySpent[block.timestamp / 1 days] += amount;
@@ -219,12 +262,13 @@ contract YieldVault {
         }));
         expenseCount++;
 
-        IERC20(wstETH).transfer(to, amount);
+        IERC20(wstETH).safeTransfer(to, amount);
         emit YieldWithdrawn(msg.sender, to, amount, "");
     }
 
     /// @notice Internal validation for spend
     function _validateSpend(address to, uint256 amount) internal view {
+        if (to == address(0)) revert ZeroAddress();
         if (amount == 0) revert ZeroAmount();
         if (amount > availableYield()) revert ExceedsYield();
         if (amount > perTxLimit) revert ExceedsPerTxLimit();
@@ -274,7 +318,7 @@ contract YieldVault {
         uint256 amountOutMinimum,
         address to,
         string calldata reason
-    ) external onlyAgent whenNotPaused returns (uint256 amountOut) {
+    ) external onlyAgent whenNotPaused nonReentrant returns (uint256 amountOut) {
         amountOut = _executeSwap(tokenOut, fee, amountIn, amountOutMinimum, to);
 
         expenses.push(ExpenseReport({
@@ -296,7 +340,7 @@ contract YieldVault {
         uint256 amountIn,
         uint256 amountOutMinimum,
         address to
-    ) external onlyAgent whenNotPaused returns (uint256 amountOut) {
+    ) external onlyAgent whenNotPaused nonReentrant returns (uint256 amountOut) {
         amountOut = _executeSwap(tokenOut, fee, amountIn, amountOutMinimum, to);
 
         expenses.push(ExpenseReport({
@@ -323,7 +367,8 @@ contract YieldVault {
         dailySpent[block.timestamp / 1 days] += amountIn;
         totalYieldSpent += amountIn;
 
-        IERC20(wstETH).approve(swapRouter, amountIn);
+        IERC20(wstETH).safeApprove(swapRouter, 0);
+        IERC20(wstETH).safeApprove(swapRouter, amountIn);
 
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
             tokenIn: wstETH,
@@ -341,6 +386,7 @@ contract YieldVault {
 
     // --- Owner: Manage ---
     function setAgent(address _agent) external onlyOwner {
+        if (_agent == address(0)) revert ZeroAddress();
         emit AgentUpdated(agent, _agent);
         agent = _agent;
     }
@@ -366,10 +412,10 @@ contract YieldVault {
     }
 
     /// @notice Owner can withdraw principal (emergency / exit)
-    function withdrawPrincipal(uint256 amount) external onlyOwner {
+    function withdrawPrincipal(uint256 amount) external onlyOwner nonReentrant {
         if (amount > principalWstETH) revert ExceedsYield();
         principalWstETH -= amount;
-        IERC20(wstETH).transfer(owner, amount);
+        IERC20(wstETH).safeTransfer(owner, amount);
         emit PrincipalWithdrawn(owner, amount);
     }
 
