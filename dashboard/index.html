@@ -1922,8 +1922,11 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
         if (!currentVaultContract) return;
         const tbody = document.getElementById('activityBody');
         try {
+            // Get current block and scan last 50000 blocks (or from 0 if chain is young)
+            const currentBlock = await provider.getBlockNumber();
+            const fromBlock = Math.max(0, currentBlock - 50000);
             const filter = currentVaultContract.filters.AgentSpent();
-            const events = await currentVaultContract.queryFilter(filter, -10000);
+            const events = await currentVaultContract.queryFilter(filter, fromBlock, currentBlock);
 
             if (events.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="activity-empty">No agent activity yet</td></tr>';
@@ -1937,16 +1940,18 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                 const time = new Date(block.timestamp * 1000);
                 const timeStr = time.toLocaleDateString() + ' ' + time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                let symbol = ev.args.token.slice(0, 8) + '...';
+                let symbol = ev.args[1].slice(0, 8) + '...';
+                let decimals = 18;
                 try {
-                    const tc = new ethers.Contract(ev.args.token, ERC20_ABI, provider);
+                    const tc = new ethers.Contract(ev.args[1], ERC20_ABI, provider);
                     symbol = await tc.symbol();
+                    decimals = Number(await tc.decimals());
                 } catch(_) {}
 
-                const toAddr = ev.args.to;
+                const toAddr = ev.args[2];
                 const shortTo = toAddr.slice(0, 6) + '...' + toAddr.slice(-4);
-                const amount = ethers.formatUnits(ev.args.amount, 18);
-                const reason = ev.args.reason || '--';
+                const amount = ethers.formatUnits(ev.args[3], decimals);
+                const reason = ev.args[4] || '--';
                 const txHash = ev.transactionHash;
                 const shortTx = txHash.slice(0, 8) + '...';
 
