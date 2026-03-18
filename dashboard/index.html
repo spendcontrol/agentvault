@@ -1614,11 +1614,21 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
             el.style.background = el.dataset.network === network ? '#F3F4F6' : '';
         });
 
-        // Reset vault state
+        // Reset ALL vault state immediately
         currentVaultContract = null;
         currentVaultAddress = null;
         factoryContract = null;
         document.getElementById('vaultDashboard').style.display = 'none';
+
+        // Clear vault selectors immediately
+        const select = document.getElementById('vaultSelect');
+        if (select) select.innerHTML = '<option value="">Select a vault...</option>';
+        const dl = document.getElementById('dropdownLabel');
+        if (dl) dl.textContent = 'Select a vault...';
+        const opts = document.getElementById('dropdownOptions');
+        if (opts) opts.innerHTML = '';
+        document.getElementById('vaultSelectorWrap').style.display = 'none';
+        document.getElementById('createVaultCard').style.display = 'block';
 
         // Ask MetaMask to switch chain
         if (window.ethereum && userAddress) {
