@@ -1511,20 +1511,17 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     <!-- ============ APP SECTION ============ -->
     <div id="app-section">
         <div class="app-container">
-            <!-- Vault Selector (hidden select preserved for compatibility) -->
-            <select id="vaultSelect" style="display:none;" onchange="selectVault(this.value)">
-                <option value="">Select a vault...</option>
-            </select>
+            <!-- Vault Selector -->
             <div id="vaultSelectorWrap" style="display:none;">
-                <div class="vault-list-wrap">
-                    <div class="vault-list-header">
-                        <h3>Your Vaults</h3>
-                        <button class="btn btn-outline btn-sm" onclick="showCreateVault()">+ Create New Vault</button>
-                    </div>
-                    <div class="vault-list" id="vaultCardList">
-                    </div>
+                <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:1rem;">
+                    <select id="vaultSelect" onchange="selectVault(this.value)" style="flex:1;background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);padding:10px 14px;border-radius:10px;font-size:0.9rem;font-family:inherit;cursor:pointer;outline:none;">
+                        <option value="">Select a vault...</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm" onclick="showCreateVault()" style="white-space:nowrap;">+ New Vault</button>
                 </div>
             </div>
+            <!-- hidden elements for card list compatibility -->
+            <div id="vaultCardList" style="display:none;"></div>
 
             <!-- Create Vault -->
             <div class="create-vault-card" id="createVaultCard">
@@ -1983,14 +1980,18 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                 for (const addr of vaults) {
                     const opt = document.createElement('option');
                     opt.value = addr;
-                    opt.textContent = addr.slice(0, 8) + '...' + addr.slice(-6);
+                    // Show address + try to get token count
+                    let label = addr.slice(0, 6) + '...' + addr.slice(-4);
+                    try {
+                        const vc = new ethers.Contract(addr, VAULT_ABI, provider);
+                        const tokens = await vc.getTokens();
+                        label += ` (${tokens.length} token${tokens.length !== 1 ? 's' : ''})`;
+                    } catch(_) {}
+                    opt.textContent = label;
                     select.appendChild(opt);
                 }
                 document.getElementById('vaultSelectorWrap').style.display = 'block';
                 document.getElementById('createVaultCard').style.display = 'none';
-
-                // Build vault card list
-                await renderVaultCardList(vaults);
 
                 // Auto-select first vault
                 select.value = vaults[0];
