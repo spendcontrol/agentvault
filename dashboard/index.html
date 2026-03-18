@@ -1801,7 +1801,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
 
     // Handle browser back/forward
     window.addEventListener('popstate', () => {
-        if (location.hash === '#app' && userAddress) {
+        if (location.hash.startsWith('#app') && userAddress) {
             showApp();
         } else {
             document.getElementById('landing-section').style.display = '';
@@ -2011,12 +2011,14 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
     async function selectVault(address) {
         if (!address) {
             document.getElementById('vaultDashboard').style.display = 'none';
+            history.replaceState(null, '', '#app');
             return;
         }
         currentVaultAddress = address;
         currentVaultContract = new ethers.Contract(address, VAULT_ABI, signer);
         document.getElementById('vaultDashboard').style.display = 'block';
         document.getElementById('createVaultCard').style.display = 'none';
+        history.replaceState(null, '', '#app/' + address);
         updateAgentSnippets(address);
         await refreshDashboard();
     }
@@ -2826,9 +2828,24 @@ cast call $VAULT "getExpense(uint256)(uint256,address,address,uint256,string)" 0
             } catch(_) {}
         }
 
-        // Handle #app in URL on page load
-        if (location.hash === '#app' && userAddress) {
+        // Handle #app or #app/0xVaultAddr in URL on page load
+        if (location.hash.startsWith('#app') && userAddress) {
             showApp();
+            const vaultFromUrl = location.hash.split('/')[1];
+            if (vaultFromUrl && ethers.isAddress(vaultFromUrl)) {
+                // Select this specific vault after vaults are loaded
+                setTimeout(async () => {
+                    const select = document.getElementById('vaultSelect');
+                    if (select) {
+                        select.value = vaultFromUrl;
+                        await selectVault(vaultFromUrl);
+                        // Update custom dropdown label
+                        const label = vaultFromUrl.slice(0,6) + '...' + vaultFromUrl.slice(-4);
+                        const dl = document.getElementById('dropdownLabel');
+                        if (dl) dl.textContent = label;
+                    }
+                }, 1000);
+            }
         }
     })();
     </script>
