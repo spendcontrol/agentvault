@@ -2511,73 +2511,103 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
     // AGENT SNIPPETS
     // ==========================================
     function updateAgentSnippets(vaultAddr) {
-        // Tab 1: Copy-paste prompt for any LLM agent
+        const agentAddr = document.getElementById('ruleAgent')?.textContent?.trim() || '0xYourAgentAddress';
+
+        // Tab 1: Ready-to-paste prompt for any LLM
         document.getElementById('skillFileContent').textContent =
-`Paste this into your agent (Claude Code, Cursor, or any LLM):
-────────────────────────────────────────────────────
+`Copy this entire block and paste it to your AI agent
+(Claude Code, Cursor, OpenClaw, or any LLM with terminal access):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-You have a SpendControl vault at ${vaultAddr} on Base Sepolia.
-Read the full skill file: ${location.origin}/skill.md
+You have a SpendControl vault. Here are your details:
 
-Quick start:
-  pip install -e /path/to/yieldvault/sdk/python
+  Vault address:  ${vaultAddr}
+  Agent wallet:   ${agentAddr}
+  Network:        Base Sepolia
+  RPC:            ${CONFIG.rpcUrl}
+  Explorer:       ${CONFIG.explorerUrl}/address/${vaultAddr}
 
-  from yieldvault import VaultClient
-  import os
-  client = VaultClient("${CONFIG.rpcUrl}", "${vaultAddr}", os.environ["AGENT_PRIVATE_KEY"])
+Your AGENT_PRIVATE_KEY should be set as an environment variable.
+This is the private key for wallet ${agentAddr}.
 
-  # Check budget
-  budget = client.check_budget()
+To interact with the vault, use cast (Foundry):
 
-  # Spend (always give a reason)
-  client.spend(to_address="0x...", amount_wei=1000000, reason="Paid for API call")
+  # Check what tokens are in the vault
+  cast call ${vaultAddr} "getTokens()(address[])" --rpc-url ${CONFIG.rpcUrl}
 
-  # View history
-  client.get_history()
+  # Check balance of a specific token
+  cast call ${vaultAddr} "balanceOf(address)(uint256)" TOKEN_ADDRESS --rpc-url ${CONFIG.rpcUrl}
+
+  # Check daily budget remaining for a token
+  cast call ${vaultAddr} "remainingDailyBudget(address)(uint256)" TOKEN_ADDRESS --rpc-url ${CONFIG.rpcUrl}
+
+  # Spend tokens (token address, recipient, amount in wei, reason)
+  cast send ${vaultAddr} "spend(address,address,uint256,string)" \\
+    TOKEN_ADDRESS RECIPIENT_ADDRESS AMOUNT "Reason for spending" \\
+    --private-key $AGENT_PRIVATE_KEY --rpc-url ${CONFIG.rpcUrl}
 
 Rules:
-  - Check budget before every spend
-  - Always provide a reason (your human reads expense reports)
-  - USDC = 6 decimals, WETH = 18 decimals
-  - If vault is paused, stop and notify your human
-  - Daily and per-tx limits are enforced by the contract`;
+  - Always check budget BEFORE spending
+  - Always include a clear reason for every spend
+  - USDC uses 6 decimals (1 USDC = 1000000)
+  - WETH uses 18 decimals (0.001 WETH = 1000000000000000)
+  - If a spend fails with "VaultPaused", stop and tell your human
+  - Daily and per-tx limits are enforced by the smart contract`;
 
-        // Tab 2: MCP Server config
+        // Tab 2: MCP Server
         document.getElementById('mcpContent').textContent =
-`Add to your Claude Code settings (~/.claude/settings.json):
+`MCP Server gives your agent native spend tools.
+No SDK needed — agent calls check_budget / spend directly.
+
+1. Clone the repo and install:
+   git clone https://github.com/YourRepo/spendcontrol
+   cd spendcontrol/mcp-server
+   npm install
+
+2. Add to Claude Code settings (~/.claude/settings.json):
 
 {
   "mcpServers": {
     "spendcontrol": {
       "command": "node",
-      "args": ["/path/to/yieldvault/mcp-server/index.js"],
+      "args": ["/absolute/path/to/spendcontrol/mcp-server/index.js"],
       "env": {
         "VAULT_ADDRESS": "${vaultAddr}",
-        "AGENT_PRIVATE_KEY": "0xYourAgentPrivateKey",
+        "AGENT_PRIVATE_KEY": "your-agent-private-key-here",
         "RPC_URL": "${CONFIG.rpcUrl}"
       }
     }
   }
 }
 
-This gives your agent native tools:
-  check_budget   — see available balance and daily remaining
-  spend          — send tokens with a reason (on-chain receipt)
-  spend_and_swap — swap tokens via Uniswap before sending
-  get_history    — view past transactions
-  get_vault_info — vault status, agent address, limits`;
+3. Restart Claude Code. Your agent now has these tools:
+
+  check_budget    — available balance + daily remaining per token
+  spend           — send tokens to an address with a reason
+  spend_and_swap  — swap tokens via Uniswap V3 before sending
+  get_history     — view past transactions with reasons
+  get_vault_info  — vault config, agent address, pause status
+
+Note: AGENT_PRIVATE_KEY is the private key for wallet: ${agentAddr}`;
 
         // Tab 3: Python SDK
         document.getElementById('sdkContent').textContent =
-`# Install
-pip install -e /path/to/yieldvault/sdk/python
+`Python SDK for custom agent integrations.
 
-# Set environment variables
-export VAULT_ADDRESS="${vaultAddr}"
-export AGENT_PRIVATE_KEY="0xYourAgentPrivateKey"
-export RPC_URL="${CONFIG.rpcUrl}"
+1. Install:
+   git clone https://github.com/YourRepo/spendcontrol
+   cd spendcontrol/sdk/python
+   pip install -e .
 
-# In your agent code:
+2. Set environment variables:
+   export VAULT_ADDRESS="${vaultAddr}"
+   export AGENT_PRIVATE_KEY="your-agent-private-key-here"
+   export RPC_URL="${CONFIG.rpcUrl}"
+
+   Note: AGENT_PRIVATE_KEY is the key for wallet: ${agentAddr}
+
+3. Use in your agent:
+
 import os
 from yieldvault import VaultClient
 
@@ -2587,48 +2617,58 @@ client = VaultClient(
     agent_private_key=os.environ["AGENT_PRIVATE_KEY"],
 )
 
-# 1. Check budget
+# Check budget
 budget = client.check_budget()
+print(f"Balance: {budget['balance']}")
 print(f"Available: {budget['available_budget']}")
 print(f"Daily remaining: {budget['daily_remaining']}")
 
-# 2. Spend tokens (ALWAYS include a reason)
+# Spend tokens — specify token address, recipient, amount, reason
+# Note: amount is in token's smallest unit (wei for WETH, 6-decimal for USDC)
 tx = client.spend(
-    to_address="0xServiceAddress",
-    amount_wei=1000000,              # 1 USDC (6 decimals)
-    reason="GPT-4 API call — price analysis"
+    to_address="0xRecipientAddress",
+    amount_wei=1000000,
+    reason="Paid for API call — ETH price analysis"
 )
-print(f"Tx: {tx}")
 
-# 3. View expense history
-for tx in client.get_history():
-    print(f"{tx['amount']} → {tx['to']} | {tx['reason']}")`;
+# View expense history
+for entry in client.get_history():
+    print(f"{entry['amount']} -> {entry['to']} | {entry['reason']}")`;
 
         // Tab 4: Terminal / cast
         document.getElementById('cliContent').textContent =
-`# Set variables
-export VAULT=${vaultAddr}
-export KEY="0xYourAgentPrivateKey"
-export RPC="${CONFIG.rpcUrl}"
-export TOKEN="0xTokenAddress"  # USDC, WETH, etc.
+`Direct smart contract interaction via Foundry cast.
+No SDK needed — just a terminal.
 
-# Check what tokens are in the vault
+# Setup
+export VAULT="${vaultAddr}"
+export KEY="your-agent-private-key"   # key for wallet: ${agentAddr}
+export RPC="${CONFIG.rpcUrl}"
+
+# List all tokens in the vault
 cast call $VAULT "getTokens()(address[])" --rpc-url $RPC
 
-# Check balance of a token
+# Check token balance (replace TOKEN with actual address)
+TOKEN="0xTokenAddress"
 cast call $VAULT "balanceOf(address)(uint256)" $TOKEN --rpc-url $RPC
 
-# Check daily budget remaining
+# Check daily budget remaining for a token
 cast call $VAULT "remainingDailyBudget(address)(uint256)" $TOKEN --rpc-url $RPC
 
+# Check effective limits for a token
+cast call $VAULT "effectiveDailyLimit(address)(uint256)" $TOKEN --rpc-url $RPC
+cast call $VAULT "effectivePerTxLimit(address)(uint256)" $TOKEN --rpc-url $RPC
+
 # Spend tokens with a reason
+# Args: token address, recipient, amount (wei), reason string
 cast send $VAULT \\
   "spend(address,address,uint256,string)" \\
-  $TOKEN 0xRecipient 1000000 "API payment" \\
+  $TOKEN 0xRecipient 1000000 "API payment — data feed" \\
   --private-key $KEY --rpc-url $RPC
 
-# Check expense count
-cast call $VAULT "expenseCount()(uint256)" --rpc-url $RPC`;
+# View expense count and last expense
+cast call $VAULT "expenseCount()(uint256)" --rpc-url $RPC
+cast call $VAULT "getExpense(uint256)(uint256,address,address,uint256,string)" 0 --rpc-url $RPC`;
     }
 
     // ==========================================
@@ -2667,37 +2707,42 @@ cast call $VAULT "expenseCount()(uint256)" --rpc-url $RPC`;
     }
 
     function copyDevPanel(btn) {
-        const pre = btn.closest('.dev-panel').querySelector('pre');
-        if (pre) {
-            navigator.clipboard.writeText(pre.textContent).then(() => {
-                const orig = btn.textContent;
-                btn.textContent = 'Copied!';
-                setTimeout(() => btn.textContent = orig, 1500);
-            });
+        const pre = btn.closest('.dev-panel')?.querySelector('pre');
+        if (!pre) return;
+        const orig = btn.textContent;
+        copyToClipboard(pre.textContent);
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = orig, 1500);
+    }
+
+    function copyToClipboard(text) {
+        // Try modern API first
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(() => showToast('Copied!', 'success'));
+            return;
         }
+        // Fallback for HTTP
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+            document.execCommand('copy');
+            showToast('Copied!', 'success');
+        } catch(e) {
+            showToast('Copy failed', 'error');
+        }
+        document.body.removeChild(ta);
     }
 
     function copyPanel(id) {
         const el = document.getElementById(id);
         if (!el) { showToast('Nothing to copy', 'error'); return; }
         const text = el.textContent || el.innerText || '';
-        if (!text || text === 'Loading...') { showToast('Content not loaded yet — select a vault first', 'error'); return; }
-        try {
-            navigator.clipboard.writeText(text).then(() => showToast('Copied!', 'success')).catch(() => {
-                // Fallback for non-HTTPS
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                ta.style.position = 'fixed';
-                ta.style.opacity = '0';
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                showToast('Copied!', 'success');
-            });
-        } catch(e) {
-            showToast('Copy failed — try selecting text manually', 'error');
-        }
+        if (!text || text === 'Loading...') { showToast('Select a vault first', 'error'); return; }
+        copyToClipboard(text);
     }
 
     function switchAgentTab(btn, panelId) {
