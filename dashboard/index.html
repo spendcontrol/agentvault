@@ -1026,11 +1026,11 @@
                         <span style="color:#9CA3AF;font-size:0.7rem;">▾</span>
                     </button>
                     <div id="networkDropdown" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #E5E7EB;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.12);overflow:hidden;z-index:200;min-width:200px;">
-                        <div onclick="switchNetwork('mainnet')" class="network-option" data-network="mainnet" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.85rem;transition:background 0.15s;">
+                        <div onclick="switchNetwork('mainnet').catch(console.error)" class="network-option" data-network="mainnet" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.85rem;transition:background 0.15s;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background=this.dataset.network===currentNetwork?'#F3F4F6':''">
                             <span style="width:8px;height:8px;border-radius:50%;background:#627EEA;"></span>
                             <span>Ethereum Mainnet</span>
                         </div>
-                        <div onclick="switchNetwork('testnet')" class="network-option" data-network="testnet" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.85rem;transition:background 0.15s;border-top:1px solid #F3F4F6;">
+                        <div onclick="switchNetwork('testnet').catch(console.error)" class="network-option" data-network="testnet" style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.85rem;transition:background 0.15s;border-top:1px solid #F3F4F6;" onmouseover="this.style.background='#F3F4F6'" onmouseout="this.style.background=this.dataset.network===currentNetwork?'#F3F4F6':''">
                             <span style="width:8px;height:8px;border-radius:50%;background:#0052FF;"></span>
                             <span>Base Sepolia</span>
                         </div>
@@ -1650,10 +1650,20 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                 }
             }
 
+            // Wait a moment for MetaMask to complete the switch
+            await new Promise(r => setTimeout(r, 500));
+
             // Reconnect with new network
             provider = new ethers.BrowserProvider(window.ethereum);
             signer = await provider.getSigner();
             factoryContract = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, signer);
+
+            // Clear vault selector
+            const select = document.getElementById('vaultSelect');
+            if (select) select.innerHTML = '<option value="">Select a vault...</option>';
+            const dl = document.getElementById('dropdownLabel');
+            if (dl) dl.textContent = 'Select a vault...';
+
             await loadUserVaults();
             showToast('Switched to ' + CONFIG.chainName, 'success');
         }
