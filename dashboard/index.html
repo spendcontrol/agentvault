@@ -1019,6 +1019,10 @@
                 <a href="#features" class="landing-nav-link">Features</a>
                 <a href="#developers" class="landing-nav-link">Developers</a>
                 <a href="#" class="back-to-home" onclick="scrollToTop(); return false;">&larr; Back to Home</a>
+                <div class="network-switcher back-to-home" style="display:inline-flex;gap:2px;background:#F3F4F6;border-radius:8px;padding:2px;">
+                    <button class="network-switch-btn active" data-network="mainnet" onclick="switchNetwork('mainnet')" style="padding:5px 12px;border:none;border-radius:6px;font-size:0.78rem;cursor:pointer;font-family:inherit;transition:all 0.15s;background:#111;color:#fff;">Mainnet</button>
+                    <button class="network-switch-btn" data-network="testnet" onclick="switchNetwork('testnet')" style="padding:5px 12px;border:none;border-radius:6px;font-size:0.78rem;cursor:pointer;font-family:inherit;transition:all 0.15s;background:transparent;color:#6B7280;">Testnet</button>
+                </div>
                 <div style="position:relative;display:inline-block;">
                     <button class="nav-connect-btn" id="connectBtn" onclick="handleConnectClick()">Launch App</button>
                     <div id="walletDropdown" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #E5E7EB;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.12);overflow:hidden;z-index:200;min-width:180px;">
@@ -1373,6 +1377,9 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
 
                 <!-- Row 1: Vault Controls Status Bar -->
                 <div class="vault-status-bar">
+                    <span class="bar-label">Network:</span>
+                    <span class="bar-value" id="networkLabel" style="font-size:0.78rem;">--</span>
+                    <span class="bar-separator">|</span>
                     <span class="bar-label">Agent:</span>
                     <span class="bar-value mono" id="ruleAgent" style="font-size:0.78rem;">--</span>
                     <span class="bar-separator">|</span>
@@ -1552,14 +1559,60 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
     // ==========================================
     // CONFIG
     // ==========================================
-    const CONFIG = {
-        factoryAddress: '0x711ee339f972216eE76a1715d4F6Fde68ea34ea6',
-        chainId: 84532,
-        chainIdHex: '0x14a34',
-        rpcUrl: 'https://sepolia.base.org',
-        explorerUrl: 'https://sepolia.basescan.org',
-        chainName: 'Base Sepolia',
+    const NETWORKS = {
+        mainnet: {
+            factoryAddress: '0xe8Cabf913A573c22bad086F7E1a3b12824c73532',
+            chainId: 1,
+            chainIdHex: '0x1',
+            rpcUrl: 'https://eth.llamarpc.com',
+            explorerUrl: 'https://etherscan.io',
+            chainName: 'Ethereum',
+            label: 'Ethereum Mainnet',
+            color: '#627EEA',
+        },
+        testnet: {
+            factoryAddress: '0x711ee339f972216eE76a1715d4F6Fde68ea34ea6',
+            chainId: 84532,
+            chainIdHex: '0x14a34',
+            rpcUrl: 'https://sepolia.base.org',
+            explorerUrl: 'https://sepolia.basescan.org',
+            chainName: 'Base Sepolia',
+            label: 'Base Sepolia (Testnet)',
+            color: '#0052FF',
+        }
     };
+
+    let currentNetwork = 'mainnet';
+    let CONFIG = { ...NETWORKS[currentNetwork] };
+
+    function switchNetwork(network) {
+        if (network === currentNetwork) return;
+        currentNetwork = network;
+        CONFIG = { ...NETWORKS[network] };
+
+        // Reset state
+        currentVaultContract = null;
+        currentVaultAddress = null;
+        factoryContract = null;
+
+        // Update UI
+        updateNetworkSwitcher();
+        document.getElementById('vaultDashboard').style.display = 'none';
+
+        // Reconnect if wallet connected
+        if (userAddress) {
+            handleConnect();
+        }
+    }
+
+    function updateNetworkSwitcher() {
+        document.querySelectorAll('.network-switch-btn').forEach(btn => {
+            const isActive = btn.dataset.network === currentNetwork;
+            btn.classList.toggle('active', isActive);
+            btn.style.background = isActive ? '#111' : 'transparent';
+            btn.style.color = isActive ? '#fff' : '#6B7280';
+        });
+    }
 
     const FACTORY_ABI = [
         'function createVault(address agent) returns (address)',
@@ -2054,6 +2107,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
             document.getElementById('ruleDailyLimit').textContent = ethers.formatUnits(dailyLimitVal, 18);
             document.getElementById('rulePerTxLimit').textContent = ethers.formatUnits(perTxLimitVal, 18);
             document.getElementById('ruleAgent').textContent = agentAddr;
+            document.getElementById('networkLabel').textContent = CONFIG.chainName;
 
             const statusEl = document.getElementById('ruleStatus');
             if (isPaused) {
