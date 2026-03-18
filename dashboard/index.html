@@ -1505,11 +1505,12 @@ cast send <span class="code-var">$VAULT</span> \
                                         <th>Time</th>
                                         <th>To</th>
                                         <th>Amount</th>
+                                        <th>Reason</th>
                                         <th>Tx</th>
                                     </tr>
                                 </thead>
                                 <tbody id="eventsBody">
-                                    <tr><td colspan="4" style="color:var(--text-tertiary); text-align:center; padding:2rem;">No activity yet</td></tr>
+                                    <tr><td colspan="5" style="color:var(--text-tertiary); text-align:center; padding:2rem;">No activity yet — expenses will appear here once your agent starts spending</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1765,7 +1766,7 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
         'function setWhitelist(address, bool)',
         'function setWhitelistEnabled(bool)',
         'function withdrawPrincipal(uint256)',
-        'event YieldWithdrawn(address indexed agent, address indexed to, uint256 amount)',
+        'event YieldWithdrawn(address indexed agent, address indexed to, uint256 amount, string reason)',
         'event YieldSwapped(address indexed agent, address indexed tokenOut, uint256 amountIn, uint256 amountOut, address indexed to)',
         'event Deposited(address indexed owner, uint256 ethAmount, uint256 wstETHReceived)'
     ];
@@ -2061,7 +2062,7 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
             const tbody = document.getElementById('eventsBody');
 
             if (events.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-tertiary); text-align:center; padding:2rem;">No activity yet</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-tertiary); text-align:center; padding:2rem;">No activity yet — expenses will appear here once your agent starts spending</td></tr>';
                 return;
             }
 
@@ -2069,11 +2070,16 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
             for (const e of events.reverse()) {
                 const block = await e.getBlock();
                 const time = new Date(block.timestamp * 1000).toLocaleString();
+                const reason = e.args[3] || '';
+                const reasonDisplay = reason
+                    ? '<span style="color:var(--text-primary);">' + reason + '</span>'
+                    : '<span style="color:var(--text-tertiary); font-style:italic;">no reason given</span>';
                 const row = document.createElement('tr');
                 row.innerHTML =
                     '<td>' + time + '</td>' +
                     '<td style="font-family:JetBrains Mono,monospace;font-size:0.8rem;">' + short(e.args[1]) + '</td>' +
                     '<td>' + fmt(e.args[2]) + ' wstETH</td>' +
+                    '<td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;">' + reasonDisplay + '</td>' +
                     '<td><a href="' + CONFIG.explorerUrl + '/tx/' + e.transactionHash + '" target="_blank">View</a></td>';
                 tbody.appendChild(row);
             }
