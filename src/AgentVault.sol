@@ -173,9 +173,7 @@ contract AgentVault {
         address _weth,
         address _stETH,
         address _wstETH,
-        address _swapRouter,
-        uint256 _dailyLimit,
-        uint256 _perTxLimit
+        address _swapRouter
     ) {
         if (_owner == address(0)) revert ZeroAddress();
         if (_agent == address(0)) revert ZeroAddress();
@@ -185,8 +183,6 @@ contract AgentVault {
         stETH = _stETH;
         wstETH = _wstETH;
         swapRouter = _swapRouter;
-        defaultDailyLimit = _dailyLimit;
-        defaultPerTxLimit = _perTxLimit;
     }
 
     // =============================================

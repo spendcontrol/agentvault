@@ -28,20 +28,15 @@ contract AgentVaultFactory {
         swapRouter = _swapRouter;
     }
 
-    function createVault(
-        address agent,
-        uint256 dailyLimit,
-        uint256 perTxLimit
-    ) external returns (address) {
+    /// @notice Create a new AgentVault — just agent address, set limits per token later
+    function createVault(address agent) external returns (address) {
         AgentVault vault = new AgentVault(
             msg.sender,
             agent,
             weth,
             stETH,
             wstETH,
-            swapRouter,
-            dailyLimit,
-            perTxLimit
+            swapRouter
         );
 
         allVaults.push(address(vault));

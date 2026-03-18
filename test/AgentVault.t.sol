@@ -33,16 +33,20 @@ contract AgentVaultTest is Test {
 
         factory = new AgentVaultFactory(address(wethToken), address(stETH), address(wstETHMock), address(0));
 
-        vm.prank(owner);
-        address vaultAddr = factory.createVault(agent, dailyLimit, perTxLimit);
-        vault = AgentVault(vaultAddr);
-
         // Fund owner
         usdc.mint(owner, 100_000e6);
         vm.deal(owner, 100 ether);
 
         vm.startPrank(owner);
+        address vaultAddr = factory.createVault(agent);
+        vault = AgentVault(vaultAddr);
+
         usdc.approve(address(vault), type(uint256).max);
+
+        // Set per-token limits
+        vault.setTokenLimits(address(usdc), dailyLimit, perTxLimit);
+        vault.setTokenLimits(address(stETH), 10 ether, 5 ether);
+        vault.setTokenLimits(address(wethToken), 10 ether, 5 ether);
         vm.stopPrank();
     }
 
@@ -94,14 +98,12 @@ contract AgentVaultTest is Test {
     }
 
     function test_yieldOnly_harvestAndSpend() public {
-        // Create vault with ETH-scale limits
-        vm.prank(owner);
-        address vAddr = factory.createVault(agent, 10 ether, 5 ether);
+        vm.startPrank(owner);
+        address vAddr = factory.createVault(agent);
         AgentVault yVault = AgentVault(vAddr);
-
-        // Stake with yield-only
-        vm.prank(owner);
+        yVault.setTokenLimits(address(stETH), 10 ether, 5 ether);
         yVault.stakeETH{value: 10 ether}(true);
+        vm.stopPrank();
 
         // Agent tries to spend — no harvested yield, should fail
         vm.prank(agent);
@@ -205,14 +207,12 @@ contract AgentVaultTest is Test {
     }
 
     function test_agentSpendWETH() public {
-        // Create a vault with ETH-scale limits
-        vm.prank(owner);
-        address vAddr = factory.createVault(agent, 10 ether, 5 ether);
+        vm.startPrank(owner);
+        address vAddr = factory.createVault(agent);
         AgentVault ethVault = AgentVault(vAddr);
-
-        // Deposit ETH → auto-wraps to WETH
-        vm.prank(owner);
+        ethVault.setTokenLimits(address(wethToken), 10 ether, 5 ether);
         ethVault.depositETH{value: 10 ether}();
+        vm.stopPrank();
 
         vm.prank(agent);
         ethVault.spend(address(wethToken), recipient, 0.5 ether, "Gas refill");
@@ -359,13 +359,12 @@ contract AgentVaultTest is Test {
 
     function test_fullFlow_stakeETH_agentSpendsStETH() public {
         // Create vault with ETH-scale limits
-        vm.prank(owner);
-        address vAddr = factory.createVault(agent, 10 ether, 5 ether);
+        vm.startPrank(owner);
+        address vAddr = factory.createVault(agent);
         AgentVault ethVault = AgentVault(vAddr);
-
-        // Owner stakes ETH → stETH (not yield-only, agent can spend all)
-        vm.prank(owner);
+        ethVault.setTokenLimits(address(stETH), 10 ether, 5 ether);
         ethVault.stakeETH{value: 10 ether}(false);
+        vm.stopPrank();
 
         // Agent spends stETH
         vm.prank(agent);
