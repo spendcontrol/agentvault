@@ -18,15 +18,17 @@ contract YieldVaultFactory {
     // --- State ---
     address public immutable wstETH;
     address public immutable stETH;
+    address public immutable swapRouter;
 
     address[] public allVaults;
     mapping(address => address[]) public vaultsByOwner;
     mapping(address => address[]) public vaultsByAgent;
 
     // --- Constructor ---
-    constructor(address _wstETH, address _stETH) {
+    constructor(address _wstETH, address _stETH, address _swapRouter) {
         wstETH = _wstETH;
         stETH = _stETH;
+        swapRouter = _swapRouter;
     }
 
     // --- Create Vault ---
@@ -44,6 +46,7 @@ contract YieldVaultFactory {
             agent,
             wstETH,
             stETH,
+            swapRouter,
             dailyLimit,
             perTxLimit
         );

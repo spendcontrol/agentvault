@@ -7,3 +7,4 @@ deployed.env
 *.pyc
 __pycache__/
 *.egg-info/
+testnet-deployed.env

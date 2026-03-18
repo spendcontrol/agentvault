@@ -219,7 +219,10 @@
                     <span class="addr" id="walletAddr"></span>
                     <span class="tag tag-safe" id="roleTag"></span>
                 </div>
-                <div class="network" id="networkName"></div>
+                <div>
+                    <span class="network" id="networkName"></span>
+                    <button class="btn btn-danger hidden" id="switchNetworkBtn" onclick="switchToBaseSepolia()" style="margin-left:0.5rem; padding:6px 14px; font-size:0.8rem;">Switch to Base Sepolia</button>
+                </div>
             </div>
 
             <!-- Create or Select Vault -->
@@ -255,6 +258,16 @@
 
             <!-- Vault Dashboard -->
             <div id="vaultDashboard" class="hidden">
+                <div class="status-bar" style="margin-bottom:1rem;">
+                    <div>
+                        <span style="color:#888; font-size:0.8rem;">Vault:</span>
+                        <span class="addr" id="vaultAddress" style="font-size:0.85rem;"></span>
+                    </div>
+                    <div>
+                        <span style="color:#888; font-size:0.8rem;">Agent:</span>
+                        <span class="addr" id="agentAddress" style="font-size:0.85rem;"></span>
+                    </div>
+                </div>
                 <div class="cards">
                     <div class="card">
                         <div class="label">Principal (Locked)</div>
@@ -283,10 +296,17 @@
                     <h2>Owner Controls</h2>
                     <div class="form-row">
                         <div class="form-group">
+                            <label>Deposit ETH (auto-wraps to wstETH)</label>
+                            <input type="number" id="depositETHAmount" placeholder="0.0" step="0.01">
+                        </div>
+                        <button class="btn btn-success" onclick="depositETHToVault()" style="height:40px;">Deposit ETH</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
                             <label>Deposit wstETH</label>
                             <input type="number" id="depositAmount" placeholder="0.0" step="0.01">
                         </div>
-                        <button class="btn btn-success" onclick="depositToVault()" style="height:40px;">Deposit</button>
+                        <button class="btn btn-success" onclick="depositToVault()" style="height:40px;">Deposit wstETH</button>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -327,12 +347,13 @@
 
     <div id="toast"></div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
     <script>
         // --- Config (update after deploy) ---
         const CONFIG = {
-            factoryAddress: '',  // Fill after deploy
-            wstETHAddress: '',   // Fill after deploy
-            chainId: 84532,      // Base Sepolia
+            factoryAddress: '0x6b764f0A9Cf90F467B3791Bb40935f6bDcC0fDf0',
+            wstETHAddress: '0x93e3F6F081F0f5bef1EF9CD42D7924E258e8073B',
+            chainId: 84532,
             rpcUrl: 'https://sepolia.base.org',
             explorerUrl: 'https://sepolia.basescan.org'
         };
@@ -347,6 +368,7 @@
 
         const VAULT_ABI = [
             'function deposit(uint256 amount)',
+            'function depositETH() payable',
             'function spend(address to, uint256 amount)',
             'function availableYield() view returns (uint256)',
             'function remainingDailyBudget() view returns (uint256)',
@@ -413,10 +435,19 @@
                 document.getElementById('mainUI').classList.remove('hidden');
 
                 const network = await provider.getNetwork();
-                document.getElementById('networkName').textContent =
+                const networkLabel =
                     network.chainId === 84532n ? 'Base Sepolia' :
                     network.chainId === 8453n ? 'Base Mainnet' :
                     `Chain ${network.chainId}`;
+                document.getElementById('networkName').textContent = networkLabel;
+
+                // Show switch network button if on wrong chain
+                const switchBtn = document.getElementById('switchNetworkBtn');
+                if (network.chainId !== BigInt(CONFIG.chainId)) {
+                    switchBtn.classList.remove('hidden');
+                } else {
+                    switchBtn.classList.add('hidden');
+                }
 
                 await loadUserVaults();
             } catch (e) {
@@ -484,6 +515,10 @@
                 document.getElementById('dailyLeft').textContent = fmt(dailyLeft);
 
                 const vaultOwner = await currentVault.owner();
+                const vaultAgent = await currentVault.agent();
+                document.getElementById('vaultAddress').textContent = addr;
+                document.getElementById('agentAddress').textContent = vaultAgent;
+
                 const isOwner = vaultOwner.toLowerCase() === account.toLowerCase();
                 document.getElementById('ownerControls').style.display = isOwner ? 'block' : 'none';
 
@@ -598,9 +633,53 @@
             }
         }
 
+        async function switchToBaseSepolia() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x' + CONFIG.chainId.toString(16) }],
+                });
+                // Reconnect after switch
+                await connectWallet();
+            } catch (switchError) {
+                // Chain not added yet — add it
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: '0x' + CONFIG.chainId.toString(16),
+                                chainName: 'Base Sepolia',
+                                nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                                rpcUrls: [CONFIG.rpcUrl],
+                                blockExplorerUrls: [CONFIG.explorerUrl],
+                            }],
+                        });
+                        await connectWallet();
+                    } catch (addError) {
+                        toast('Failed to add network: ' + addError.message, true);
+                    }
+                } else {
+                    toast('Failed to switch network: ' + switchError.message, true);
+                }
+            }
+        }
+
+        async function depositETHToVault() {
+            try {
+                const amount = ethers.parseEther(document.getElementById('depositETHAmount').value);
+                toast('Depositing ETH...');
+                const tx = await currentVault.depositETH({ value: amount });
+                await tx.wait();
+                toast('ETH deposited!');
+                await loadVault();
+            } catch (e) {
+                toast('Failed: ' + e.message, true);
+            }
+        }
+
         // Auto-connect if already connected
         if (window.ethereum?.selectedAddress) connectWallet();
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
 </body>
 </html>

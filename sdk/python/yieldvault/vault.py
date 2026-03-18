@@ -240,6 +240,65 @@ class VaultClient:
             )
         return tx_hash.hex()
 
+    def spend_and_swap(
+        self,
+        token_out: str,
+        fee: int,
+        amount_in_wei: int,
+        amount_out_minimum: int,
+        to_address: str,
+    ) -> str:
+        """Spend yield by swapping wstETH → token_out via Uniswap V3.
+
+        Parameters
+        ----------
+        token_out : str
+            Address of the output token (e.g. USDC).
+        fee : int
+            Uniswap pool fee tier (e.g. 3000 for 0.3%, 500 for 0.05%).
+        amount_in_wei : int
+            Amount of wstETH (in wei) to swap.
+        amount_out_minimum : int
+            Minimum output tokens to accept (slippage protection).
+        to_address : str
+            Recipient of the output tokens.
+
+        Returns
+        -------
+        str
+            Transaction hash (hex).
+        """
+        token_out = Web3.to_checksum_address(token_out)
+        to_address = Web3.to_checksum_address(to_address)
+
+        try:
+            tx = self.vault.functions.spendAndSwap(
+                token_out, fee, amount_in_wei, amount_out_minimum, to_address
+            ).build_transaction(
+                {
+                    "from": self.address,
+                    "nonce": self.w3.eth.get_transaction_count(self.address),
+                    "gas": 500_000,
+                    "maxFeePerGas": self.w3.eth.gas_price * 2,
+                    "maxPriorityFeePerGas": self.w3.to_wei(0.1, "gwei"),
+                }
+            )
+        except ContractLogicError as exc:
+            raise _translate_revert(exc) from exc
+
+        signed = self.account.sign_transaction(tx)
+        try:
+            tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+        except Exception as exc:
+            raise TransactionFailedError(f"send_raw_transaction failed: {exc}") from exc
+
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+        if receipt.status != 1:
+            raise TransactionFailedError(
+                f"Transaction reverted (tx_hash={tx_hash.hex()})"
+            )
+        return tx_hash.hex()
+
     # ------------------------------------------------------------------
     # Convenience properties
     # ------------------------------------------------------------------

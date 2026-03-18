@@ -97,6 +97,19 @@ YIELD_VAULT_ABI = [
         "stateMutability": "nonpayable",
         "type": "function",
     },
+    {
+        "inputs": [
+            {"internalType": "address", "name": "tokenOut", "type": "address"},
+            {"internalType": "uint24", "name": "fee", "type": "uint24"},
+            {"internalType": "uint256", "name": "amountIn", "type": "uint256"},
+            {"internalType": "uint256", "name": "amountOutMinimum", "type": "uint256"},
+            {"internalType": "address", "name": "to", "type": "address"},
+        ],
+        "name": "spendAndSwap",
+        "outputs": [{"internalType": "uint256", "name": "amountOut", "type": "uint256"}],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    },
     # --- Events ---
     {
         "anonymous": False,

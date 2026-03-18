@@ -25,7 +25,7 @@ contract YieldVaultTest is Test {
         stETH = new MockStETH();
         wstETH.setStETH(address(stETH));
 
-        factory = new YieldVaultFactory(address(wstETH), address(stETH));
+        factory = new YieldVaultFactory(address(wstETH), address(stETH), address(0));
 
         vm.prank(owner);
         address vaultAddr = factory.createVault(agent, dailyLimit, perTxLimit);

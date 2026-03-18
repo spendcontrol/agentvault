@@ -14,6 +14,22 @@ interface IWstETH {
     function unwrap(uint256 _wstETHAmount) external returns (uint256);
 }
 
+/// @dev Uniswap V3 SwapRouter
+interface ISwapRouter {
+    struct ExactInputSingleParams {
+        address tokenIn;
+        address tokenOut;
+        uint24 fee;
+        address recipient;
+        uint256 deadline;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+        uint160 sqrtPriceLimitX96;
+    }
+
+    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
+}
+
 /// @title YieldVault — Operating budget protocol for AI agents
 /// @notice Stake ETH via Lido. Agent lives off the yield. Principal stays untouched.
 /// @dev Uses wstETH internally for simpler accounting (no rebasing)
@@ -37,6 +53,7 @@ contract YieldVault {
     event WhitelistUpdated(address indexed addr, bool status);
     event Paused(bool paused);
     event PrincipalWithdrawn(address indexed owner, uint256 amount);
+    event YieldSwapped(address indexed agent, address indexed tokenOut, uint256 amountIn, uint256 amountOut, address indexed to);
 
     // --- State ---
     address public owner;
@@ -61,6 +78,9 @@ contract YieldVault {
     address public wstETH;
     address public stETH;
 
+    // Uniswap V3 SwapRouter
+    address public swapRouter;
+
     // --- Modifiers ---
     modifier onlyOwner() {
         if (msg.sender != owner) revert OnlyOwner();
@@ -83,6 +103,7 @@ contract YieldVault {
         address _agent,
         address _wstETH,
         address _stETH,
+        address _swapRouter,
         uint256 _dailyLimit,
         uint256 _perTxLimit
     ) {
@@ -90,6 +111,7 @@ contract YieldVault {
         agent = _agent;
         wstETH = _wstETH;
         stETH = _stETH;
+        swapRouter = _swapRouter;
         dailyLimit = _dailyLimit;
         perTxLimit = _perTxLimit;
     }
@@ -164,6 +186,49 @@ contract YieldVault {
 
         IERC20(wstETH).transfer(to, amount);
         emit YieldWithdrawn(msg.sender, to, amount);
+    }
+
+    /// @notice Agent spends yield by swapping wstETH to another token via Uniswap V3
+    /// @param tokenOut The output token address
+    /// @param fee The Uniswap V3 pool fee tier
+    /// @param amountIn Amount of wstETH to swap
+    /// @param amountOutMinimum Minimum output tokens (slippage protection)
+    /// @param to Recipient of the output tokens
+    function spendAndSwap(
+        address tokenOut,
+        uint24 fee,
+        uint256 amountIn,
+        uint256 amountOutMinimum,
+        address to
+    ) external onlyAgent whenNotPaused returns (uint256 amountOut) {
+        if (amountIn == 0) revert ZeroAmount();
+        if (amountIn > availableYield()) revert ExceedsYield();
+        if (amountIn > perTxLimit) revert ExceedsPerTxLimit();
+
+        uint256 today = block.timestamp / 1 days;
+        if (dailySpent[today] + amountIn > dailyLimit) revert ExceedsDailyLimit();
+
+        if (whitelistEnabled && !whitelisted[to]) revert RecipientNotWhitelisted();
+
+        dailySpent[today] += amountIn;
+        totalYieldSpent += amountIn;
+
+        IERC20(wstETH).approve(swapRouter, amountIn);
+
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+            tokenIn: wstETH,
+            tokenOut: tokenOut,
+            fee: fee,
+            recipient: to,
+            deadline: block.timestamp,
+            amountIn: amountIn,
+            amountOutMinimum: amountOutMinimum,
+            sqrtPriceLimitX96: 0
+        });
+
+        amountOut = ISwapRouter(swapRouter).exactInputSingle(params);
+
+        emit YieldSwapped(msg.sender, tokenOut, amountIn, amountOut, to);
     }
 
     // --- Owner: Manage ---
