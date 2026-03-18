@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgentVault — The Treasury Protocol for AI Agents</title>
+    <title>SpendControl — Treasury Protocol for AI Agents</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1363,12 +1363,12 @@
     <nav class="navbar" id="navbar">
         <div class="navbar-inner">
             <div class="navbar-logo" onclick="scrollToTop()">
-                <svg viewBox="0 0 28 28" fill="none"><defs><linearGradient id="lg" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#00d4ff"/><stop offset="1" stop-color="#7b61ff"/></linearGradient></defs><rect x="3" y="6" width="22" height="16" rx="3" stroke="url(#lg)" stroke-width="2" fill="none"/><path d="M10 14l3 3 5-6" stroke="url(#lg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                AgentVault
+                <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#00d4ff"/><stop offset="1" stop-color="#7b61ff"/></linearGradient></defs><circle cx="14" cy="14" r="11" stroke="url(#lg)" stroke-width="2" fill="none"/><path d="M14 7v14" stroke="url(#lg)" stroke-width="2" stroke-linecap="round"/><path d="M9 10.5h6.5a2.5 2.5 0 0 1 0 5H10.5a2.5 2.5 0 0 0 0 5H19" stroke="url(#lg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                SpendControl
             </div>
             <div class="navbar-links">
                 <a href="#how-it-works">How It Works</a>
-                <a href="#why">Why AgentVault</a>
+                <a href="#why">Why SpendControl</a>
                 <a href="#developers">Developers</a>
                 <button class="nav-connect-btn" id="connectBtn" onclick="handleConnect()">Connect Wallet</button>
             </div>
@@ -1449,7 +1449,7 @@
         <!-- WHY AGENTVAULT -->
         <section class="section" id="why">
             <div class="section-header fade-in-up">
-                <div class="section-label">Why AgentVault</div>
+                <div class="section-label">Why SpendControl</div>
                 <h2 class="section-title">Built for the agentic economy</h2>
             </div>
             <div class="why-grid">
@@ -1495,9 +1495,9 @@
                     <pre><span class="comment">// claude_desktop_config.json</span>
 {
   <span class="string">"mcpServers"</span>: {
-    <span class="string">"agentvault"</span>: {
+    <span class="string">"spendcontrol"</span>: {
       <span class="string">"command"</span>: <span class="string">"npx"</span>,
-      <span class="string">"args"</span>: [<span class="string">"agentvault-mcp"</span>],
+      <span class="string">"args"</span>: [<span class="string">"spendcontrol-mcp"</span>],
       <span class="string">"env"</span>: {
         <span class="string">"VAULT_ADDRESS"</span>: <span class="string">"0xYourVault..."</span>,
         <span class="string">"AGENT_PRIVATE_KEY"</span>: <span class="string">"0x..."</span>,
@@ -1508,9 +1508,9 @@
 }</pre>
                 </div>
                 <div class="dev-panel" id="panel-python">
-                    <pre><span class="keyword">from</span> agentvault <span class="keyword">import</span> AgentVaultClient
+                    <pre><span class="keyword">from</span> spendcontrol <span class="keyword">import</span> SpendControlClient
 
-client = AgentVaultClient(
+client = SpendControlClient(
     vault_address=<span class="string">"0xYourVault..."</span>,
     private_key=<span class="string">"0x..."</span>,
     rpc_url=<span class="string">"https://sepolia.base.org"</span>
@@ -1532,11 +1532,11 @@ tx = client.<span class="fn">spend</span>(
                     <pre><span class="comment">// .well-known/ai-plugin.json</span>
 {
   <span class="string">"schema_version"</span>: <span class="string">"v1"</span>,
-  <span class="string">"name"</span>: <span class="string">"AgentVault"</span>,
+  <span class="string">"name"</span>: <span class="string">"SpendControl"</span>,
   <span class="string">"description"</span>: <span class="string">"Treasury for AI agent spending"</span>,
   <span class="string">"api"</span>: {
     <span class="string">"type"</span>: <span class="string">"openapi"</span>,
-    <span class="string">"url"</span>: <span class="string">"https://agentvault.xyz/openapi.yaml"</span>
+    <span class="string">"url"</span>: <span class="string">"https://spendcontrol.xyz/openapi.yaml"</span>
   },
   <span class="string">"auth"</span>: {
     <span class="string">"type"</span>: <span class="string">"none"</span>
@@ -1545,14 +1545,14 @@ tx = client.<span class="fn">spend</span>(
                 </div>
                 <div class="dev-panel" id="panel-terminal">
                     <pre><span class="comment"># Install the CLI</span>
-$ npm install -g agentvault-cli
+$ npm install -g spendcontrol-cli
 
 <span class="comment"># Check vault balance</span>
-$ agentvault <span class="fn">balance</span> --vault 0xYourVault --token USDC
+$ spendcontrol <span class="fn">balance</span> --vault 0xYourVault --token USDC
 <span class="string">Balance: 5,000.00 USDC</span>
 
 <span class="comment"># Spend from the vault</span>
-$ agentvault <span class="fn">spend</span> \
+$ spendcontrol <span class="fn">spend</span> \
     --vault 0xYourVault \
     --token USDC \
     --to 0xVendor \
@@ -1560,7 +1560,7 @@ $ agentvault <span class="fn">spend</span> \
     --reason <span class="string">"Cloud compute - batch job #4291"</span>
 
 <span class="comment"># View recent expenses</span>
-$ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre>
+$ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre>
                 </div>
             </div>
         </section>
@@ -1770,9 +1770,9 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     <!-- ============ FOOTER ============ -->
     <footer class="footer">
         <div class="footer-inner">
-            <div class="footer-logo">AgentVault</div>
+            <div class="footer-logo">SpendControl</div>
             <div class="footer-links">
-                <a href="https://github.com/agentvault" target="_blank">GitHub</a>
+                <a href="https://github.com/spendcontrol" target="_blank">GitHub</a>
                 <a href="#developers">Docs</a>
                 <a href="https://sepolia.basescan.org" target="_blank">Base Sepolia</a>
             </div>
@@ -2726,7 +2726,7 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
 `Paste this into your agent (Claude Code, Cursor, or any LLM):
 ────────────────────────────────────────────────────
 
-You have an AgentVault at ${vaultAddr} on Base Sepolia.
+You have a SpendControl vault at ${vaultAddr} on Base Sepolia.
 Read the full skill file: ${location.origin}/skill.md
 
 Quick start:
@@ -2758,7 +2758,7 @@ Rules:
 
 {
   "mcpServers": {
-    "agentvault": {
+    "spendcontrol": {
       "command": "node",
       "args": ["/path/to/yieldvault/mcp-server/index.js"],
       "env": {
