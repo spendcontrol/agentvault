@@ -1953,12 +1953,10 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
             showToast('Depositing ETH...', 'success');
             await tx.wait();
             showToast('ETH deposited!', 'success');
-            await loadVaultData();
+            await refreshDashboard();
             // Get WETH address from vault and prompt to set limits
-            try {
-                const wethAddr = await currentVaultContract.weth();
-                promptSetLimitsForToken(wethAddr, 'WETH');
-            } catch(e) {}
+            const wethAddr = await currentVaultContract.weth();
+            promptSetLimitsForToken(wethAddr, 'WETH');
         } catch (err) {
             showToast('Deposit failed: ' + (err.reason || err.message), 'error');
         }
