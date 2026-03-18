@@ -1,0 +1,184 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
+
+/// @title YieldVault — Operating budget protocol for AI agents
+/// @notice Stake ETH via Lido. Agent lives off the yield. Principal stays untouched.
+/// @dev Uses wstETH internally for simpler accounting (no rebasing)
+contract YieldVault {
+    // --- Errors ---
+    error OnlyOwner();
+    error OnlyAgent();
+    error OnlyOwnerOrAgent();
+    error ExceedsYield();
+    error ExceedsDailyLimit();
+    error ExceedsPerTxLimit();
+    error RecipientNotWhitelisted();
+    error ZeroAmount();
+    error VaultPaused();
+
+    // --- Events ---
+    event Deposited(address indexed owner, uint256 ethAmount, uint256 wstETHReceived);
+    event YieldWithdrawn(address indexed agent, address indexed to, uint256 amount);
+    event AgentUpdated(address indexed oldAgent, address indexed newAgent);
+    event LimitsUpdated(uint256 dailyLimit, uint256 perTxLimit);
+    event WhitelistUpdated(address indexed addr, bool status);
+    event Paused(bool paused);
+    event PrincipalWithdrawn(address indexed owner, uint256 amount);
+
+    // --- State ---
+    address public owner;
+    address public agent;
+
+    uint256 public principalWstETH;    // wstETH deposited (principal, locked from agent)
+    uint256 public totalYieldSpent;     // cumulative yield spent by agent
+
+    uint256 public dailyLimit;          // max wstETH agent can spend per day
+    uint256 public perTxLimit;          // max wstETH agent can spend per transaction
+
+    bool public paused;
+
+    // Whitelist: addresses agent is allowed to send to (0 = any)
+    mapping(address => bool) public whitelisted;
+    bool public whitelistEnabled;
+
+    // Daily spend tracking
+    mapping(uint256 => uint256) public dailySpent; // day => amount spent
+
+    // Lido contracts on Base (will be set via constructor for flexibility)
+    address public wstETH;
+    address public stETH;
+
+    // --- Modifiers ---
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert OnlyOwner();
+        _;
+    }
+
+    modifier onlyAgent() {
+        if (msg.sender != agent) revert OnlyAgent();
+        _;
+    }
+
+    modifier whenNotPaused() {
+        if (paused) revert VaultPaused();
+        _;
+    }
+
+    // --- Constructor ---
+    constructor(
+        address _owner,
+        address _agent,
+        address _wstETH,
+        address _stETH,
+        uint256 _dailyLimit,
+        uint256 _perTxLimit
+    ) {
+        owner = _owner;
+        agent = _agent;
+        wstETH = _wstETH;
+        stETH = _stETH;
+        dailyLimit = _dailyLimit;
+        perTxLimit = _perTxLimit;
+    }
+
+    // --- Owner: Deposit ---
+    /// @notice Deposit wstETH into the vault as principal
+    /// @param amount Amount of wstETH to deposit
+    function deposit(uint256 amount) external onlyOwner {
+        if (amount == 0) revert ZeroAmount();
+        IERC20(wstETH).transferFrom(msg.sender, address(this), amount);
+        principalWstETH += amount;
+        emit Deposited(msg.sender, amount, amount);
+    }
+
+    // --- View: Available Yield ---
+    /// @notice Calculate how much yield is available for the agent
+    /// @return available wstETH amount the agent can spend
+    function availableYield() public view returns (uint256) {
+        uint256 currentBalance = IERC20(wstETH).balanceOf(address(this));
+        if (currentBalance <= principalWstETH) return 0;
+        return currentBalance - principalWstETH;
+    }
+
+    /// @notice How much the agent can still spend today
+    function remainingDailyBudget() public view returns (uint256) {
+        uint256 today = block.timestamp / 1 days;
+        uint256 spent = dailySpent[today];
+        if (spent >= dailyLimit) return 0;
+        return dailyLimit - spent;
+    }
+
+    // --- Agent: Spend Yield ---
+    /// @notice Agent spends from available yield
+    /// @param to Recipient address
+    /// @param amount wstETH amount to send
+    function spend(address to, uint256 amount) external onlyAgent whenNotPaused {
+        if (amount == 0) revert ZeroAmount();
+        if (amount > availableYield()) revert ExceedsYield();
+        if (amount > perTxLimit) revert ExceedsPerTxLimit();
+
+        uint256 today = block.timestamp / 1 days;
+        if (dailySpent[today] + amount > dailyLimit) revert ExceedsDailyLimit();
+
+        if (whitelistEnabled && !whitelisted[to]) revert RecipientNotWhitelisted();
+
+        dailySpent[today] += amount;
+        totalYieldSpent += amount;
+
+        IERC20(wstETH).transfer(to, amount);
+        emit YieldWithdrawn(msg.sender, to, amount);
+    }
+
+    // --- Owner: Manage ---
+    function setAgent(address _agent) external onlyOwner {
+        emit AgentUpdated(agent, _agent);
+        agent = _agent;
+    }
+
+    function setLimits(uint256 _dailyLimit, uint256 _perTxLimit) external onlyOwner {
+        dailyLimit = _dailyLimit;
+        perTxLimit = _perTxLimit;
+        emit LimitsUpdated(_dailyLimit, _perTxLimit);
+    }
+
+    function setWhitelist(address addr, bool status) external onlyOwner {
+        whitelisted[addr] = status;
+        emit WhitelistUpdated(addr, status);
+    }
+
+    function setWhitelistEnabled(bool enabled) external onlyOwner {
+        whitelistEnabled = enabled;
+    }
+
+    function setPaused(bool _paused) external onlyOwner {
+        paused = _paused;
+        emit Paused(_paused);
+    }
+
+    /// @notice Owner can withdraw principal (emergency / exit)
+    function withdrawPrincipal(uint256 amount) external onlyOwner {
+        if (amount > principalWstETH) revert ExceedsYield();
+        principalWstETH -= amount;
+        IERC20(wstETH).transfer(owner, amount);
+        emit PrincipalWithdrawn(owner, amount);
+    }
+
+    // --- View: Stats ---
+    function getStats() external view returns (
+        uint256 _principal,
+        uint256 _currentBalance,
+        uint256 _availableYield,
+        uint256 _totalYieldSpent,
+        uint256 _remainingDailyBudget
+    ) {
+        return (
+            principalWstETH,
+            IERC20(wstETH).balanceOf(address(this)),
+            availableYield(),
+            totalYieldSpent,
+            remainingDailyBudget()
+        );
+    }
+}

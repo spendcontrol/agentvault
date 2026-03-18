@@ -1,0 +1,9 @@
+out/
+cache/
+broadcast/
+node_modules/
+.env
+deployed.env
+*.pyc
+__pycache__/
+*.egg-info/
