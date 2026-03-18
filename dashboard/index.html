@@ -1186,6 +1186,118 @@
             .stake-form-row { flex-direction: column; }
             .dev-tabs { overflow-x: auto; }
         }
+
+        /* ============ CUSTOM MODALS ============ */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10000; animation: fadeIn 0.2s;
+        }
+        .modal-box {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 16px; padding: 2rem; max-width: 420px; width: 90%;
+            animation: fadeInUp 0.2s;
+        }
+        .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem; }
+        .modal-desc { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5; }
+        .modal-field { margin-bottom: 0.75rem; }
+        .modal-field label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .modal-field input, .modal-field select {
+            width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: var(--radius-md); color: var(--text-primary);
+            font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 10px 14px;
+            transition: border-color 0.2s;
+        }
+        .modal-field input:focus, .modal-field select:focus { outline: none; border-color: var(--border-focus); }
+        .modal-field .input-with-btn { display: flex; gap: 0.5rem; }
+        .modal-field .input-with-btn input { flex: 1; }
+        .modal-field .input-with-btn .btn-max {
+            background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2);
+            color: var(--accent-cyan); border-radius: var(--radius-sm); padding: 0 14px;
+            font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        .modal-field .input-with-btn .btn-max:hover { background: rgba(0,212,255,0.2); }
+        .modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem; }
+        .modal-toggle { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .modal-toggle label { font-size: 0.88rem; color: var(--text-secondary); cursor: pointer; }
+        .modal-toggle select {
+            background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); color: var(--text-primary);
+            font-family: 'Inter', sans-serif; font-size: 0.85rem; padding: 6px 12px;
+        }
+
+        /* ============ VAULT CARD LIST ============ */
+        .vault-list-wrap {
+            margin-bottom: 2rem;
+        }
+        .vault-list-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        .vault-list-header h3 { font-size: 1rem; font-weight: 700; color: var(--text-secondary); }
+        .vault-list {
+            display: flex; flex-direction: column; gap: 0.5rem;
+        }
+        .vault-card-item {
+            display: flex; align-items: center; gap: 1rem;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 0.85rem 1.25rem;
+            cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent;
+        }
+        .vault-card-item:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+        }
+        .vault-card-item.selected {
+            border-left-color: var(--accent-cyan);
+            background: rgba(0, 212, 255, 0.04);
+            border-color: rgba(0, 212, 255, 0.15);
+        }
+        .vault-card-addr {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+            color: var(--text-primary); font-weight: 600; min-width: 140px;
+        }
+        .vault-card-meta {
+            display: flex; align-items: center; gap: 1rem; flex: 1;
+            font-size: 0.82rem; color: var(--text-secondary);
+        }
+        .vault-card-meta .vault-token-count { white-space: nowrap; }
+        .vault-card-meta .vault-status-dot {
+            display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+        }
+        .vault-card-meta .vault-status-dot .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+        }
+        .vault-card-meta .vault-status-dot .dot.active { background: var(--green); }
+        .vault-card-meta .vault-status-dot .dot.paused { background: var(--red); }
+        .vault-card-selected-label {
+            font-size: 0.72rem; font-weight: 600; color: var(--accent-cyan);
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        @media (max-width: 640px) {
+            .vault-card-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        }
+
+        /* ============ COLLAPSIBLE ============ */
+        .collapsible-header {
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; padding: 0; user-select: none;
+        }
+        .collapsible-header:hover { opacity: 0.85; }
+        .collapse-arrow {
+            font-size: 1.2rem; color: var(--text-tertiary);
+            transition: transform 0.3s ease; display: inline-block;
+        }
+        .collapse-arrow.expanded { transform: rotate(180deg); }
+        .collapsible-body {
+            overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease;
+            max-height: 0; opacity: 0;
+        }
+        .collapsible-body.expanded {
+            max-height: 2000px; opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -1399,14 +1511,18 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     <!-- ============ APP SECTION ============ -->
     <div id="app-section">
         <div class="app-container">
-            <!-- Vault Selector -->
+            <!-- Vault Selector (hidden select preserved for compatibility) -->
+            <select id="vaultSelect" style="display:none;" onchange="selectVault(this.value)">
+                <option value="">Select a vault...</option>
+            </select>
             <div id="vaultSelectorWrap" style="display:none;">
-                <div class="vault-selector">
-                    <label>Your Vaults</label>
-                    <select id="vaultSelect" onchange="selectVault(this.value)">
-                        <option value="">Select a vault...</option>
-                    </select>
-                    <button class="btn btn-outline btn-sm" onclick="showCreateVault()">+ New Vault</button>
+                <div class="vault-list-wrap">
+                    <div class="vault-list-header">
+                        <h3>Your Vaults</h3>
+                        <button class="btn btn-outline btn-sm" onclick="showCreateVault()">+ Create New Vault</button>
+                    </div>
+                    <div class="vault-list" id="vaultCardList">
+                    </div>
                 </div>
             </div>
 
@@ -1554,10 +1670,14 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                     </div>
                 </div>
 
-                <!-- Row 5: Connect Your Agent -->
+                <!-- Row 5: Connect Your Agent (collapsible) -->
                 <div class="dashboard-card full-width agent-connect-card">
-                    <h3>Connect Your Agent</h3>
-                    <p class="card-desc">Copy any of these and paste into your agent. It will know how to spend from this vault.</p>
+                    <div class="collapsible-header" onclick="toggleConnectAgent()">
+                        <h3>Connect Your Agent</h3>
+                        <span class="collapse-arrow" id="connectAgentArrow">&#9662;</span>
+                    </div>
+                    <div class="collapsible-body" id="connectAgentBody">
+                    <p class="card-desc" style="margin-top:0.75rem;">Copy any of these and paste into your agent. It will know how to spend from this vault.</p>
                     <div class="agent-tabs">
                         <button class="agent-tab active" onclick="switchAgentTab(this, 'agent-skill')">Skill File</button>
                         <button class="agent-tab" onclick="switchAgentTab(this, 'agent-mcp')">MCP Server</button>
@@ -1580,6 +1700,7 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                         <button class="btn btn-outline btn-sm" style="position:absolute;top:8px;right:8px;font-size:0.72rem;padding:3px 10px;z-index:1;" onclick="copyPanel('cliContent')">Copy</button>
                         <pre id="cliContent">Loading...</pre>
                     </div>
+                    </div><!-- end collapsible-body -->
                 </div>
             </div>
         </div>
@@ -1596,6 +1717,9 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
             </div>
         </div>
     </footer>
+
+    <!-- ============ MODAL CONTAINER ============ -->
+    <div id="modalContainer"></div>
 
     <!-- ============ SCRIPTS ============ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
@@ -1681,6 +1805,98 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     let factoryContract = null;
     let currentVaultAddress = null;
     let currentVaultContract = null;
+
+    // ==========================================
+    // CUSTOM MODAL SYSTEM
+    // ==========================================
+    function showModal({title, description, fields, onConfirm, confirmText, extraHtml}) {
+        const container = document.getElementById('modalContainer');
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+
+        let fieldsHtml = '';
+        if (fields && fields.length) {
+            for (const f of fields) {
+                if (f.type === 'select') {
+                    const optsHtml = f.options.map(o => `<option value="${o.value}"${o.selected ? ' selected' : ''}>${o.label}</option>`).join('');
+                    fieldsHtml += `<div class="modal-field">
+                        <label>${f.label}</label>
+                        <select id="modal_${f.id}">${optsHtml}</select>
+                    </div>`;
+                } else if (f.maxBtn) {
+                    fieldsHtml += `<div class="modal-field">
+                        <label>${f.label}</label>
+                        <div class="input-with-btn">
+                            <input type="text" id="modal_${f.id}" placeholder="${f.placeholder || ''}" value="${f.value || ''}" />
+                            <button class="btn-max" type="button" onclick="document.getElementById('modal_${f.id}').value='${f.maxValue || ''}'">Max</button>
+                        </div>
+                    </div>`;
+                } else {
+                    fieldsHtml += `<div class="modal-field">
+                        <label>${f.label}</label>
+                        <input type="text" id="modal_${f.id}" placeholder="${f.placeholder || ''}" value="${f.value || ''}" />
+                    </div>`;
+                }
+            }
+        }
+
+        overlay.innerHTML = `<div class="modal-box">
+            <div class="modal-title">${title}</div>
+            ${description ? `<div class="modal-desc">${description}</div>` : ''}
+            ${fieldsHtml}
+            ${extraHtml || ''}
+            <div class="modal-actions">
+                <button class="btn btn-outline btn-sm modal-cancel-btn">Cancel</button>
+                <button class="btn btn-gradient btn-sm modal-confirm-btn">${confirmText || 'Confirm'}</button>
+            </div>
+        </div>`;
+
+        function closeModal() {
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.15s';
+            setTimeout(() => overlay.remove(), 150);
+        }
+
+        overlay.querySelector('.modal-cancel-btn').addEventListener('click', closeModal);
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) closeModal();
+        });
+
+        overlay.querySelector('.modal-confirm-btn').addEventListener('click', function() {
+            const values = {};
+            if (fields && fields.length) {
+                for (const f of fields) {
+                    const el = document.getElementById('modal_' + f.id);
+                    values[f.id] = el ? el.value : '';
+                }
+            }
+            if (onConfirm) onConfirm(values, closeModal);
+        });
+
+        container.appendChild(overlay);
+
+        // Focus first input
+        const firstInput = overlay.querySelector('input, select');
+        if (firstInput) setTimeout(() => firstInput.focus(), 50);
+
+        return closeModal;
+    }
+
+    // ==========================================
+    // COLLAPSIBLE: CONNECT YOUR AGENT
+    // ==========================================
+    function toggleConnectAgent() {
+        const body = document.getElementById('connectAgentBody');
+        const arrow = document.getElementById('connectAgentArrow');
+        const isExpanded = body.classList.contains('expanded');
+        if (isExpanded) {
+            body.classList.remove('expanded');
+            arrow.classList.remove('expanded');
+        } else {
+            body.classList.add('expanded');
+            arrow.classList.add('expanded');
+        }
+    }
 
     // ==========================================
     // WALLET CONNECTION
@@ -1772,6 +1988,10 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
                 }
                 document.getElementById('vaultSelectorWrap').style.display = 'block';
                 document.getElementById('createVaultCard').style.display = 'none';
+
+                // Build vault card list
+                await renderVaultCardList(vaults);
+
                 // Auto-select first vault
                 select.value = vaults[0];
                 await selectVault(vaults[0]);
@@ -1779,6 +1999,58 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
         } catch (err) {
             console.error('Failed to load vaults:', err);
         }
+    }
+
+    async function renderVaultCardList(vaults) {
+        const cardList = document.getElementById('vaultCardList');
+        if (!cardList) return;
+        let html = '';
+        for (const addr of vaults) {
+            let tokenCount = '...';
+            let isPaused = false;
+            try {
+                const vc = new ethers.Contract(addr, VAULT_ABI, provider);
+                const [tokens, paused] = await Promise.all([
+                    vc.getTokens().catch(() => []),
+                    vc.paused().catch(() => false)
+                ]);
+                tokenCount = tokens.length;
+                isPaused = paused;
+            } catch(e) {}
+            const shortAddr = addr.slice(0, 6) + '...' + addr.slice(-4);
+            const isSelected = addr === currentVaultAddress;
+            html += `<div class="vault-card-item${isSelected ? ' selected' : ''}" data-vault="${addr}" onclick="selectVaultFromCard('${addr}')">
+                <span class="vault-card-addr">${shortAddr}</span>
+                <div class="vault-card-meta">
+                    <span class="vault-token-count">${tokenCount} token${tokenCount !== 1 ? 's' : ''}</span>
+                    <span class="vault-status-dot">
+                        <span class="dot ${isPaused ? 'paused' : 'active'}"></span>
+                        ${isPaused ? 'Paused' : 'Active'}
+                    </span>
+                </div>
+                ${isSelected ? '<span class="vault-card-selected-label">Selected</span>' : ''}
+            </div>`;
+        }
+        cardList.innerHTML = html;
+    }
+
+    function selectVaultFromCard(addr) {
+        document.getElementById('vaultSelect').value = addr;
+        selectVault(addr);
+        // Update card highlights
+        document.querySelectorAll('.vault-card-item').forEach(el => {
+            const isThis = el.dataset.vault === addr;
+            el.classList.toggle('selected', isThis);
+            const labelEl = el.querySelector('.vault-card-selected-label');
+            if (isThis && !labelEl) {
+                const span = document.createElement('span');
+                span.className = 'vault-card-selected-label';
+                span.textContent = 'Selected';
+                el.appendChild(span);
+            } else if (!isThis && labelEl) {
+                labelEl.remove();
+            }
+        });
     }
 
     function showCreateVault() {
@@ -1993,24 +2265,35 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     async function promptWithdraw(tokenAddr, symbol, decimals) {
         const balance = await currentVaultContract.balanceOf(tokenAddr);
         const fmtBalance = ethers.formatUnits(balance, decimals);
-        const amount = prompt(`Withdraw ${symbol}\n\nAvailable: ${fmtBalance} ${symbol}\n\nAmount to withdraw (or "max" for all):`);
-        if (!amount) return;
 
-        try {
-            let withdrawAmount;
-            if (amount.toLowerCase() === 'max' || amount.toLowerCase() === 'all') {
-                withdrawAmount = balance;
-            } else {
-                withdrawAmount = ethers.parseUnits(amount, decimals);
+        showModal({
+            title: `Withdraw ${symbol}`,
+            description: `Available balance: <strong style="color:var(--text-primary);">${fmtBalance} ${symbol}</strong>`,
+            fields: [
+                { id: 'amount', label: 'Amount to withdraw', placeholder: '0.0', maxBtn: true, maxValue: fmtBalance }
+            ],
+            confirmText: 'Withdraw',
+            onConfirm: async function(values, closeModal) {
+                const amount = values.amount.trim();
+                if (!amount) return;
+                closeModal();
+                try {
+                    let withdrawAmount;
+                    if (amount.toLowerCase() === 'max' || amount.toLowerCase() === 'all' || amount === fmtBalance) {
+                        withdrawAmount = balance;
+                    } else {
+                        withdrawAmount = ethers.parseUnits(amount, decimals);
+                    }
+                    const tx = await currentVaultContract.withdraw(tokenAddr, withdrawAmount);
+                    showToast(`Withdrawing ${symbol}...`, 'success');
+                    await tx.wait();
+                    showToast(`${symbol} withdrawn to your wallet!`, 'success');
+                    await refreshDashboard();
+                } catch (err) {
+                    showToast('Withdraw failed: ' + (err.reason || err.message), 'error');
+                }
             }
-            const tx = await currentVaultContract.withdraw(tokenAddr, withdrawAmount);
-            showToast(`Withdrawing ${symbol}...`, 'success');
-            await tx.wait();
-            showToast(`${symbol} withdrawn to your wallet!`, 'success');
-            await refreshDashboard();
-        } catch (err) {
-            showToast('Withdraw failed: ' + (err.reason || err.message), 'error');
-        }
+        });
     }
 
     async function loadActivity() {
@@ -2268,35 +2551,68 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
     }
 
     async function promptSetLimits() {
-        const dailyLimit = prompt('New default daily limit (in token units):');
-        const perTxLimit = prompt('New default per-tx limit (in token units):');
-        if (!dailyLimit || !perTxLimit) return;
-        try {
-            const tx = await currentVaultContract.setDefaultLimits(
-                ethers.parseUnits(dailyLimit, 18),
-                ethers.parseUnits(perTxLimit, 18)
-            );
-            showToast('Updating default limits...', 'success');
-            await tx.wait();
-            showToast('Default limits updated!', 'success');
-            await refreshDashboard();
-        } catch (err) {
-            showToast('Failed: ' + (err.reason || err.message), 'error');
-        }
+        showModal({
+            title: 'Update Default Limits',
+            description: 'Set the default daily and per-transaction spending limits for all tokens (in token units, 18 decimals).',
+            fields: [
+                { id: 'dailyLimit', label: 'Daily Limit', placeholder: 'e.g. 100' },
+                { id: 'perTxLimit', label: 'Per-Transaction Limit', placeholder: 'e.g. 50' }
+            ],
+            confirmText: 'Update Limits',
+            onConfirm: async function(values, closeModal) {
+                const dailyLimit = values.dailyLimit.trim();
+                const perTxLimit = values.perTxLimit.trim();
+                if (!dailyLimit || !perTxLimit) {
+                    showToast('Enter both daily and per-tx limits.', 'error');
+                    return;
+                }
+                closeModal();
+                try {
+                    const tx = await currentVaultContract.setDefaultLimits(
+                        ethers.parseUnits(dailyLimit, 18),
+                        ethers.parseUnits(perTxLimit, 18)
+                    );
+                    showToast('Updating default limits...', 'success');
+                    await tx.wait();
+                    showToast('Default limits updated!', 'success');
+                    await refreshDashboard();
+                } catch (err) {
+                    showToast('Failed: ' + (err.reason || err.message), 'error');
+                }
+            }
+        });
     }
 
     async function promptWhitelist() {
-        const addr = prompt('Address to whitelist/un-whitelist:');
-        if (!addr || !ethers.isAddress(addr)) return;
-        const status = confirm('Whitelist this address? OK=Yes, Cancel=Remove');
-        try {
-            const tx = await currentVaultContract.setWhitelist(addr, status);
-            showToast('Updating whitelist...', 'success');
-            await tx.wait();
-            showToast('Whitelist updated!', 'success');
-        } catch (err) {
-            showToast('Failed: ' + (err.reason || err.message), 'error');
-        }
+        showModal({
+            title: 'Manage Whitelist',
+            description: 'Add or remove an address from the vault whitelist. Whitelisted addresses are the only recipients the agent can send to.',
+            fields: [
+                { id: 'addr', label: 'Address', placeholder: '0x...' },
+                { id: 'action', label: 'Action', type: 'select', options: [
+                    { value: 'add', label: 'Add to whitelist', selected: true },
+                    { value: 'remove', label: 'Remove from whitelist' }
+                ]}
+            ],
+            confirmText: 'Update Whitelist',
+            onConfirm: async function(values, closeModal) {
+                const addr = values.addr.trim();
+                if (!addr || !ethers.isAddress(addr)) {
+                    showToast('Enter a valid Ethereum address.', 'error');
+                    return;
+                }
+                const status = values.action === 'add';
+                closeModal();
+                try {
+                    const tx = await currentVaultContract.setWhitelist(addr, status);
+                    showToast('Updating whitelist...', 'success');
+                    await tx.wait();
+                    showToast('Whitelist updated!', 'success');
+                } catch (err) {
+                    showToast('Failed: ' + (err.reason || err.message), 'error');
+                }
+            }
+        });
     }
 
     // ==========================================
