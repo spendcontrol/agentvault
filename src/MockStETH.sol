@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-/// @title MockStETH — Testnet mock for stETH
-/// @notice Anyone can mint. Used for testing on testnets where real stETH doesn't exist.
+/// @title MockStETH — Testnet mock for stETH with Lido submit()
+/// @notice Simulates Lido: send ETH → get stETH 1:1
 contract MockStETH {
     string public constant name = "Liquid staked Ether 2.0 (Mock)";
     string public constant symbol = "stETH";
@@ -14,6 +14,15 @@ contract MockStETH {
 
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    /// @notice Simulate Lido submit: send ETH, receive stETH 1:1
+    function submit(address) external payable returns (uint256) {
+        uint256 amount = msg.value;
+        balanceOf[msg.sender] += amount;
+        totalSupply += amount;
+        emit Transfer(address(0), msg.sender, amount);
+        return amount;
+    }
 
     /// @notice Anyone can mint any amount (testnet only!)
     function mint(address to, uint256 amount) external {

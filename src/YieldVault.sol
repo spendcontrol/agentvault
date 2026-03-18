@@ -3,6 +3,17 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 
+/// @dev Lido stETH — submit ETH, receive stETH
+interface ILido {
+    function submit(address _referral) external payable returns (uint256);
+}
+
+/// @dev Lido wstETH — wrap stETH into non-rebasing wstETH
+interface IWstETH {
+    function wrap(uint256 _stETHAmount) external returns (uint256);
+    function unwrap(uint256 _wstETHAmount) external returns (uint256);
+}
+
 /// @title YieldVault — Operating budget protocol for AI agents
 /// @notice Stake ETH via Lido. Agent lives off the yield. Principal stays untouched.
 /// @dev Uses wstETH internally for simpler accounting (no rebasing)
@@ -84,7 +95,31 @@ contract YieldVault {
     }
 
     // --- Owner: Deposit ---
-    /// @notice Deposit wstETH into the vault as principal
+
+    /// @notice Deposit ETH — auto-stakes via Lido → stETH → wstETH
+    /// @dev This is the main entry point. Human sends ETH, contract handles everything.
+    function depositETH() external payable onlyOwner {
+        if (msg.value == 0) revert ZeroAmount();
+
+        // 1. Stake ETH in Lido → receive stETH
+        uint256 stETHBefore = IERC20(stETH).balanceOf(address(this));
+        ILido(stETH).submit{value: msg.value}(address(0));
+        uint256 stETHReceived = IERC20(stETH).balanceOf(address(this)) - stETHBefore;
+
+        // 2. Approve wstETH contract to spend our stETH
+        IERC20(stETH).approve(wstETH, stETHReceived);
+
+        // 3. Wrap stETH → wstETH
+        uint256 wstETHBefore = IERC20(wstETH).balanceOf(address(this));
+        IWstETH(wstETH).wrap(stETHReceived);
+        uint256 wstETHReceived = IERC20(wstETH).balanceOf(address(this)) - wstETHBefore;
+
+        // 4. Record principal
+        principalWstETH += wstETHReceived;
+        emit Deposited(msg.sender, msg.value, wstETHReceived);
+    }
+
+    /// @notice Deposit wstETH directly (for users who already have wstETH)
     /// @param amount Amount of wstETH to deposit
     function deposit(uint256 amount) external onlyOwner {
         if (amount == 0) revert ZeroAmount();

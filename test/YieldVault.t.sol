@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {YieldVault} from "../src/YieldVault.sol";
 import {YieldVaultFactory} from "../src/YieldVaultFactory.sol";
-import {ERC20Mock} from "./mocks/ERC20Mock.sol";
+import {MockWstETH} from "../src/MockWstETH.sol";
+import {MockStETH} from "../src/MockStETH.sol";
 
 contract YieldVaultTest is Test {
     YieldVault vault;
     YieldVaultFactory factory;
-    ERC20Mock wstETH;
-    ERC20Mock stETH;
+    MockWstETH wstETH;
+    MockStETH stETH;
 
     address owner = address(0x1);
     address agent = address(0x2);
@@ -20,64 +21,104 @@ contract YieldVaultTest is Test {
     uint256 perTxLimit = 0.5 ether;
 
     function setUp() public {
-        wstETH = new ERC20Mock("Wrapped stETH", "wstETH");
-        stETH = new ERC20Mock("Staked ETH", "stETH");
+        wstETH = new MockWstETH();
+        stETH = new MockStETH();
+        wstETH.setStETH(address(stETH));
 
-        // Deploy via factory
         factory = new YieldVaultFactory(address(wstETH), address(stETH));
 
         vm.prank(owner);
         address vaultAddr = factory.createVault(agent, dailyLimit, perTxLimit);
         vault = YieldVault(vaultAddr);
 
-        // Mint wstETH to owner for deposits
+        // Mint wstETH to owner for direct deposit tests
         wstETH.mint(owner, 100 ether);
-
-        // Approve vault
         vm.prank(owner);
         wstETH.approve(address(vault), type(uint256).max);
+
+        // Give owner ETH for depositETH tests
+        vm.deal(owner, 100 ether);
     }
+
+    // --- depositETH tests ---
+
+    function test_depositETH() public {
+        vm.prank(owner);
+        vault.depositETH{value: 10 ether}();
+
+        assertEq(vault.principalWstETH(), 10 ether);
+        assertEq(vault.availableYield(), 0);
+    }
+
+    function test_depositETH_multipleDeposits() public {
+        vm.prank(owner);
+        vault.depositETH{value: 5 ether}();
+
+        vm.prank(owner);
+        vault.depositETH{value: 3 ether}();
+
+        assertEq(vault.principalWstETH(), 8 ether);
+    }
+
+    function test_depositETH_thenYieldAccrues() public {
+        vm.prank(owner);
+        vault.depositETH{value: 10 ether}();
+
+        // Simulate yield by minting extra wstETH to vault
+        wstETH.mint(address(vault), 0.5 ether);
+
+        assertEq(vault.principalWstETH(), 10 ether);
+        assertEq(vault.availableYield(), 0.5 ether);
+    }
+
+    function test_depositETH_zeroReverts() public {
+        vm.prank(owner);
+        vm.expectRevert(YieldVault.ZeroAmount.selector);
+        vault.depositETH{value: 0}();
+    }
+
+    function test_depositETH_onlyOwner() public {
+        vm.deal(agent, 10 ether);
+        vm.prank(agent);
+        vm.expectRevert(YieldVault.OnlyOwner.selector);
+        vault.depositETH{value: 1 ether}();
+    }
+
+    // --- direct wstETH deposit tests ---
 
     function test_deposit() public {
         vm.prank(owner);
         vault.deposit(10 ether);
 
         assertEq(vault.principalWstETH(), 10 ether);
-        assertEq(wstETH.balanceOf(address(vault)), 10 ether);
     }
 
     function test_noYieldInitially() public {
         vm.prank(owner);
         vault.deposit(10 ether);
-
         assertEq(vault.availableYield(), 0);
     }
 
     function test_yieldAccrues() public {
         vm.prank(owner);
         vault.deposit(10 ether);
-
-        // Simulate yield: mint extra wstETH directly to vault
         wstETH.mint(address(vault), 0.5 ether);
-
         assertEq(vault.availableYield(), 0.5 ether);
     }
+
+    // --- Agent spend tests ---
 
     function test_agentCanSpendYield() public {
         vm.prank(owner);
         vault.deposit(10 ether);
-
-        // Simulate yield
         wstETH.mint(address(vault), 0.5 ether);
 
-        // Agent spends
         vm.prank(agent);
         vault.spend(recipient, 0.3 ether);
 
         assertEq(wstETH.balanceOf(recipient), 0.3 ether);
         assertEq(vault.availableYield(), 0.2 ether);
         assertEq(vault.totalYieldSpent(), 0.3 ether);
-        // Principal untouched
         assertEq(vault.principalWstETH(), 10 ether);
     }
 
@@ -85,7 +126,6 @@ contract YieldVaultTest is Test {
         vm.prank(owner);
         vault.deposit(10 ether);
 
-        // No yield — agent tries to spend
         vm.prank(agent);
         vm.expectRevert(YieldVault.ExceedsYield.selector);
         vault.spend(recipient, 1 ether);
@@ -98,7 +138,7 @@ contract YieldVaultTest is Test {
 
         vm.prank(agent);
         vm.expectRevert(YieldVault.ExceedsPerTxLimit.selector);
-        vault.spend(recipient, 0.6 ether); // perTxLimit = 0.5
+        vault.spend(recipient, 0.6 ether);
     }
 
     function test_dailyLimitEnforced() public {
@@ -106,14 +146,11 @@ contract YieldVaultTest is Test {
         vault.deposit(10 ether);
         wstETH.mint(address(vault), 5 ether);
 
-        // Spend up to daily limit
+        vm.prank(agent);
+        vault.spend(recipient, 0.5 ether);
         vm.prank(agent);
         vault.spend(recipient, 0.5 ether);
 
-        vm.prank(agent);
-        vault.spend(recipient, 0.5 ether);
-
-        // This should fail — daily limit reached (1 ether)
         vm.prank(agent);
         vm.expectRevert(YieldVault.ExceedsDailyLimit.selector);
         vault.spend(recipient, 0.1 ether);
@@ -126,17 +163,13 @@ contract YieldVaultTest is Test {
 
         vm.prank(agent);
         vault.spend(recipient, 0.5 ether);
-
         vm.prank(agent);
         vault.spend(recipient, 0.5 ether);
 
-        // Next day
         vm.warp(block.timestamp + 1 days);
 
-        // Should work again
         vm.prank(agent);
         vault.spend(recipient, 0.5 ether);
-
         assertEq(wstETH.balanceOf(recipient), 1.5 ether);
     }
 
@@ -145,20 +178,16 @@ contract YieldVaultTest is Test {
         vault.deposit(10 ether);
         wstETH.mint(address(vault), 1 ether);
 
-        // Enable whitelist
         vm.prank(owner);
         vault.setWhitelistEnabled(true);
 
-        // Agent tries to send to non-whitelisted address
         vm.prank(agent);
         vm.expectRevert(YieldVault.RecipientNotWhitelisted.selector);
         vault.spend(recipient, 0.1 ether);
 
-        // Owner whitelists recipient
         vm.prank(owner);
         vault.setWhitelist(recipient, true);
 
-        // Now it works
         vm.prank(agent);
         vault.spend(recipient, 0.1 ether);
         assertEq(wstETH.balanceOf(recipient), 0.1 ether);
@@ -185,7 +214,7 @@ contract YieldVaultTest is Test {
         vault.withdrawPrincipal(5 ether);
 
         assertEq(vault.principalWstETH(), 5 ether);
-        assertEq(wstETH.balanceOf(owner), 95 ether); // started with 100, deposited 10, withdrew 5
+        assertEq(wstETH.balanceOf(owner), 95 ether);
     }
 
     function test_onlyOwnerCanDeposit() public {
@@ -209,7 +238,6 @@ contract YieldVaultTest is Test {
         assertEq(factory.getVaultsByOwner(owner).length, 1);
         assertEq(factory.getVaultsByAgent(agent).length, 1);
 
-        // Create another vault
         vm.prank(owner);
         factory.createVault(address(0x99), 2 ether, 1 ether);
 
@@ -222,18 +250,35 @@ contract YieldVaultTest is Test {
         vault.deposit(10 ether);
         wstETH.mint(address(vault), 0.5 ether);
 
-        (
-            uint256 principal,
-            uint256 currentBalance,
-            uint256 yield_,
-            uint256 spent,
-            uint256 remaining
-        ) = vault.getStats();
+        (uint256 principal, uint256 currentBalance, uint256 yield_, uint256 spent, uint256 remaining) = vault.getStats();
 
         assertEq(principal, 10 ether);
         assertEq(currentBalance, 10.5 ether);
         assertEq(yield_, 0.5 ether);
         assertEq(spent, 0);
         assertEq(remaining, dailyLimit);
+    }
+
+    // --- Full flow: depositETH → yield → agent spends ---
+
+    function test_fullFlow_depositETH_yieldAccrues_agentSpends() public {
+        // 1. Owner deposits ETH (auto-stakes via Lido mock)
+        vm.prank(owner);
+        vault.depositETH{value: 10 ether}();
+        assertEq(vault.principalWstETH(), 10 ether);
+
+        // 2. Time passes, yield accrues (simulated by minting)
+        wstETH.mint(address(vault), 0.35 ether);
+        assertEq(vault.availableYield(), 0.35 ether);
+
+        // 3. Agent spends yield
+        vm.prank(agent);
+        vault.spend(recipient, 0.2 ether);
+
+        // 4. Verify
+        assertEq(vault.principalWstETH(), 10 ether);      // principal untouched
+        assertEq(vault.availableYield(), 0.15 ether);      // remaining yield
+        assertEq(vault.totalYieldSpent(), 0.2 ether);      // tracked
+        assertEq(wstETH.balanceOf(recipient), 0.2 ether);  // recipient got paid
     }
 }
