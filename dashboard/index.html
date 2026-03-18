@@ -1434,11 +1434,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
                         <!-- ERC20 Deposit -->
                         <div style="font-weight: 600; margin-bottom: 0.5rem;">Or deposit ERC20 tokens</div>
                         <p class="card-desc">USDC, WETH, DAI, or any token address.</p>
-                        <div class="token-presets">
-                            <button class="token-preset-btn" onclick="setTokenPreset('USDC', '0x036CbD53842c5426634e7929541eC2318f3dCF7e')">USDC</button>
-                            <button class="token-preset-btn" onclick="setTokenPreset('WETH', '0x4200000000000000000000000000000000000006')">WETH</button>
-                            <button class="token-preset-btn" onclick="setTokenPreset('DAI', '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb')">DAI</button>
-                        </div>
+                        <div class="token-presets" id="tokenPresets"></div>
                         <div class="form-group" style="margin-bottom: 0.75rem;">
                             <label>Token Address</label>
                             <input type="text" id="inputDepositToken" placeholder="0x..." />
@@ -1582,6 +1578,12 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
             chainName: 'Ethereum',
             label: 'Ethereum Mainnet',
             color: '#627EEA',
+            tokens: {
+                USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+                WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+                DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+                stETH: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
+            }
         },
         testnet: {
             factoryAddress: '0xF6CFA83764D0B1E0417a74FfB8d915985DFd3642',
@@ -1592,6 +1594,11 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
             chainName: 'Base Sepolia',
             label: 'Base Sepolia (Testnet)',
             color: '#0052FF',
+            tokens: {
+                USDC: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+                WETH: '0x4200000000000000000000000000000000000006',
+                DAI: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+            }
         }
     };
 
@@ -1674,6 +1681,7 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
             const dl = document.getElementById('dropdownLabel');
             if (dl) dl.textContent = 'Select a vault...';
 
+            renderTokenPresets();
             await loadUserVaults();
             showToast('Switched to ' + CONFIG.chainName, 'success');
         }
@@ -2426,6 +2434,19 @@ $ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</p
     // ==========================================
     // DEPOSIT & APPROVE
     // ==========================================
+    function renderTokenPresets() {
+        const container = document.getElementById('tokenPresets');
+        if (!container || !CONFIG.tokens) return;
+        let html = '';
+        for (const [symbol, addr] of Object.entries(CONFIG.tokens)) {
+            html += `<button class="token-preset-btn" onclick="setTokenPreset('${symbol}', '${addr}')">${symbol}</button>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // Render presets on load and network switch
+    renderTokenPresets();
+
     function setTokenPreset(symbol, address) {
         document.getElementById('inputDepositToken').value = address;
     }
