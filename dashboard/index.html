@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgentVault — Fund Your Agent. Control Every Dollar.</title>
+    <title>AgentVault — The Treasury Protocol for AI Agents</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -15,8 +15,10 @@
             --bg-secondary: #0f1016;
             --bg-card: rgba(15, 16, 22, 0.6);
             --bg-card-hover: rgba(20, 22, 30, 0.8);
+            --bg-input: rgba(15, 16, 22, 0.8);
             --border: rgba(255, 255, 255, 0.06);
             --border-hover: rgba(255, 255, 255, 0.12);
+            --border-focus: rgba(0, 212, 255, 0.3);
             --text-primary: #f0f0f5;
             --text-secondary: #8a8f98;
             --text-tertiary: #5a5f6a;
@@ -89,6 +91,10 @@
             50% { transform: translate(60px, -80px) scale(1.1); }
             75% { transform: translate(40px, 40px) scale(1); }
         }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
         .fade-in-up {
             opacity: 0;
@@ -160,7 +166,7 @@
             transition: color 0.2s;
         }
         .navbar-links a:hover { color: var(--text-primary); }
-        .nav-launch-btn {
+        .nav-connect-btn {
             background: var(--accent-gradient);
             color: white !important;
             padding: 10px 24px;
@@ -170,19 +176,18 @@
             transition: opacity 0.2s, transform 0.2s !important;
             border: none;
             cursor: pointer;
+            text-decoration: none;
         }
-        .nav-launch-btn:hover {
+        .nav-connect-btn:hover {
             opacity: 0.9;
             transform: translateY(-1px);
         }
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 4px;
+        .nav-connect-btn.connected {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            -webkit-text-fill-color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem !important;
         }
 
         /* ============ HERO ============ */
@@ -199,17 +204,18 @@
             position: absolute;
             inset: 0;
             overflow: hidden;
+            z-index: 0;
         }
         .hero-orb {
             position: absolute;
             border-radius: 50%;
-            filter: blur(120px);
+            filter: blur(80px);
             opacity: 0.3;
         }
         .hero-orb-1 {
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle, rgba(0, 212, 255, 0.25) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.15), transparent 70%);
             top: -200px;
             right: -100px;
             animation: orb1 20s ease-in-out infinite;
@@ -217,19 +223,10 @@
         .hero-orb-2 {
             width: 500px;
             height: 500px;
-            background: radial-gradient(circle, rgba(123, 97, 255, 0.2) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(123, 97, 255, 0.15), transparent 70%);
             bottom: -150px;
             left: -100px;
             animation: orb2 25s ease-in-out infinite;
-        }
-        .hero-orb-3 {
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: orb1 15s ease-in-out infinite reverse;
         }
         .hero-grid {
             position: absolute;
@@ -238,41 +235,43 @@
                 linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
             background-size: 60px 60px;
-            mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
-            -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+            mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 70%);
+            -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 70%);
         }
         .hero-content {
             position: relative;
+            z-index: 1;
             text-align: center;
             max-width: 800px;
-            animation: fadeInUp 1s ease;
         }
         .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: rgba(123, 97, 255, 0.1);
-            border: 1px solid rgba(123, 97, 255, 0.2);
-            padding: 8px 18px;
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            padding: 8px 20px;
             border-radius: 100px;
             font-size: 0.85rem;
-            color: var(--accent-purple);
             font-weight: 500;
+            color: var(--accent-cyan);
             margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease;
         }
-        .hero-badge-dot {
-            width: 6px;
-            height: 6px;
+        .hero-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green);
             border-radius: 50%;
-            background: var(--accent-purple);
-            animation: pulse 2s ease-in-out infinite;
+            animation: pulse 2s infinite;
         }
         .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
-            font-weight: 800;
+            font-size: clamp(2.5rem, 6vw, 4.2rem);
+            font-weight: 900;
             line-height: 1.1;
             letter-spacing: -0.03em;
             margin-bottom: 1.5rem;
+            animation: fadeInUp 0.8s ease 0.1s both;
         }
         .hero h1 .gradient-text {
             background: var(--accent-gradient);
@@ -281,225 +280,192 @@
             background-clip: text;
         }
         .hero-subtitle {
-            font-size: clamp(1rem, 2vw, 1.25rem);
-            color: var(--text-secondary);
+            font-size: 1.2rem;
             line-height: 1.7;
-            max-width: 600px;
+            color: var(--text-secondary);
+            max-width: 620px;
             margin: 0 auto 2.5rem;
-            font-weight: 400;
+            animation: fadeInUp 0.8s ease 0.2s both;
         }
-        .hero-buttons {
+        .hero-ctas {
             display: flex;
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.3s both;
         }
-        .btn-hero-primary {
+        .btn-primary {
             background: var(--accent-gradient);
             color: white;
+            padding: 14px 36px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1rem;
             border: none;
-            padding: 16px 40px;
-            border-radius: 14px;
-            font-size: 1.1rem;
-            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-            position: relative;
-            overflow: hidden;
+            transition: opacity 0.2s, transform 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
-        .btn-hero-primary::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
-            transform: translateX(-100%);
-            transition: transform 0.5s;
-        }
-        .btn-hero-primary:hover::after { transform: translateX(100%); }
-        .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0, 212, 255, 0.2); }
-        .btn-hero-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-            border: 1px solid var(--border-hover);
-            padding: 16px 40px;
-            border-radius: 14px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-        }
-        .btn-hero-secondary:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
+        .btn-primary:hover {
+            opacity: 0.9;
             transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            padding: 14px 36px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 1rem;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-secondary:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card);
         }
         .hero-stats {
             display: flex;
-            gap: 3rem;
             justify-content: center;
+            gap: 3rem;
             margin-top: 4rem;
-            padding-top: 3rem;
-            border-top: 1px solid var(--border);
+            animation: fadeInUp 0.8s ease 0.4s both;
         }
         .hero-stat {
             text-align: center;
         }
         .hero-stat-value {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 1.8rem;
+            font-weight: 800;
             background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
         .hero-stat-label {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-tertiary);
             margin-top: 4px;
+            font-weight: 500;
         }
 
-        /* ============ SECTIONS COMMON ============ */
-        .section-container {
+        /* ============ SECTIONS ============ */
+        .section {
+            padding: 100px 2rem;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 100px 2rem;
         }
         .section-label {
-            display: inline-block;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             font-weight: 600;
-            letter-spacing: 0.1em;
             text-transform: uppercase;
+            letter-spacing: 0.1em;
             color: var(--accent-cyan);
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
         .section-title {
-            font-size: clamp(1.8rem, 4vw, 2.8rem);
-            font-weight: 700;
+            font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+            font-weight: 800;
             letter-spacing: -0.02em;
             margin-bottom: 1rem;
         }
-        .section-subtitle {
-            font-size: 1.1rem;
+        .section-desc {
             color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
             max-width: 600px;
-            line-height: 1.6;
         }
         .section-header {
             text-align: center;
             margin-bottom: 4rem;
         }
-        .section-header .section-subtitle {
-            margin: 0 auto;
+        .section-header .section-desc {
+            margin: 0.5rem auto 0;
         }
 
         /* ============ HOW IT WORKS ============ */
-        .how-it-works {
-            background: var(--bg-secondary);
-            position: relative;
-        }
-        .how-it-works::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border-hover), transparent);
-        }
         .steps-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 2rem;
+            gap: 1.5rem;
             position: relative;
         }
         .steps-grid::before {
             content: '';
             position: absolute;
-            top: 48px;
+            top: 44px;
             left: 12.5%;
-            right: 12.5%;
+            width: 75%;
             height: 2px;
             background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
             opacity: 0.2;
             z-index: 0;
         }
         .step-card {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            padding: 2rem 1.5rem;
-        }
-        .step-icon {
-            width: 96px;
-            height: 96px;
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            margin: 0 auto 1.5rem;
-            background: rgba(15, 16, 22, 0.8);
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: all 0.4s ease;
+            border-radius: var(--radius-xl);
+            padding: 2rem 1.5rem;
+            text-align: center;
             position: relative;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
-        .step-card:hover .step-icon {
-            border-color: var(--accent-cyan);
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.15);
+        .step-card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
             transform: translateY(-4px);
         }
         .step-number {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
+            width: 48px;
+            height: 48px;
             background: var(--accent-gradient);
-            font-size: 0.7rem;
-            font-weight: 700;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-        }
-        .step-title {
+            font-weight: 800;
             font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin: 0 auto 1.25rem;
+            position: relative;
+            z-index: 1;
         }
-        .step-desc {
-            font-size: 0.9rem;
+        .step-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+        }
+        .step-card p {
+            font-size: 0.88rem;
             color: var(--text-secondary);
             line-height: 1.6;
         }
 
-        /* ============ WHY YIELDVAULT ============ */
-        .why-section {
-            position: relative;
-        }
-        .features-grid {
+        /* ============ WHY CARDS ============ */
+        .why-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
         }
-        .feature-card {
+        .why-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius-xl);
             padding: 2.5rem 2rem;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
-        .feature-card::before {
+        .why-card::before {
             content: '';
             position: absolute;
             top: 0;
@@ -508,166 +474,583 @@
             height: 2px;
             background: var(--accent-gradient);
             opacity: 0;
-            transition: opacity 0.4s;
+            transition: opacity 0.3s;
         }
-        .feature-card:hover::before { opacity: 1; }
-        .feature-card:hover {
+        .why-card:hover {
             border-color: var(--border-hover);
-            background: var(--bg-card-hover);
             transform: translateY(-4px);
-            box-shadow: var(--shadow-glow);
         }
-        .feature-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
+        .why-card:hover::before { opacity: 1; }
+        .why-icon {
+            width: 52px;
+            height: 52px;
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            margin-bottom: 1.25rem;
+            color: var(--accent-cyan);
         }
-        .feature-icon-shield { background: rgba(0, 212, 255, 0.1); }
-        .feature-icon-lock { background: rgba(123, 97, 255, 0.1); }
-        .feature-icon-cycle { background: rgba(0, 200, 83, 0.1); }
-        .feature-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
+        .why-card h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
         }
-        .feature-desc {
-            font-size: 0.95rem;
+        .why-card p {
             color: var(--text-secondary);
-            line-height: 1.7;
+            font-size: 0.92rem;
+            line-height: 1.65;
         }
 
         /* ============ DEVELOPERS ============ */
         .dev-section {
-            background: var(--bg-secondary);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-2xl);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .dev-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+        .dev-tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
             position: relative;
         }
-        .dev-section::before {
+        .dev-tab:hover { color: var(--text-primary); }
+        .dev-tab.active {
+            color: var(--accent-cyan);
+        }
+        .dev-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
+        }
+        .dev-panel {
+            display: none;
+            padding: 2rem;
+        }
+        .dev-panel.active { display: block; }
+        .dev-panel pre {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+        .dev-panel pre .comment { color: var(--text-tertiary); }
+        .dev-panel pre .keyword { color: var(--accent-purple); }
+        .dev-panel pre .string { color: var(--green); }
+        .dev-panel pre .fn { color: var(--accent-cyan); }
+
+        /* ============ APP SECTION ============ */
+        #app-section {
+            display: none;
+            padding-top: 100px;
+        }
+        #app-section.active { display: block; }
+        #landing-section { transition: opacity 0.3s ease; }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        /* Vault Selector */
+        .vault-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .vault-selector label {
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+        }
+        .vault-selector select {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            padding: 10px 16px;
+            min-width: 300px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .vault-selector select:focus {
+            outline: none;
+            border-color: var(--border-focus);
+        }
+
+        /* Create Vault */
+        .create-vault-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-2xl);
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .create-vault-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border-hover), transparent);
+            height: 2px;
+            background: var(--accent-gradient);
         }
-        .code-tabs {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 0;
-            background: rgba(15, 16, 22, 0.8);
-            border: 1px solid var(--border);
-            border-bottom: none;
-            border-radius: var(--radius-md) var(--radius-md) 0 0;
-            padding: 4px;
-            overflow-x: auto;
+        .create-vault-card h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
         }
-        .code-tab {
-            padding: 10px 20px;
-            border-radius: var(--radius-sm);
-            border: none;
-            background: transparent;
+        .create-vault-card .card-desc {
             color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .form-group input, .form-group select {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            padding: 12px 16px;
+            transition: border-color 0.2s;
+        }
+        .form-group input::placeholder {
+            color: var(--text-tertiary);
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--border-focus);
+        }
+        .form-group .hint {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .dashboard-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: border-color 0.3s;
+        }
+        .dashboard-card:hover {
+            border-color: var(--border-hover);
+        }
+        .dashboard-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+        .dashboard-card .card-desc {
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            margin-bottom: 1.25rem;
+        }
+        .dashboard-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Token list */
+        .token-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .token-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+        .token-row .token-symbol {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .token-row .token-balance {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+        .token-empty {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-tertiary);
+            font-size: 0.88rem;
+        }
+
+        /* Staking Stats */
+        .staking-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .staking-stat {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            text-align: center;
+        }
+        .staking-stat .stat-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        .staking-stat .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .staking-stat .stat-value.cyan { color: var(--accent-cyan); }
+        .staking-stat .stat-value.green { color: var(--green); }
+        .staking-stat .stat-value.purple { color: var(--accent-purple); }
+
+        /* Stake form row */
+        .stake-form-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+        .stake-form-row .form-group { flex: 1; }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 0.75rem;
+        }
+        .checkbox-row input[type="checkbox"] {
+            accent-color: var(--accent-cyan);
+            width: 16px;
+            height: 16px;
+        }
+        .checkbox-row label {
             font-size: 0.85rem;
-            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* Token preset buttons */
+        .token-presets {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .token-preset-btn {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 6px 14px;
             cursor: pointer;
             transition: all 0.2s;
             font-family: 'Inter', sans-serif;
+        }
+        .token-preset-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        /* Spending Rules */
+        .rules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .rule-item {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+        }
+        .rule-item .rule-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        .rule-item .rule-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+        .status-badge.active {
+            background: rgba(0, 200, 83, 0.1);
+            color: var(--green);
+            border: 1px solid rgba(0, 200, 83, 0.2);
+        }
+        .status-badge.paused {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--red);
+            border: 1px solid rgba(255, 71, 87, 0.2);
+        }
+        .status-badge .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Activity Table */
+        .activity-table-wrap {
+            overflow-x: auto;
+        }
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .activity-table th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+        .activity-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .activity-table tr:last-child td {
+            border-bottom: none;
+        }
+        .activity-table .mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+        .activity-table .reason-cell {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .code-tab.active {
-            background: rgba(123, 97, 255, 0.15);
-            color: var(--accent-purple);
+        .activity-table a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-size: 0.8rem;
         }
-        .code-tab:hover:not(.active) { color: var(--text-primary); }
-        .code-block-wrapper {
-            position: relative;
-            background: #0d0e14;
-            border: 1px solid var(--border);
-            border-top: none;
-            border-radius: 0 0 var(--radius-md) var(--radius-md);
-            overflow: hidden;
-        }
-        .code-block {
-            display: none;
-            padding: 1.5rem;
-            overflow-x: auto;
-        }
-        .code-block.active { display: block; }
-        .code-block pre {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            line-height: 1.7;
-            color: #c9d1d9;
-            white-space: pre;
-            margin: 0;
-        }
-        .code-copy-btn {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 6px 14px;
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.2s;
-            z-index: 2;
-        }
-        .code-copy-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-        }
-        .code-copy-btn.copied {
-            background: rgba(0, 200, 83, 0.15);
-            color: var(--green);
-            border-color: rgba(0, 200, 83, 0.3);
-        }
-        /* Syntax highlighting */
-        .code-keyword { color: #ff7b72; }
-        .code-string { color: #a5d6ff; }
-        .code-comment { color: #5a6070; }
-        .code-function { color: #d2a8ff; }
-        .code-number { color: #79c0ff; }
-        .code-var { color: #ffa657; }
-
-        /* ============ STATS BAR ============ */
-        .stats-bar-section {
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-            background: rgba(15, 16, 22, 0.5);
-        }
-        .stats-bar-inner {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
-            display: flex;
-            justify-content: center;
-            gap: 6rem;
-        }
-        .stat-item { text-align: center; }
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .stat-label {
-            font-size: 0.9rem;
+        .activity-table a:hover { text-decoration: underline; }
+        .activity-empty {
+            text-align: center;
+            padding: 2.5rem;
             color: var(--text-tertiary);
-            margin-top: 4px;
+            font-size: 0.88rem;
         }
 
-        /* ============ FOOTER ============ */
+        /* Connect agent card */
+        .agent-connect-card .agent-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.25rem;
+        }
+        .agent-tab {
+            padding: 8px 18px;
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: relative;
+        }
+        .agent-tab:hover { color: var(--text-secondary); }
+        .agent-tab.active { color: var(--accent-cyan); }
+        .agent-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
+        }
+        .agent-panel {
+            display: none;
+        }
+        .agent-panel.active { display: block; }
+        .agent-panel pre {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 24px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.88rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-gradient {
+            background: var(--accent-gradient);
+            color: white;
+        }
+        .btn-gradient:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .btn-gradient:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-outline {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        .btn-outline:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card);
+        }
+        .btn-danger {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--red);
+            border: 1px solid rgba(255, 71, 87, 0.2);
+        }
+        .btn-danger:hover {
+            background: rgba(255, 71, 87, 0.2);
+        }
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.82rem;
+        }
+        .btn .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 88px;
+            right: 2rem;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 20px;
+            backdrop-filter: blur(20px);
+            min-width: 300px;
+            animation: slideDown 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+        }
+        .toast.success { border-color: rgba(0, 200, 83, 0.3); }
+        .toast.error { border-color: rgba(255, 71, 87, 0.3); }
+        .toast .toast-icon { font-size: 1.1rem; }
+
+        /* Footer */
         .footer {
             border-top: 1px solid var(--border);
             padding: 3rem 2rem;
@@ -680,11 +1063,18 @@
             justify-content: space-between;
             align-items: center;
         }
-        .footer-text {
-            font-size: 0.85rem;
-            color: var(--text-tertiary);
+        .footer-logo {
+            font-size: 1.1rem;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .footer-links { display: flex; gap: 1.5rem; }
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
         .footer-links a {
             color: var(--text-tertiary);
             text-decoration: none;
@@ -693,1101 +1083,501 @@
         }
         .footer-links a:hover { color: var(--text-secondary); }
 
-        /* ============ APP SECTION ============ */
-        #appSection { display: none; }
-        #appSection.active { display: block; }
-        #landingSection { display: block; }
-        #landingSection.hidden { display: none; }
-
-        .app-container {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 100px 2rem 4rem;
-        }
-        .app-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .app-header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-        .app-header p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-
-        .status-bar {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 1rem 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        .status-bar .addr {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--accent-cyan);
-            font-size: 0.9rem;
-        }
-        .status-bar .network {
-            color: var(--accent-purple);
-            font-weight: 500;
-        }
-
-        .app-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-        .app-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            text-align: center;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            transition: all 0.3s ease;
-        }
-        .app-card:hover {
-            border-color: var(--border-hover);
-            transform: translateY(-2px);
-        }
-        .app-card .label {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        .app-card .value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .app-card .sub {
-            color: var(--text-tertiary);
-            font-size: 0.75rem;
-            margin-top: 0.25rem;
-        }
-
-        .app-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xl);
-            padding: 1.75rem;
-            margin: 1.5rem 0;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-        .app-section h2 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin-bottom: 1.25rem;
-            color: var(--text-primary);
-        }
-
-        .form-row {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            align-items: end;
-        }
-        .form-group { flex: 1; }
-        .form-group label {
-            display: block;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-bottom: 6px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 12px 16px;
-            border-radius: var(--radius-md);
-            font-size: 0.95rem;
-            font-family: 'Inter', sans-serif;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: var(--accent-purple);
-            box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.1);
-        }
-        .form-group input::placeholder {
-            color: var(--text-tertiary);
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border-radius: var(--radius-md);
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.2s ease;
-        }
-        .btn:hover { transform: translateY(-1px); }
-        .btn:active { transform: translateY(0); }
-        .btn-primary {
-            background: var(--accent-gradient);
-            color: white;
-        }
-        .btn-primary:hover { box-shadow: 0 4px 20px rgba(123, 97, 255, 0.25); }
-        .btn-success {
-            background: rgba(0, 200, 83, 0.15);
-            color: var(--green);
-            border: 1px solid rgba(0, 200, 83, 0.2);
-        }
-        .btn-success:hover { background: rgba(0, 200, 83, 0.25); }
-        .btn-danger {
-            background: rgba(255, 71, 87, 0.15);
-            color: var(--red);
-            border: 1px solid rgba(255, 71, 87, 0.2);
-        }
-        .btn-danger:hover { background: rgba(255, 71, 87, 0.25); }
-        .btn-outline {
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--border-hover);
-        }
-
-        .vault-selector {
-            width: 100%;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 12px 16px;
-            border-radius: var(--radius-md);
-            font-size: 0.9rem;
-            font-family: 'Inter', sans-serif;
-            margin-bottom: 1rem;
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-        .vault-selector:focus {
-            outline: none;
-            border-color: var(--accent-purple);
-        }
-        .vault-selector option {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-        }
-
-        .events-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .events-table th {
-            text-align: left;
-            color: var(--text-tertiary);
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border);
-        }
-        .events-table td {
-            padding: 12px;
-            font-size: 0.85rem;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-        .events-table tr:last-child td { border-bottom: none; }
-        .events-table a {
-            color: var(--accent-purple);
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .events-table a:hover { text-decoration: underline; }
-
-        .tag {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .tag-safe { background: rgba(0, 200, 83, 0.1); color: var(--green); }
-        .tag-warn { background: rgba(255, 152, 0, 0.1); color: var(--orange); }
-        .tag-danger { background: rgba(255, 71, 87, 0.1); color: var(--red); }
-
-        .hidden { display: none !important; }
-
-        /* Toast */
-        #toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: rgba(15, 16, 22, 0.95);
-            border: 1px solid var(--border);
-            padding: 14px 24px;
-            border-radius: var(--radius-md);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            font-size: 0.9rem;
-            max-width: 400px;
-        }
-        #toast.show { transform: translateY(0); opacity: 1; }
-
-        /* Back to landing button */
-        .back-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: color 0.2s;
-            margin-bottom: 1.5rem;
-        }
-        .back-btn:hover { color: var(--text-primary); }
-
-        /* Connect Agent Section */
-        .agent-connect-section {
-            margin-top: 1.5rem;
-        }
-        .agent-connect-section .code-tabs {
-            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-        }
-
         /* ============ RESPONSIVE ============ */
         @media (max-width: 900px) {
-            .steps-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .steps-grid { grid-template-columns: repeat(2, 1fr); }
             .steps-grid::before { display: none; }
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
+            .why-grid { grid-template-columns: 1fr; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .staking-stats { grid-template-columns: 1fr; }
+            .rules-grid { grid-template-columns: 1fr; }
             .hero-stats { gap: 2rem; }
-            .stats-bar-inner { gap: 3rem; }
         }
         @media (max-width: 640px) {
-            .navbar { padding: 0 1rem; }
-            .navbar-links { display: none; }
-            .navbar-links.open {
-                display: flex;
-                flex-direction: column;
-                position: absolute;
-                top: 72px;
-                left: 0;
-                right: 0;
-                background: rgba(10, 11, 15, 0.98);
-                border-bottom: 1px solid var(--border);
-                padding: 1.5rem;
-                gap: 1rem;
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                animation: slideDown 0.3s ease;
-            }
-            .mobile-menu-btn { display: block; }
             .steps-grid { grid-template-columns: 1fr; }
-            .hero-stats {
-                flex-direction: column;
-                gap: 1.5rem;
-            }
-            .stats-bar-inner {
-                flex-direction: column;
-                gap: 1.5rem;
-            }
-            .hero-buttons { flex-direction: column; align-items: center; }
-            .btn-hero-primary, .btn-hero-secondary { width: 100%; max-width: 300px; }
-            .app-cards { grid-template-columns: 1fr 1fr; }
-            .form-row { flex-direction: column; }
-            .status-bar { flex-direction: column; gap: 0.5rem; text-align: center; }
+            .navbar-links a:not(.nav-connect-btn) { display: none; }
+            .hero { padding: 100px 1.25rem 60px; }
+            .section { padding: 60px 1.25rem; }
+            .hero-stats { flex-direction: column; gap: 1rem; }
+            .hero-ctas { flex-direction: column; align-items: center; }
+            .create-vault-card { padding: 1.5rem; }
+            .dashboard-card { padding: 1.25rem; }
             .footer-inner { flex-direction: column; gap: 1rem; }
-            .section-container { padding: 60px 1.25rem; }
+            .vault-selector select { min-width: auto; width: 100%; }
+            .vault-selector { flex-direction: column; align-items: stretch; }
+            .stake-form-row { flex-direction: column; }
+            .dev-tabs { overflow-x: auto; }
         }
     </style>
 </head>
 <body>
-
-    <!-- ========== NAVBAR ========== -->
+    <!-- ============ NAVBAR ============ -->
     <nav class="navbar" id="navbar">
         <div class="navbar-inner">
-            <div class="navbar-logo" onclick="showLanding()">
-                <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="28" height="28" rx="8" fill="url(#logo-grad)"/>
-                    <path d="M8 18L14 8L20 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M10.5 14H17.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                    <defs>
-                        <linearGradient id="logo-grad" x1="0" y1="0" x2="28" y2="28">
-                            <stop stop-color="#00d4ff"/>
-                            <stop offset="1" stop-color="#7b61ff"/>
-                        </linearGradient>
-                    </defs>
-                </svg>
+            <div class="navbar-logo" onclick="scrollToTop()">
+                <svg viewBox="0 0 28 28" fill="none"><defs><linearGradient id="lg" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#00d4ff"/><stop offset="1" stop-color="#7b61ff"/></linearGradient></defs><rect x="3" y="6" width="22" height="16" rx="3" stroke="url(#lg)" stroke-width="2" fill="none"/><path d="M10 14l3 3 5-6" stroke="url(#lg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 AgentVault
             </div>
-            <div class="navbar-links" id="navLinks">
-                <a href="#how-it-works" onclick="closeMobile()">How it Works</a>
-                <a href="#why" onclick="closeMobile()">Why AgentVault</a>
-                <a href="#developers" onclick="closeMobile()">Developers</a>
-                <a class="nav-launch-btn" href="#" onclick="event.preventDefault(); closeMobile(); launchApp();">Launch App</a>
+            <div class="navbar-links">
+                <a href="#how-it-works">How It Works</a>
+                <a href="#why">Why AgentVault</a>
+                <a href="#developers">Developers</a>
+                <button class="nav-connect-btn" id="connectBtn" onclick="handleConnect()">Connect Wallet</button>
             </div>
-            <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobile()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-            </button>
         </div>
     </nav>
 
-    <!-- ========== LANDING SECTION ========== -->
-    <div id="landingSection">
+    <!-- ============ TOAST CONTAINER ============ -->
+    <div class="toast-container" id="toastContainer"></div>
 
+    <!-- ============ LANDING SECTION ============ -->
+    <div id="landing-section">
         <!-- HERO -->
         <section class="hero">
             <div class="hero-bg">
                 <div class="hero-orb hero-orb-1"></div>
                 <div class="hero-orb hero-orb-2"></div>
-                <div class="hero-orb hero-orb-3"></div>
                 <div class="hero-grid"></div>
             </div>
             <div class="hero-content">
                 <div class="hero-badge">
-                    <span class="hero-badge-dot"></span>
+                    <span class="dot"></span>
                     Live on Base Sepolia
                 </div>
-                <h1>
-                    Fund Your Agent.<br>
-                    <span class="gradient-text">Control Every Dollar.</span>
-                </h1>
-                <p class="hero-subtitle">
-                    Deposit any token — USDC, WETH, wstETH, or any ERC20. Set spending rules. Your AI agent operates within hard limits enforced by smart contracts. Full transparency. Full control. Fully on-chain.
-                </p>
-                <div class="hero-buttons">
-                    <button class="btn-hero-primary" onclick="launchApp()">Launch App</button>
-                    <button class="btn-hero-secondary" onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">How it Works</button>
+                <h1>The Treasury Protocol<br>for <span class="gradient-text">AI Agents</span></h1>
+                <p class="hero-subtitle">Deposit tokens. Set spending rules. Your agent operates within limits. Every transaction recorded on-chain.</p>
+                <div class="hero-ctas">
+                    <button class="btn-primary" onclick="handleConnect()">Launch App <span>&rarr;</span></button>
+                    <a href="#how-it-works" class="btn-secondary">How it Works</a>
                 </div>
                 <div class="hero-stats">
                     <div class="hero-stat">
-                        <div class="hero-stat-value" id="statTotalVaults">--</div>
+                        <div class="hero-stat-value" id="statVaults">--</div>
                         <div class="hero-stat-label">Vaults Created</div>
                     </div>
                     <div class="hero-stat">
-                        <div class="hero-stat-value" id="statTotalETH">--</div>
-                        <div class="hero-stat-label">Total Deposited</div>
+                        <div class="hero-stat-value">Multi-Token</div>
+                        <div class="hero-stat-label">Any ERC20 Supported</div>
                     </div>
                     <div class="hero-stat">
-                        <div class="hero-stat-value">100%</div>
-                        <div class="hero-stat-label">On-Chain</div>
+                        <div class="hero-stat-value">Lido stETH</div>
+                        <div class="hero-stat-label">Yield Staking Built-in</div>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- HOW IT WORKS -->
-        <section class="how-it-works" id="how-it-works">
-            <div class="section-container">
-                <div class="section-header fade-in-up">
-                    <div class="section-label">How it Works</div>
-                    <h2 class="section-title">Set it up once. Walk away.</h2>
-                    <p class="section-subtitle">Your agent handles its own finances within the rules you define. Deposit tokens, set limits, and let it operate.</p>
+        <section class="section" id="how-it-works">
+            <div class="section-header fade-in-up">
+                <div class="section-label">How It Works</div>
+                <h2 class="section-title">Four steps to autonomous agent finance</h2>
+                <p class="section-desc">Go from zero to a fully funded AI agent treasury in under a minute.</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card fade-in-up delay-1">
+                    <div class="step-number">1</div>
+                    <h3>Create a Vault</h3>
+                    <p>Deploy your agent's personal treasury in one click. Each vault is an independent smart contract.</p>
                 </div>
-                <div class="steps-grid">
-                    <div class="step-card fade-in-up delay-1">
-                        <div class="step-icon">
-                            <span class="step-number">1</span>
-                            <span style="font-size:2rem;">&#9954;</span>
-                        </div>
-                        <div class="step-title">Deposit Tokens</div>
-                        <div class="step-desc">Fund your vault with any ERC20 token — USDC, WETH, wstETH, or whatever your agent needs. Simple approve + deposit.</div>
-                    </div>
-                    <div class="step-card fade-in-up delay-2">
-                        <div class="step-icon">
-                            <span class="step-number">2</span>
-                            <span style="font-size:2rem;">&#9881;</span>
-                        </div>
-                        <div class="step-title">Set the Rules</div>
-                        <div class="step-desc">How much per day? Per transaction? Which addresses? You decide once. Smart contracts enforce forever.</div>
-                    </div>
-                    <div class="step-card fade-in-up delay-3">
-                        <div class="step-icon">
-                            <span class="step-number">3</span>
-                            <span style="font-size:2rem;">&#129302;</span>
-                        </div>
-                        <div class="step-title">Agent Operates</div>
-                        <div class="step-desc">Your agent spends from the vault on whatever it needs — API calls, compute, swaps via Uniswap. You don't lift a finger.</div>
-                    </div>
-                    <div class="step-card fade-in-up delay-4">
-                        <div class="step-icon">
-                            <span class="step-number">4</span>
-                            <span style="font-size:2rem;">&#128269;</span>
-                        </div>
-                        <div class="step-title">Full Audit Trail</div>
-                        <div class="step-desc">Every cent is tracked on-chain with reasons. Pause anytime. Withdraw anytime. Check in whenever you want — or don't.</div>
-                    </div>
+                <div class="step-card fade-in-up delay-2">
+                    <div class="step-number">2</div>
+                    <h3>Fund It</h3>
+                    <p>Deposit USDC, WETH, or any ERC20 token. Optionally stake ETH via Lido for passive yield.</p>
+                </div>
+                <div class="step-card fade-in-up delay-3">
+                    <div class="step-number">3</div>
+                    <h3>Agent Operates</h3>
+                    <p>Your agent spends within daily and per-transaction limits. Every spend has a recorded reason.</p>
+                </div>
+                <div class="step-card fade-in-up delay-4">
+                    <div class="step-number">4</div>
+                    <h3>Full Transparency</h3>
+                    <p>Expense reports on-chain. Pause anytime. Withdraw anytime. You stay in control.</p>
                 </div>
             </div>
         </section>
 
-        <!-- WHY YIELDVAULT -->
-        <section class="why-section" id="why">
-            <div class="section-container">
-                <div class="section-header fade-in-up">
-                    <div class="section-label">Why AgentVault</div>
-                    <h2 class="section-title">Your money. Your rules. Math enforces them.</h2>
-                    <p class="section-subtitle">No trust required. No admin panel. No one can change the rules — not even you — without on-chain proof.</p>
+        <!-- WHY AGENTVAULT -->
+        <section class="section" id="why">
+            <div class="section-header fade-in-up">
+                <div class="section-label">Why AgentVault</div>
+                <h2 class="section-title">Built for the agentic economy</h2>
+            </div>
+            <div class="why-grid">
+                <div class="why-card fade-in-up delay-1">
+                    <div class="why-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <h3>Multi-Token Treasury</h3>
+                    <p>Deposit any ERC20 token: USDC, WETH, DAI, and more. Your agent has a single vault for all its assets.</p>
                 </div>
-                <div class="features-grid">
-                    <div class="feature-card fade-in-up delay-1">
-                        <div class="feature-icon feature-icon-shield">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        </div>
-                        <div class="feature-title">Your Tokens Stay Yours</div>
-                        <div class="feature-desc">You control the vault. The agent can only spend within your limits. Want your tokens back? Withdraw anytime. Pause the agent instantly.</div>
+                <div class="why-card fade-in-up delay-2">
+                    <div class="why-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                     </div>
-                    <div class="feature-card fade-in-up delay-2">
-                        <div class="feature-icon feature-icon-lock">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7b61ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                        </div>
-                        <div class="feature-title">Limits Are Code, Not Promises</div>
-                        <div class="feature-desc">Daily caps. Per-tx limits. Whitelists. All enforced by Ethereum. Not a settings page. Not an admin dashboard. Immutable math.</div>
+                    <h3>On-Chain Spending Rules</h3>
+                    <p>Daily limits, per-transaction caps, recipient whitelists. All enforced by the smart contract, not a backend.</p>
+                </div>
+                <div class="why-card fade-in-up delay-3">
+                    <div class="why-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     </div>
-                    <div class="feature-card fade-in-up delay-3">
-                        <div class="feature-icon feature-icon-cycle">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00c853" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-                        </div>
-                        <div class="feature-title">Any Token, One Interface</div>
-                        <div class="feature-desc">USDC, WETH, wstETH — pick any ERC20. Agent manages its own budget within your rules. Swap to other tokens via Uniswap if needed.</div>
-                    </div>
+                    <h3>Expense Reports</h3>
+                    <p>Every spend is recorded with a reason, timestamp, and recipient. Full auditability, immutable and on-chain.</p>
                 </div>
             </div>
         </section>
 
         <!-- DEVELOPERS -->
-        <section class="dev-section" id="developers">
-            <div class="section-container">
-                <div class="section-header fade-in-up">
-                    <div class="section-label">For Developers</div>
-                    <h2 class="section-title">Connect your agent in minutes</h2>
-                    <p class="section-subtitle">Use our Python SDK, integrate with Claude Code, or call contracts directly. Three lines of code to get started.</p>
-                </div>
-                <div class="fade-in-up delay-1" style="max-width: 800px; margin: 0 auto;">
-                    <div class="code-tabs" id="devCodeTabs">
-                        <button class="code-tab active" onclick="switchDevTab('python')">Python SDK</button>
-                        <button class="code-tab" onclick="switchDevTab('claude')">Claude Code / LLM</button>
-                        <button class="code-tab" onclick="switchDevTab('curl')">curl / cast</button>
-                    </div>
-                    <div class="code-block-wrapper">
-                        <button class="code-copy-btn" onclick="copyDevCode(this)">Copy</button>
-                        <div class="code-block active" id="devCode-python">
-<pre><span class="code-keyword">from</span> agentvault <span class="code-keyword">import</span> AgentVaultClient
-
-<span class="code-comment"># Initialize agent with your vault</span>
-agent = AgentVaultClient(
-    vault_address=<span class="code-string">"0xYourVault..."</span>,
-    private_key=<span class="code-string">"0xAgentKey..."</span>,
-    rpc_url=<span class="code-string">"https://sepolia.base.org"</span>
-)
-
-<span class="code-comment"># Check available budget</span>
-budget = agent.available_budget()
-daily_left = agent.remaining_daily_budget()
-<span class="code-function">print</span>(<span class="code-string">f"Available: <span class="code-var">{budget}</span>, Daily left: <span class="code-var">{daily_left}</span>"</span>)
-
-<span class="code-comment"># Spend tokens to pay for a service</span>
-tx = agent.spend(
-    to=<span class="code-string">"0xServiceProvider..."</span>,
-    amount=<span class="code-string">"100"</span>,  <span class="code-comment"># in token units</span>
-    reason=<span class="code-string">"API credits"</span>
-)
-
-<span class="code-comment"># Swap vault token for another via Uniswap</span>
-tx = agent.spend_and_swap(
-    token_out=<span class="code-string">"0xUSDC..."</span>,
-    amount_in=<span class="code-string">"0.005"</span>,
-    min_out=<span class="code-string">"10.0"</span>,
-    to=<span class="code-string">"0xRecipient..."</span>
-)</pre>
-                        </div>
-                        <div class="code-block" id="devCode-claude">
-<pre><span class="code-comment">// Claude Code / LLM Tool Integration</span>
-<span class="code-comment">// Give your LLM these tools to manage its own budget:</span>
-
-<span class="code-keyword">const</span> tools = [
-  {
-    name: <span class="code-string">"check_budget"</span>,
-    description: <span class="code-string">"Check available budget and daily remaining"</span>,
-    <span class="code-keyword">async</span> execute() {
-      <span class="code-keyword">const</span> vault = <span class="code-keyword">new</span> ethers.Contract(VAULT, VAULT_ABI, signer);
-      <span class="code-keyword">const</span> [balance, deposited, spent, available, daily] =
-        <span class="code-keyword">await</span> vault.getStats();
-      <span class="code-keyword">return</span> {
-        available_budget: ethers.formatUnits(available, decimals),
-        daily_remaining: ethers.formatUnits(daily, decimals),
-        total_spent: ethers.formatUnits(spent, decimals)
-      };
-    }
-  },
-  {
-    name: <span class="code-string">"spend"</span>,
-    description: <span class="code-string">"Send tokens to an address with a reason"</span>,
-    <span class="code-keyword">async</span> execute({ to, amount, reason }) {
-      <span class="code-keyword">const</span> vault = <span class="code-keyword">new</span> ethers.Contract(VAULT, VAULT_ABI, signer);
-      <span class="code-keyword">const</span> tx = <span class="code-keyword">await</span> vault[<span class="code-string">"spend(address,uint256,string)"</span>](
-        to, ethers.parseUnits(amount, decimals), reason
-      );
-      <span class="code-keyword">return await</span> tx.wait();
-    }
-  }
-];</pre>
-                        </div>
-                        <div class="code-block" id="devCode-curl">
-<pre><span class="code-comment"># Check available budget (read-only, no auth needed)</span>
-cast call <span class="code-var">$VAULT</span> \
-  <span class="code-string">"availableBudget()(uint256)"</span> \
-  --rpc-url https://sepolia.base.org
-
-<span class="code-comment"># Check remaining daily budget</span>
-cast call <span class="code-var">$VAULT</span> \
-  <span class="code-string">"remainingDailyBudget()(uint256)"</span> \
-  --rpc-url https://sepolia.base.org
-
-<span class="code-comment"># Spend tokens (agent wallet required)</span>
-cast send <span class="code-var">$VAULT</span> \
-  <span class="code-string">"spend(address,uint256,string)"</span> \
-  <span class="code-var">$RECIPIENT</span> <span class="code-number">1000000000000000</span> <span class="code-string">"API credits"</span> \
-  --private-key <span class="code-var">$AGENT_KEY</span> \
-  --rpc-url https://sepolia.base.org
-
-<span class="code-comment"># Swap vault token for USDC via Uniswap</span>
-cast send <span class="code-var">$VAULT</span> \
-  <span class="code-string">"spendAndSwap(address,uint24,uint256,uint256,address,string)"</span> \
-  <span class="code-var">$USDC</span> <span class="code-number">3000</span> <span class="code-number">5000000000000000</span> <span class="code-number">0</span> <span class="code-var">$RECIPIENT</span> <span class="code-string">"swap for payment"</span> \
-  --private-key <span class="code-var">$AGENT_KEY</span> \
-  --rpc-url https://sepolia.base.org</pre>
-                        </div>
-                    </div>
-                </div>
+        <section class="section" id="developers">
+            <div class="section-header fade-in-up">
+                <div class="section-label">For Developers</div>
+                <h2 class="section-title">Integrate in minutes</h2>
+                <p class="section-desc">Connect your agent to its vault using MCP, Python SDK, a skill file, or direct CLI calls.</p>
             </div>
-        </section>
-
-        <!-- STATS BAR -->
-        <section class="stats-bar-section">
-            <div class="stats-bar-inner">
-                <div class="stat-item fade-in-up">
-                    <div class="stat-value" id="footerStatVaults">--</div>
-                    <div class="stat-label">Total Vaults Created</div>
+            <div class="dev-section fade-in-up delay-1">
+                <div class="dev-tabs">
+                    <button class="dev-tab active" onclick="switchDevTab(this, 'panel-mcp')">MCP Server</button>
+                    <button class="dev-tab" onclick="switchDevTab(this, 'panel-python')">Python SDK</button>
+                    <button class="dev-tab" onclick="switchDevTab(this, 'panel-skill')">Skill File</button>
+                    <button class="dev-tab" onclick="switchDevTab(this, 'panel-terminal')">Terminal</button>
                 </div>
-                <div class="stat-item fade-in-up delay-1">
-                    <div class="stat-value">24/7</div>
-                    <div class="stat-label">Autonomous Operation</div>
-                </div>
-                <div class="stat-item fade-in-up delay-2">
-                    <div class="stat-value">0</div>
-                    <div class="stat-label">Trust Assumptions</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FOOTER -->
-        <footer class="footer">
-            <div class="footer-inner">
-                <div class="footer-text">AgentVault Protocol -- Base Sepolia Testnet</div>
-                <div class="footer-links">
-                    <a href="https://sepolia.basescan.org/address/0x6b764f0A9Cf90F467B3791Bb40935f6bDcC0fDf0" target="_blank">Factory Contract</a>
-                    <a href="#developers">Docs</a>
-                    <a href="https://github.com" target="_blank">GitHub</a>
-                </div>
-            </div>
-        </footer>
-    </div>
-
-    <!-- ========== APP SECTION ========== -->
-    <div id="appSection">
-        <div class="app-container">
-            <button class="back-btn" onclick="showLanding()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                Back to Home
-            </button>
-
-            <!-- Connect Prompt -->
-            <div id="connectPrompt">
-                <div class="app-section" style="text-align:center; padding: 4rem 2rem;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">
-                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="64" height="64" rx="20" fill="url(#wallet-grad)" fill-opacity="0.1"/>
-                            <path d="M20 24h24a4 4 0 014 4v12a4 4 0 01-4 4H20a4 4 0 01-4-4V28a4 4 0 014-4z" stroke="url(#wallet-grad)" stroke-width="2.5"/>
-                            <path d="M16 24v-2a4 4 0 014-4h18l-6 6" stroke="url(#wallet-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="40" cy="34" r="2.5" fill="url(#wallet-grad)"/>
-                            <defs>
-                                <linearGradient id="wallet-grad" x1="0" y1="0" x2="64" y2="64">
-                                    <stop stop-color="#00d4ff"/>
-                                    <stop offset="1" stop-color="#7b61ff"/>
-                                </linearGradient>
-                            </defs>
-                        </svg>
-                    </div>
-                    <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem;">Connect Your Wallet</h2>
-                    <p style="color: var(--text-secondary); margin-bottom: 2rem; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-                        Connect with MetaMask to create vaults, deposit tokens, and manage your AI agent's operating budget.
-                    </p>
-                    <button class="btn btn-primary" style="padding: 14px 40px; font-size: 1rem;" onclick="connectWallet()">
-                        Connect Wallet
-                    </button>
-                </div>
-            </div>
-
-            <!-- Main App UI (hidden until connected) -->
-            <div id="mainUI" class="hidden">
-                <div class="status-bar">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="addr" id="walletAddr"></span>
-                        <span class="tag tag-safe" id="roleTag"></span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span class="network" id="networkName"></span>
-                        <button class="btn btn-danger hidden" id="switchNetworkBtn" onclick="switchToBaseSepolia()" style="padding:6px 14px; font-size:0.8rem;">Switch to Base Sepolia</button>
-                    </div>
-                </div>
-
-                <!-- Vault Selection -->
-                <div class="app-section" id="vaultSection">
-                    <h2>Your Vaults</h2>
-                    <p id="noVaultsMsg" style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6;">
-                        You don't have any vaults yet. Create one to start funding your AI agent.
-                    </p>
-                    <select class="vault-selector hidden" id="vaultSelect" onchange="loadVault()">
-                        <option value="">Select a vault...</option>
-                    </select>
-                    <button class="btn btn-primary" onclick="showCreateVault()">+ Create New Vault</button>
-                </div>
-
-                <!-- Create Vault Form -->
-                <div class="app-section hidden" id="createVaultSection">
-                    <h2>Create a Vault for Your Agent</h2>
-                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
-                        A vault is a personal treasury for your AI agent. You deposit any ERC20 token and the agent can only spend within the limits you set.
-                    </p>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Agent Wallet Address</label>
-                            <input type="text" id="newAgentAddr" placeholder="0x... (the wallet your agent uses to sign transactions)">
-                            <p style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 0.3rem;">
-                                This is the Ethereum address of your AI agent. Only this wallet can spend from the vault.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Token</label>
-                            <select id="newTokenPreset" onchange="onTokenPresetChange()">
-                                <option value="0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48">USDC</option>
-                                <option value="0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2">WETH</option>
-                                <option value="0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0">wstETH</option>
-                                <option value="custom">Custom Token...</option>
-                            </select>
-                        </div>
-                        <div class="form-group hidden" id="customTokenGroup">
-                            <label>Custom Token Address</label>
-                            <input type="text" id="newTokenAddr" placeholder="0x... ERC20 token contract address">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Daily Spending Limit (<span class="create-token-symbol">USDC</span>)</label>
-                            <input type="number" id="newDailyLimit" value="100" step="0.01">
-                            <p style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 0.3rem;">
-                                Max tokens the agent can spend per day.
-                            </p>
-                        </div>
-                        <div class="form-group">
-                            <label>Per-Transaction Limit (<span class="create-token-symbol">USDC</span>)</label>
-                            <input type="number" id="newPerTxLimit" value="50" step="0.01">
-                            <p style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 0.3rem;">
-                                Max tokens per single transaction. Prevents the agent from draining the budget in one go.
-                            </p>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="createVault()" style="margin-top: 0.5rem;">Deploy Vault on Base</button>
-                    <p style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 0.75rem;">
-                        This deploys a smart contract. You'll need to confirm the transaction in MetaMask. Gas cost: ~0.001 ETH.
-                    </p>
-                </div>
-
-                <!-- Vault Dashboard -->
-                <div id="vaultDashboard" class="hidden">
-                    <div class="status-bar" style="margin-bottom:1rem;">
-                        <div>
-                            <span style="color:var(--text-tertiary); font-size:0.8rem; margin-right:6px;">Vault:</span>
-                            <span class="addr" id="vaultAddress" style="font-size:0.85rem;"></span>
-                        </div>
-                        <div>
-                            <span style="color:var(--text-tertiary); font-size:0.8rem; margin-right:6px;">Agent:</span>
-                            <span class="addr" id="agentAddress" style="font-size:0.85rem;"></span>
-                        </div>
-                    </div>
-
-                    <div class="app-cards">
-                        <div class="app-card">
-                            <div class="label">Balance</div>
-                            <div class="value" id="principal">--</div>
-                            <div class="sub"><span class="vault-token-symbol">TOKEN</span> — current vault balance</div>
-                        </div>
-                        <div class="app-card">
-                            <div class="label">Available Budget</div>
-                            <div class="value" id="yield">--</div>
-                            <div class="sub"><span class="vault-token-symbol">TOKEN</span> — agent can spend now</div>
-                        </div>
-                        <div class="app-card">
-                            <div class="label">Agent Has Spent</div>
-                            <div class="value" id="spent">--</div>
-                            <div class="sub"><span class="vault-token-symbol">TOKEN</span> — total all time</div>
-                        </div>
-                        <div class="app-card">
-                            <div class="label">Left Today</div>
-                            <div class="value" id="dailyLeft">--</div>
-                            <div class="sub"><span class="vault-token-symbol">TOKEN</span> — resets every 24h</div>
-                        </div>
-                    </div>
-
-                    <!-- Owner Controls -->
-                    <div class="app-section" id="ownerControls">
-                        <h2>Deposit <span class="vault-token-symbol">TOKEN</span></h2>
-                        <p style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6; font-size: 0.9rem;">
-                            Deposit tokens into the vault. The agent can spend within the limits you set. You can withdraw anytime.
-                        </p>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Amount (<span class="vault-token-symbol">TOKEN</span>)</label>
-                                <input type="number" id="depositTokenAmount" placeholder="100" step="0.01">
-                            </div>
-                            <button class="btn btn-success" onclick="depositToVault()" style="height:44px;">Approve & Deposit</button>
-                        </div>
-                        <p style="color: var(--text-tertiary); font-size: 0.75rem; margin-bottom: 1.5rem;">
-                            Requires an ERC20 approve transaction followed by the deposit.
-                        </p>
-
-                        <h2 style="margin-top: 1.5rem;">Spending Rules</h2>
-                        <p style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6; font-size: 0.9rem;">
-                            Control how much your agent can spend. These limits are enforced by the smart contract — nobody can override them.
-                        </p>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Update Daily Limit</label>
-                                <input type="number" id="updateDailyLimit" step="0.01">
-                            </div>
-                            <div class="form-group">
-                                <label>Update Per-Tx Limit</label>
-                                <input type="number" id="updatePerTxLimit" step="0.01">
-                            </div>
-                            <button class="btn btn-primary" onclick="updateLimits()" style="height:44px;">Update</button>
-                        </div>
-                        <div style="margin-top: 1rem;">
-                            <button class="btn btn-danger" id="pauseBtn" onclick="togglePause()">Pause Agent</button>
-                            <span style="color: var(--text-tertiary); font-size: 0.75rem; margin-left: 0.75rem;">
-                                Instantly freeze all agent spending. Unpause anytime.
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Agent Activity -->
-                    <div class="app-section">
-                        <h2>Agent Activity Log</h2>
-                        <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
-                            Every transaction your agent makes is recorded on-chain. Nothing can be hidden or edited.
-                        </p>
-                        <div style="overflow-x: auto;">
-                            <table class="events-table">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th>To</th>
-                                        <th>Amount</th>
-                                        <th>Reason</th>
-                                        <th>Tx</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="eventsBody">
-                                    <tr><td colspan="5" style="color:var(--text-tertiary); text-align:center; padding:2rem;">No activity yet — expenses will appear here once your agent starts spending</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Connect Your Agent -->
-                    <div class="app-section agent-connect-section" id="agentConnectSection">
-                        <h2>Next Step: Connect Your Agent</h2>
-                        <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.7;">
-                            Your vault is live and funded. Now your AI agent needs to know how to use it.
-                            The agent will call the vault contract to check its budget and spend tokens.
-                            Here's how to set it up depending on what kind of agent you run:
-                        </p>
-
-                        <!-- Step-by-step -->
-                        <div style="background: rgba(0,212,255,0.04); border: 1px solid rgba(0,212,255,0.12); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
-                            <div style="font-weight: 600; margin-bottom: 0.75rem; color: var(--accent-cyan);">What your agent needs:</div>
-                            <div style="display: grid; gap: 0.5rem;">
-                                <div style="display: flex; gap: 0.75rem; align-items: start;">
-                                    <span style="color: var(--accent-cyan); font-weight: 700; min-width: 20px;">1.</span>
-                                    <div>
-                                        <strong>Vault address</strong> — <code id="copyVaultAddr" style="background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; cursor: pointer;" onclick="navigator.clipboard.writeText(this.textContent);toast('Copied!')">loading...</code>
-                                        <div style="color: var(--text-tertiary); font-size: 0.8rem; margin-top: 2px;">The smart contract your agent talks to</div>
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: 0.75rem; align-items: start;">
-                                    <span style="color: var(--accent-cyan); font-weight: 700; min-width: 20px;">2.</span>
-                                    <div>
-                                        <strong>Agent's private key</strong> — the key for the wallet you set as "Agent Address" when creating the vault
-                                        <div style="color: var(--text-tertiary); font-size: 0.8rem; margin-top: 2px;">Only this wallet can spend from the vault. Keep it safe.</div>
-                                    </div>
-                                </div>
-                                <div style="display: flex; gap: 0.75rem; align-items: start;">
-                                    <span style="color: var(--accent-cyan); font-weight: 700; min-width: 20px;">3.</span>
-                                    <div>
-                                        <strong>RPC URL</strong> — <code style="background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 4px; font-size: 0.85rem;">https://sepolia.base.org</code>
-                                        <div style="color: var(--text-tertiary); font-size: 0.8rem; margin-top: 2px;">Base Sepolia testnet. Switch to mainnet RPC for production.</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- What the agent can do -->
-                        <div style="background: rgba(123,97,255,0.04); border: 1px solid rgba(123,97,255,0.12); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
-                            <div style="font-weight: 600; margin-bottom: 0.75rem; color: var(--accent-purple);">What your agent can do:</div>
-                            <div style="display: grid; gap: 0.4rem; color: var(--text-secondary); font-size: 0.9rem;">
-                                <div><code style="color: var(--accent-cyan);">check_budget()</code> — see how much budget is available to spend</div>
-                                <div><code style="color: var(--accent-cyan);">spend(to, amount, reason)</code> — send tokens to any address with a reason</div>
-                                <div><code style="color: var(--accent-cyan);">spend_and_swap(token, amount)</code> — swap vault token to another via Uniswap, then pay</div>
-                                <div><code style="color: var(--accent-cyan);">get_history()</code> — see all past transactions</div>
-                            </div>
-                        </div>
-
-                        <!-- Easiest path -->
-                        <div style="background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(123,97,255,0.08)); border: 1px solid rgba(123,97,255,0.2); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
-                            <div style="font-weight: 700; margin-bottom: 0.5rem; font-size: 1.05rem;">Fastest way (1 line)</div>
-                            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem;">
-                                If your agent is Claude Code, Cursor, or any LLM that can read URLs — just send it this:
-                            </p>
-                            <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; position: relative; cursor: pointer;" onclick="navigator.clipboard.writeText('Read this skill file and use it: http://37.27.40.172:3000/skill.md — my vault is ' + (document.getElementById('copyVaultAddr')?.textContent || '0x...'));toast('Copied!')">
-                                <span style="color: var(--text-secondary);">Tell your agent:</span><br>
-                                <span style="color: var(--accent-cyan);">"Read this skill file and use it: http://37.27.40.172:3000/skill.md — my vault is <span class="vault-addr-placeholder" style="color: var(--accent-purple);">0xYourVault</span>"</span>
-                                <span style="position: absolute; right: 12px; top: 12px; color: var(--text-tertiary); font-size: 0.75rem;">click to copy</span>
-                            </div>
-                            <p style="color: var(--text-tertiary); font-size: 0.78rem; margin-top: 0.5rem;">
-                                The skill file teaches your agent everything — what the vault is, how to check budget, spend, swap, and the rules to follow. Works with any ERC20 token.
-                            </p>
-                        </div>
-
-                        <div style="font-weight: 600; margin-bottom: 0.75rem; font-size: 1.05rem;">Or choose a specific setup:</div>
-
-                        <div class="code-tabs" id="agentCodeTabs">
-                            <button class="code-tab active" onclick="switchAgentTab('agent-mcp')">MCP Server</button>
-                            <button class="code-tab" onclick="switchAgentTab('agent-python')">Python SDK</button>
-                            <button class="code-tab" onclick="switchAgentTab('agent-claude')">LLM Prompt</button>
-                            <button class="code-tab" onclick="switchAgentTab('agent-curl')">Terminal</button>
-                        </div>
-                        <div class="code-block-wrapper">
-                            <button class="code-copy-btn" onclick="copyAgentCode(this)">Copy</button>
-                            <div class="code-block active" id="agentCode-agent-mcp">
-<pre><span class="code-comment"># Add this to your Claude Code config (~/.claude/settings.json)
-# or any MCP-compatible agent:</span>
-
+                <div class="dev-panel active" id="panel-mcp">
+                    <pre><span class="comment">// claude_desktop_config.json</span>
 {
-  <span class="code-string">"mcpServers"</span>: {
-    <span class="code-string">"agentvault"</span>: {
-      <span class="code-string">"command"</span>: <span class="code-string">"node"</span>,
-      <span class="code-string">"args"</span>: [<span class="code-string">"/path/to/agentvault/mcp-server/index.js"</span>],
-      <span class="code-string">"env"</span>: {
-        <span class="code-string">"VAULT_ADDRESS"</span>: <span class="code-string">"<span class="vault-addr-placeholder">0xYourVault</span>"</span>,
-        <span class="code-string">"AGENT_PRIVATE_KEY"</span>: <span class="code-string">"0xYourAgentPrivateKey"</span>,
-        <span class="code-string">"RPC_URL"</span>: <span class="code-string">"https://sepolia.base.org"</span>
+  <span class="string">"mcpServers"</span>: {
+    <span class="string">"agentvault"</span>: {
+      <span class="string">"command"</span>: <span class="string">"npx"</span>,
+      <span class="string">"args"</span>: [<span class="string">"agentvault-mcp"</span>],
+      <span class="string">"env"</span>: {
+        <span class="string">"VAULT_ADDRESS"</span>: <span class="string">"0xYourVault..."</span>,
+        <span class="string">"AGENT_PRIVATE_KEY"</span>: <span class="string">"0x..."</span>,
+        <span class="string">"RPC_URL"</span>: <span class="string">"https://sepolia.base.org"</span>
       }
     }
   }
-}
+}</pre>
+                </div>
+                <div class="dev-panel" id="panel-python">
+                    <pre><span class="keyword">from</span> agentvault <span class="keyword">import</span> AgentVaultClient
 
-<span class="code-comment"># Your agent will automatically get these tools:
-#   check_budget  → see available budget and daily remaining
-#   spend         → send tokens to any address with a reason
-#   spend_and_swap → swap vault token to another via Uniswap
-#   get_history   → view past transactions
-#   get_vault_info → vault config and status
-#
-# The agent calls them like native functions.
-# No SDK code needed. No prompting needed.</span></pre>
-                            </div>
-                            <div class="code-block" id="agentCode-agent-python">
-<pre><span class="code-comment"># 1. Install the SDK</span>
-pip install agentvault
-
-<span class="code-comment"># 2. Set environment variables</span>
-export VAULT_ADDRESS="<span class="vault-addr-placeholder">0xYourVault</span>"
-export AGENT_PRIVATE_KEY="0xYourAgentPrivateKey"
-export RPC_URL="https://sepolia.base.org"
-
-<span class="code-comment"># 3. In your agent's code:</span>
-<span class="code-keyword">from</span> agentvault <span class="code-keyword">import</span> VaultClient
-
-client = VaultClient(
-    rpc_url=os.environ[<span class="code-string">"RPC_URL"</span>],
-    vault_address=os.environ[<span class="code-string">"VAULT_ADDRESS"</span>],
-    agent_private_key=os.environ[<span class="code-string">"AGENT_PRIVATE_KEY"</span>],
+client = AgentVaultClient(
+    vault_address=<span class="string">"0xYourVault..."</span>,
+    private_key=<span class="string">"0x..."</span>,
+    rpc_url=<span class="string">"https://sepolia.base.org"</span>
 )
 
-<span class="code-comment"># Check how much budget the agent has</span>
-budget = client.check_budget()
-print(f<span class="code-string">"Available: {budget['available_budget']}"</span>)
+<span class="comment"># Check available budget</span>
+budget = client.<span class="fn">remaining_daily_budget</span>(token=<span class="string">"USDC"</span>)
+<span class="keyword">print</span>(<span class="string">f"Daily budget remaining: {budget} USDC"</span>)
 
-<span class="code-comment"># Spend tokens to pay for something</span>
-tx = client.spend(to_address=<span class="code-string">"0xServiceAddress"</span>, amount_wei=<span class="code-number">1000000000000000</span>, reason=<span class="code-string">"API credits"</span>)
-
-<span class="code-comment"># Or swap vault token to USDC, then pay</span>
-tx = client.spend_and_swap(
-    token_out=<span class="code-string">"0xUSDC_ADDRESS"</span>,
-    fee=<span class="code-number">3000</span>,
-    amount_in_wei=<span class="code-number">1000000000000000</span>,
-    amount_out_minimum=<span class="code-number">0</span>,
-    to_address=client.address,
+<span class="comment"># Spend with a reason</span>
+tx = client.<span class="fn">spend</span>(
+    token=<span class="string">"USDC"</span>,
+    to=<span class="string">"0xVendor..."</span>,
+    amount=<span class="string">"10.00"</span>,
+    reason=<span class="string">"API subscription - March 2026"</span>
 )</pre>
+                </div>
+                <div class="dev-panel" id="panel-skill">
+                    <pre><span class="comment">// .well-known/ai-plugin.json</span>
+{
+  <span class="string">"schema_version"</span>: <span class="string">"v1"</span>,
+  <span class="string">"name"</span>: <span class="string">"AgentVault"</span>,
+  <span class="string">"description"</span>: <span class="string">"Treasury for AI agent spending"</span>,
+  <span class="string">"api"</span>: {
+    <span class="string">"type"</span>: <span class="string">"openapi"</span>,
+    <span class="string">"url"</span>: <span class="string">"https://agentvault.xyz/openapi.yaml"</span>
+  },
+  <span class="string">"auth"</span>: {
+    <span class="string">"type"</span>: <span class="string">"none"</span>
+  }
+}</pre>
+                </div>
+                <div class="dev-panel" id="panel-terminal">
+                    <pre><span class="comment"># Install the CLI</span>
+$ npm install -g agentvault-cli
+
+<span class="comment"># Check vault balance</span>
+$ agentvault <span class="fn">balance</span> --vault 0xYourVault --token USDC
+<span class="string">Balance: 5,000.00 USDC</span>
+
+<span class="comment"># Spend from the vault</span>
+$ agentvault <span class="fn">spend</span> \
+    --vault 0xYourVault \
+    --token USDC \
+    --to 0xVendor \
+    --amount 25.00 \
+    --reason <span class="string">"Cloud compute - batch job #4291"</span>
+
+<span class="comment"># View recent expenses</span>
+$ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ============ APP SECTION ============ -->
+    <div id="app-section">
+        <div class="app-container">
+            <!-- Vault Selector -->
+            <div id="vaultSelectorWrap" style="display:none;">
+                <div class="vault-selector">
+                    <label>Your Vaults</label>
+                    <select id="vaultSelect" onchange="selectVault(this.value)">
+                        <option value="">Select a vault...</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm" onclick="showCreateVault()">+ New Vault</button>
+                </div>
+            </div>
+
+            <!-- Create Vault -->
+            <div class="create-vault-card" id="createVaultCard">
+                <h2>Create a New Vault</h2>
+                <p class="card-desc">Deploy a personal smart contract treasury for your AI agent. You set the rules, the agent operates within them.</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Agent Address</label>
+                        <input type="text" id="inputAgent" placeholder="0x..." />
+                        <span class="hint">The wallet address your AI agent will use to spend</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Daily Limit (tokens)</label>
+                        <input type="text" id="inputDailyLimit" placeholder="1000" />
+                        <span class="hint">Max tokens the agent can spend per day (per token)</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Per-Tx Limit (tokens)</label>
+                        <input type="text" id="inputPerTxLimit" placeholder="100" />
+                        <span class="hint">Max tokens per single transaction</span>
+                    </div>
+                </div>
+                <button class="btn btn-gradient" id="createVaultBtn" onclick="createVault()">Create Vault</button>
+            </div>
+
+            <!-- Dashboard (hidden until vault selected) -->
+            <div id="vaultDashboard" style="display:none;">
+
+                <!-- Row 1: Balances + Staking -->
+                <div class="dashboard-grid">
+                    <!-- Token Balances -->
+                    <div class="dashboard-card">
+                        <h3>Token Balances</h3>
+                        <p class="card-desc">All ERC20 tokens held in this vault.</p>
+                        <div class="token-list" id="tokenList">
+                            <div class="token-empty">No tokens deposited yet</div>
+                        </div>
+                    </div>
+
+                    <!-- Staking -->
+                    <div class="dashboard-card">
+                        <h3>Lido ETH Staking</h3>
+                        <p class="card-desc">Stake ETH via Lido. The stETH balance grows as yield accrues from the Beacon Chain.</p>
+                        <div class="staking-stats">
+                            <div class="staking-stat">
+                                <div class="stat-label">Principal</div>
+                                <div class="stat-value cyan" id="statPrincipal">0.00</div>
                             </div>
-                            <div class="code-block" id="agentCode-agent-claude">
-<pre><span class="code-comment"># If you use Claude Code, OpenClaw, Cursor, or any LLM agent,
-# just paste this into your agent's system prompt or context:</span>
-
-You have access to an AgentVault on Base Sepolia.
-Your vault address: <span class="vault-addr-placeholder">0xYourVault</span>
-Your wallet private key is in the AGENT_PRIVATE_KEY env variable.
-RPC: https://sepolia.base.org
-
-To manage your budget, use the AgentVault Python SDK:
-  pip install agentvault
-
-  from agentvault import VaultClient
-  client = VaultClient(rpc_url, vault_address, agent_key)
-
-Available commands:
-  client.check_budget()              → how much you can spend
-  client.spend(to, amount, reason)   → send tokens to an address
-  client.spend_and_swap()            → swap vault token via Uniswap
-  client.get_history()               → your past transactions
-
-Rules:
-  - You can ONLY spend within daily and per-tx limits
-  - Limits are enforced by the smart contract
-  - If you exceed limits, the transaction will revert
-  - Check budget before every spend</pre>
+                            <div class="staking-stat">
+                                <div class="stat-label">Pending Yield</div>
+                                <div class="stat-value green" id="statPending">0.00</div>
                             </div>
-                            <div class="code-block" id="agentCode-agent-curl">
-<pre><span class="code-comment"># Set your vault address and agent key</span>
-<span class="code-var">VAULT</span>=<span class="code-string">"<span class="vault-addr-placeholder">0xYourVault</span>"</span>
-<span class="code-var">AGENT_KEY</span>=<span class="code-string">"0xYourAgentPrivateKey"</span>
-<span class="code-var">RPC</span>=<span class="code-string">"https://sepolia.base.org"</span>
-
-<span class="code-comment"># Check available budget</span>
-cast call $VAULT <span class="code-string">"availableBudget()(uint256)"</span> --rpc-url $RPC
-
-<span class="code-comment"># Check daily budget remaining</span>
-cast call $VAULT <span class="code-string">"remainingDailyBudget()(uint256)"</span> --rpc-url $RPC
-
-<span class="code-comment"># Agent spends tokens with a reason</span>
-cast send $VAULT \
-  <span class="code-string">"spend(address,uint256,string)"</span> \
-  0xRecipientAddress \
-  1000000000000000 \
-  <span class="code-string">"API credits"</span> \
-  --private-key $AGENT_KEY \
-  --rpc-url $RPC
-
-<span class="code-comment"># Check full vault stats</span>
-cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,uint256,uint256)"</span> --rpc-url $RPC</pre>
+                            <div class="staking-stat">
+                                <div class="stat-label">Spendable Yield</div>
+                                <div class="stat-value purple" id="statSpendable">0.00</div>
                             </div>
                         </div>
+                        <div class="stake-form-row">
+                            <div class="form-group">
+                                <label>ETH Amount</label>
+                                <input type="text" id="inputStakeAmount" placeholder="0.1" />
+                            </div>
+                            <button class="btn btn-gradient btn-sm" onclick="stakeETH()">Stake ETH</button>
+                            <button class="btn btn-outline btn-sm" id="harvestBtn" onclick="harvestYield()">Harvest Yield</button>
+                        </div>
+                        <div class="checkbox-row">
+                            <input type="checkbox" id="yieldOnlyCheck" />
+                            <label for="yieldOnlyCheck">Yield-only mode: agent can only spend harvested stETH yield, principal stays locked</label>
+                        </div>
+                    </div>
+                </div>
 
-                        <div style="background: rgba(0,200,83,0.04); border: 1px solid rgba(0,200,83,0.12); border-radius: var(--radius-md); padding: 1rem; margin-top: 1.25rem;">
-                            <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--green);">That's it!</div>
-                            <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-                                Once your agent has the vault address and its private key, it can autonomously check its budget and spend tokens.
-                                You'll see every transaction in the Activity Log above. The agent can never exceed the limits you set.
+                <!-- Row 2: Deposit + Rules -->
+                <div class="dashboard-grid">
+                    <!-- Deposit -->
+                    <div class="dashboard-card">
+                        <h3>Deposit Tokens</h3>
+                        <p class="card-desc">Add ERC20 tokens to this vault. The agent can spend them within limits.</p>
+                        <div class="token-presets">
+                            <button class="token-preset-btn" onclick="setTokenPreset('USDC', '0x036CbD53842c5426634e7929541eC2318f3dCF7e')">USDC</button>
+                            <button class="token-preset-btn" onclick="setTokenPreset('WETH', '0x4200000000000000000000000000000000000006')">WETH</button>
+                            <button class="token-preset-btn" onclick="setTokenPreset('DAI', '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb')">DAI</button>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0.75rem;">
+                            <label>Token Address</label>
+                            <input type="text" id="inputDepositToken" placeholder="0x..." />
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>Amount</label>
+                            <input type="text" id="inputDepositAmount" placeholder="1000" />
+                        </div>
+                        <div style="display:flex; gap:0.75rem;">
+                            <button class="btn btn-outline btn-sm" onclick="approveToken()">Approve</button>
+                            <button class="btn btn-gradient btn-sm" onclick="depositToken()">Deposit</button>
+                        </div>
+                    </div>
+
+                    <!-- Spending Rules -->
+                    <div class="dashboard-card">
+                        <h3>Spending Rules</h3>
+                        <p class="card-desc">Current limits and controls for this vault's agent.</p>
+                        <div class="rules-grid">
+                            <div class="rule-item">
+                                <div class="rule-label">Daily Limit</div>
+                                <div class="rule-value" id="ruleDailyLimit">--</div>
+                            </div>
+                            <div class="rule-item">
+                                <div class="rule-label">Per-Tx Limit</div>
+                                <div class="rule-value" id="rulePerTxLimit">--</div>
+                            </div>
+                            <div class="rule-item">
+                                <div class="rule-label">Agent</div>
+                                <div class="rule-value mono" id="ruleAgent" style="font-size:0.72rem;">--</div>
+                            </div>
+                            <div class="rule-item">
+                                <div class="rule-label">Status</div>
+                                <div id="ruleStatus">--</div>
                             </div>
                         </div>
+                        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                            <button class="btn btn-outline btn-sm" onclick="promptSetLimits()">Update Limits</button>
+                            <button class="btn btn-outline btn-sm" onclick="promptWhitelist()">Manage Whitelist</button>
+                            <button class="btn btn-danger btn-sm" id="pauseBtn" onclick="togglePause()">Pause Vault</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Activity Log (full width) -->
+                <div class="dashboard-card full-width" style="margin-bottom:1.5rem;">
+                    <h3>Agent Activity Log</h3>
+                    <p class="card-desc">All AgentSpent events for this vault. Every transaction includes a reason for full auditability.</p>
+                    <div class="activity-table-wrap">
+                        <table class="activity-table" id="activityTable">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Token</th>
+                                    <th>To</th>
+                                    <th>Amount</th>
+                                    <th>Reason</th>
+                                    <th>Tx</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activityBody">
+                                <tr><td colspan="6" class="activity-empty">No agent activity yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Row 4: Connect Your Agent -->
+                <div class="dashboard-card full-width agent-connect-card">
+                    <h3>Connect Your Agent</h3>
+                    <p class="card-desc">Give your AI agent access to this vault. Use any of the integration methods below.</p>
+                    <div class="agent-tabs">
+                        <button class="agent-tab active" onclick="switchAgentTab(this, 'agent-skill')">Skill File</button>
+                        <button class="agent-tab" onclick="switchAgentTab(this, 'agent-mcp')">MCP Server</button>
+                        <button class="agent-tab" onclick="switchAgentTab(this, 'agent-sdk')">Python SDK</button>
+                        <button class="agent-tab" onclick="switchAgentTab(this, 'agent-cli')">Terminal</button>
+                    </div>
+                    <div class="agent-panel active" id="agent-skill">
+                        <pre id="skillFileContent">Loading...</pre>
+                    </div>
+                    <div class="agent-panel" id="agent-mcp">
+                        <pre id="mcpContent">Loading...</pre>
+                    </div>
+                    <div class="agent-panel" id="agent-sdk">
+                        <pre id="sdkContent">Loading...</pre>
+                    </div>
+                    <div class="agent-panel" id="agent-cli">
+                        <pre id="cliContent">Loading...</pre>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- TOAST -->
-    <div id="toast"></div>
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-logo">AgentVault</div>
+            <div class="footer-links">
+                <a href="https://github.com/agentvault" target="_blank">GitHub</a>
+                <a href="#developers">Docs</a>
+                <a href="https://sepolia.basescan.org" target="_blank">Base Sepolia</a>
+            </div>
+        </div>
+    </footer>
 
-    <!-- ETHERS.JS -->
+    <!-- ============ SCRIPTS ============ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
-
     <script>
-    // ========================================================================
+    // ==========================================
     // CONFIG
-    // ========================================================================
+    // ==========================================
     const CONFIG = {
         factoryAddress: '',
         chainId: 84532,
+        chainIdHex: '0x14a34',
         rpcUrl: 'https://sepolia.base.org',
-        explorerUrl: 'https://sepolia.basescan.org'
+        explorerUrl: 'https://sepolia.basescan.org',
+        chainName: 'Base Sepolia',
     };
 
-    // ========================================================================
-    // ABIs
-    // ========================================================================
     const FACTORY_ABI = [
-        'function createVault(address agent, address token, uint256 dailyLimit, uint256 perTxLimit) returns (address)',
+        'function createVault(address agent, uint256 dailyLimit, uint256 perTxLimit) returns (address)',
         'function getVaultsByOwner(address owner) view returns (address[])',
         'function getVaultsByAgent(address agent) view returns (address[])',
         'function totalVaults() view returns (uint256)'
     ];
 
     const VAULT_ABI = [
-        'function deposit(uint256 amount)',
-        'function withdraw(uint256 amount)',
-        'function spend(address to, uint256 amount)',
-        'function spend(address to, uint256 amount, string reason)',
-        'function spendAndSwap(address tokenOut, uint24 fee, uint256 amountIn, uint256 amountOutMinimum, address to) returns (uint256)',
-        'function spendAndSwap(address tokenOut, uint24 fee, uint256 amountIn, uint256 amountOutMinimum, address to, string reason) returns (uint256)',
-        'function availableBudget() view returns (uint256)',
-        'function remainingDailyBudget() view returns (uint256)',
-        'function getStats() view returns (uint256, uint256, uint256, uint256, uint256)',
-        'function totalDeposited() view returns (uint256)',
-        'function totalSpent() view returns (uint256)',
+        'function deposit(address token, uint256 amount)',
+        'function withdraw(address token, uint256 amount)',
+        'function stakeETH(bool yieldOnly) payable',
+        'function harvestYield()',
+        'function withdrawPrincipal(uint256 amount)',
+        'function spend(address token, address to, uint256 amount)',
+        'function spend(address token, address to, uint256 amount, string reason)',
+        'function balanceOf(address token) view returns (uint256)',
+        'function getTokens() view returns (address[])',
+        'function remainingDailyBudget(address token) view returns (uint256)',
+        'function stakedPrincipal() view returns (uint256)',
+        'function harvestedYield() view returns (uint256)',
+        'function yieldSpent() view returns (uint256)',
+        'function pendingYield() view returns (uint256)',
+        'function spendableYield() view returns (uint256)',
+        'function lastHarvestTime() view returns (uint256)',
+        'function yieldOnly() view returns (bool)',
+        'function totalSpent(address token) view returns (uint256)',
+        'function expenseCount() view returns (uint256)',
         'function owner() view returns (address)',
         'function agent() view returns (address)',
-        'function token() view returns (address)',
+        'function stETH() view returns (address)',
         'function dailyLimit() view returns (uint256)',
         'function perTxLimit() view returns (uint256)',
         'function paused() view returns (bool)',
-        'function expenseCount() view returns (uint256)',
         'function setAgent(address)',
         'function setLimits(uint256, uint256)',
         'function setPaused(bool)',
         'function setWhitelist(address, bool)',
         'function setWhitelistEnabled(bool)',
-        'event AgentSpent(address indexed agent, address indexed to, uint256 amount, string reason)',
-        'event AgentSwapped(address indexed agent, address indexed tokenOut, uint256 amountIn, uint256 amountOut, address indexed to, string reason)',
-        'event Deposited(address indexed owner, uint256 amount)'
+        'function setYieldOnly(bool)',
+        'event AgentSpent(address indexed agent, address indexed token, address indexed to, uint256 amount, string reason)',
+        'event Deposited(address indexed owner, address indexed token, uint256 amount)',
+        'event StakedETH(address indexed owner, uint256 ethAmount, uint256 stETHReceived, bool yieldOnly)',
+        'event YieldHarvested(uint256 amount, uint256 totalSpendable)'
     ];
 
     const ERC20_ABI = [
@@ -1798,111 +1588,553 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
         'function decimals() view returns (uint8)'
     ];
 
-    // ========================================================================
+    // ==========================================
     // STATE
-    // ========================================================================
-    let provider, signer, account;
-    let currentVault = null;
-    let currentTokenSymbol = 'TOKEN';
-    let currentTokenDecimals = 18;
+    // ==========================================
+    let provider = null;
+    let signer = null;
+    let userAddress = null;
+    let factoryContract = null;
+    let currentVaultAddress = null;
+    let currentVaultContract = null;
 
-    // ========================================================================
-    // HELPERS
-    // ========================================================================
-    function fmt(wei, decimals) {
-        const d = decimals !== undefined ? decimals : currentTokenDecimals;
-        const val = Number(wei) / Math.pow(10, d);
-        return val < 0.0001 ? '0' : val.toFixed(4);
-    }
-    function short(addr) {
-        return addr.slice(0, 6) + '...' + addr.slice(-4);
-    }
-    function toast(msg, isError) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.style.borderColor = isError ? 'var(--red)' : 'var(--green)';
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3500);
-    }
+    // ==========================================
+    // WALLET CONNECTION
+    // ==========================================
+    async function handleConnect() {
+        if (userAddress) {
+            showApp();
+            return;
+        }
+        if (!window.ethereum) {
+            showToast('Please install MetaMask or another Web3 wallet.', 'error');
+            return;
+        }
+        try {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            const accounts = await provider.send('eth_requestAccounts', []);
+            signer = await provider.getSigner();
+            userAddress = await signer.getAddress();
 
-    // ========================================================================
-    // NAVIGATION
-    // ========================================================================
-    function showLanding() {
-        document.getElementById('landingSection').classList.remove('hidden');
-        document.getElementById('appSection').classList.remove('active');
-        document.getElementById('appSection').style.display = 'none';
-        document.getElementById('landingSection').style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+            // Switch to Base Sepolia if needed
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: CONFIG.chainIdHex }]
+                });
+            } catch (switchErr) {
+                if (switchErr.code === 4902) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: CONFIG.chainIdHex,
+                            chainName: CONFIG.chainName,
+                            rpcUrls: [CONFIG.rpcUrl],
+                            blockExplorerUrls: [CONFIG.explorerUrl],
+                            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
+                        }]
+                    });
+                }
+            }
 
-    function launchApp() {
-        document.getElementById('landingSection').style.display = 'none';
-        document.getElementById('appSection').style.display = 'block';
-        document.getElementById('appSection').classList.add('active');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        // Auto-connect if already available
-        if (window.ethereum?.selectedAddress && !account) {
-            connectWallet();
+            // Update button
+            const btn = document.getElementById('connectBtn');
+            btn.textContent = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+            btn.classList.add('connected');
+
+            // Init factory
+            if (CONFIG.factoryAddress) {
+                factoryContract = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, signer);
+            }
+
+            showApp();
+            await loadUserVaults();
+        } catch (err) {
+            console.error(err);
+            showToast('Failed to connect wallet: ' + (err.message || err), 'error');
         }
     }
 
-    function toggleMobile() {
-        document.getElementById('navLinks').classList.toggle('open');
-    }
-    function closeMobile() {
-        document.getElementById('navLinks').classList.remove('open');
+    function showApp() {
+        document.getElementById('landing-section').style.display = 'none';
+        const appSection = document.getElementById('app-section');
+        appSection.style.display = 'block';
+        appSection.classList.add('active');
     }
 
-    // ========================================================================
-    // CODE TAB SWITCHING
-    // ========================================================================
-    function switchDevTab(tab) {
-        document.querySelectorAll('#devCodeTabs .code-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('#devCodeTabs .code-tab').forEach(t => {
-            if (t.textContent.toLowerCase().includes(tab === 'python' ? 'python' : tab === 'claude' ? 'claude' : 'curl')) {
-                t.classList.add('active');
+    function scrollToTop() {
+        document.getElementById('landing-section').style.display = '';
+        document.getElementById('app-section').style.display = 'none';
+        document.getElementById('app-section').classList.remove('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ==========================================
+    // VAULT MANAGEMENT
+    // ==========================================
+    async function loadUserVaults() {
+        if (!factoryContract || !userAddress) return;
+        try {
+            const vaults = await factoryContract.getVaultsByOwner(userAddress);
+            const select = document.getElementById('vaultSelect');
+            select.innerHTML = '<option value="">Select a vault...</option>';
+
+            if (vaults.length > 0) {
+                for (const addr of vaults) {
+                    const opt = document.createElement('option');
+                    opt.value = addr;
+                    opt.textContent = addr.slice(0, 8) + '...' + addr.slice(-6);
+                    select.appendChild(opt);
+                }
+                document.getElementById('vaultSelectorWrap').style.display = 'block';
+                document.getElementById('createVaultCard').style.display = 'none';
+                // Auto-select first vault
+                select.value = vaults[0];
+                await selectVault(vaults[0]);
             }
-        });
-        document.querySelectorAll('#devCodeTabs + .code-block-wrapper .code-block').forEach(b => b.classList.remove('active'));
-        const el = document.getElementById('devCode-' + tab);
-        if (el) el.classList.add('active');
+        } catch (err) {
+            console.error('Failed to load vaults:', err);
+        }
     }
 
-    function switchAgentTab(tab) {
-        document.querySelectorAll('#agentCodeTabs .code-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('#agentCodeTabs .code-tab').forEach(t => {
-            if ((tab === 'agent-mcp' && t.textContent.includes('MCP')) ||
-                (tab === 'agent-python' && t.textContent.includes('Python')) ||
-                (tab === 'agent-claude' && t.textContent.includes('LLM')) ||
-                (tab === 'agent-curl' && t.textContent.includes('Terminal'))) {
-                t.classList.add('active');
+    function showCreateVault() {
+        document.getElementById('createVaultCard').style.display = 'block';
+        document.getElementById('createVaultCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function createVault() {
+        if (!factoryContract) {
+            showToast('Factory contract not configured.', 'error');
+            return;
+        }
+        const agent = document.getElementById('inputAgent').value.trim();
+        const dailyLimit = document.getElementById('inputDailyLimit').value.trim();
+        const perTxLimit = document.getElementById('inputPerTxLimit').value.trim();
+
+        if (!ethers.isAddress(agent)) {
+            showToast('Please enter a valid agent address.', 'error');
+            return;
+        }
+        if (!dailyLimit || !perTxLimit) {
+            showToast('Please enter both daily and per-tx limits.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('createVaultBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Creating...';
+
+        try {
+            const tx = await factoryContract.createVault(
+                agent,
+                ethers.parseUnits(dailyLimit, 18),
+                ethers.parseUnits(perTxLimit, 18)
+            );
+            showToast('Transaction submitted. Waiting for confirmation...', 'success');
+            const receipt = await tx.wait();
+
+            showToast('Vault created successfully!', 'success');
+            await loadUserVaults();
+        } catch (err) {
+            console.error(err);
+            showToast('Failed to create vault: ' + (err.reason || err.message || err), 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Create Vault';
+        }
+    }
+
+    async function selectVault(address) {
+        if (!address) {
+            document.getElementById('vaultDashboard').style.display = 'none';
+            return;
+        }
+        currentVaultAddress = address;
+        currentVaultContract = new ethers.Contract(address, VAULT_ABI, signer);
+        document.getElementById('vaultDashboard').style.display = 'block';
+        document.getElementById('createVaultCard').style.display = 'none';
+        updateAgentSnippets(address);
+        await refreshDashboard();
+    }
+
+    // ==========================================
+    // DASHBOARD REFRESH
+    // ==========================================
+    async function refreshDashboard() {
+        if (!currentVaultContract) return;
+        const vc = currentVaultContract;
+
+        try {
+            // Parallel reads
+            const [
+                tokens, dailyLimitVal, perTxLimitVal, agentAddr, isPaused,
+                principal, pending, spendable, isYieldOnly
+            ] = await Promise.all([
+                vc.getTokens(),
+                vc.dailyLimit(),
+                vc.perTxLimit(),
+                vc.agent(),
+                vc.paused(),
+                vc.stakedPrincipal().catch(() => 0n),
+                vc.pendingYield().catch(() => 0n),
+                vc.spendableYield().catch(() => 0n),
+                vc.yieldOnly().catch(() => false)
+            ]);
+
+            // Tokens
+            await renderTokenList(tokens);
+
+            // Rules
+            document.getElementById('ruleDailyLimit').textContent = ethers.formatUnits(dailyLimitVal, 18);
+            document.getElementById('rulePerTxLimit').textContent = ethers.formatUnits(perTxLimitVal, 18);
+            document.getElementById('ruleAgent').textContent = agentAddr;
+
+            const statusEl = document.getElementById('ruleStatus');
+            if (isPaused) {
+                statusEl.innerHTML = '<span class="status-badge paused"><span class="dot"></span>Paused</span>';
+                document.getElementById('pauseBtn').textContent = 'Unpause Vault';
+            } else {
+                statusEl.innerHTML = '<span class="status-badge active"><span class="dot"></span>Active</span>';
+                document.getElementById('pauseBtn').textContent = 'Pause Vault';
             }
-        });
-        document.querySelectorAll('#agentCodeTabs ~ .code-block-wrapper .code-block').forEach(b => b.classList.remove('active'));
-        const el = document.getElementById('agentCode-' + tab);
-        if (el) el.classList.add('active');
+
+            // Staking
+            document.getElementById('statPrincipal').textContent = formatETH(principal);
+            document.getElementById('statPending').textContent = formatETH(pending);
+            document.getElementById('statSpendable').textContent = formatETH(spendable);
+            document.getElementById('yieldOnlyCheck').checked = isYieldOnly;
+
+            // Activity
+            await loadActivity();
+        } catch (err) {
+            console.error('Dashboard refresh failed:', err);
+        }
     }
 
-    function copyDevCode(btn) {
-        const wrapper = btn.closest('.code-block-wrapper');
-        const activeBlock = wrapper.querySelector('.code-block.active pre');
-        if (activeBlock) {
-            navigator.clipboard.writeText(activeBlock.textContent).then(() => {
-                btn.textContent = 'Copied!';
-                btn.classList.add('copied');
-                setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    async function renderTokenList(tokens) {
+        const container = document.getElementById('tokenList');
+        if (tokens.length === 0) {
+            container.innerHTML = '<div class="token-empty">No tokens deposited yet</div>';
+            return;
+        }
+        let html = '';
+        for (const tokenAddr of tokens) {
+            try {
+                const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, provider);
+                const [symbol, decimals, balance] = await Promise.all([
+                    tokenContract.symbol().catch(() => 'UNKNOWN'),
+                    tokenContract.decimals().catch(() => 18),
+                    currentVaultContract.balanceOf(tokenAddr)
+                ]);
+                html += `<div class="token-row">
+                    <span class="token-symbol">${symbol}</span>
+                    <span class="token-balance">${parseFloat(ethers.formatUnits(balance, decimals)).toLocaleString(undefined, { maximumFractionDigits: 6 })}</span>
+                </div>`;
+            } catch (e) {
+                html += `<div class="token-row">
+                    <span class="token-symbol mono" style="font-size:0.75rem;">${tokenAddr.slice(0,8)}...</span>
+                    <span class="token-balance">--</span>
+                </div>`;
+            }
+        }
+        container.innerHTML = html;
+    }
+
+    async function loadActivity() {
+        if (!currentVaultContract) return;
+        const tbody = document.getElementById('activityBody');
+        try {
+            const filter = currentVaultContract.filters.AgentSpent();
+            const events = await currentVaultContract.queryFilter(filter, -10000);
+
+            if (events.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="activity-empty">No agent activity yet</td></tr>';
+                return;
+            }
+
+            let html = '';
+            const reversedEvents = [...events].reverse().slice(0, 50);
+            for (const ev of reversedEvents) {
+                const block = await ev.getBlock();
+                const time = new Date(block.timestamp * 1000);
+                const timeStr = time.toLocaleDateString() + ' ' + time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                let symbol = ev.args.token.slice(0, 8) + '...';
+                try {
+                    const tc = new ethers.Contract(ev.args.token, ERC20_ABI, provider);
+                    symbol = await tc.symbol();
+                } catch(_) {}
+
+                const toAddr = ev.args.to;
+                const shortTo = toAddr.slice(0, 6) + '...' + toAddr.slice(-4);
+                const amount = ethers.formatUnits(ev.args.amount, 18);
+                const reason = ev.args.reason || '--';
+                const txHash = ev.transactionHash;
+                const shortTx = txHash.slice(0, 8) + '...';
+
+                html += `<tr>
+                    <td>${timeStr}</td>
+                    <td><strong>${symbol}</strong></td>
+                    <td class="mono">${shortTo}</td>
+                    <td class="mono">${parseFloat(amount).toLocaleString(undefined, { maximumFractionDigits: 6 })}</td>
+                    <td class="reason-cell" title="${reason}">${reason}</td>
+                    <td><a href="${CONFIG.explorerUrl}/tx/${txHash}" target="_blank">${shortTx}</a></td>
+                </tr>`;
+            }
+            tbody.innerHTML = html;
+        } catch (err) {
+            console.error('Failed to load activity:', err);
+            tbody.innerHTML = '<tr><td colspan="6" class="activity-empty">Failed to load activity log</td></tr>';
+        }
+    }
+
+    // ==========================================
+    // DEPOSIT & APPROVE
+    // ==========================================
+    function setTokenPreset(symbol, address) {
+        document.getElementById('inputDepositToken').value = address;
+    }
+
+    async function approveToken() {
+        const tokenAddr = document.getElementById('inputDepositToken').value.trim();
+        const amount = document.getElementById('inputDepositAmount').value.trim();
+        if (!ethers.isAddress(tokenAddr) || !amount) {
+            showToast('Enter a valid token address and amount.', 'error');
+            return;
+        }
+        try {
+            const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
+            const decimals = await tokenContract.decimals();
+            const parsedAmount = ethers.parseUnits(amount, decimals);
+            const tx = await tokenContract.approve(currentVaultAddress, parsedAmount);
+            showToast('Approval submitted...', 'success');
+            await tx.wait();
+            showToast('Token approved!', 'success');
+        } catch (err) {
+            showToast('Approval failed: ' + (err.reason || err.message), 'error');
+        }
+    }
+
+    async function depositToken() {
+        const tokenAddr = document.getElementById('inputDepositToken').value.trim();
+        const amount = document.getElementById('inputDepositAmount').value.trim();
+        if (!ethers.isAddress(tokenAddr) || !amount) {
+            showToast('Enter a valid token address and amount.', 'error');
+            return;
+        }
+        try {
+            const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, provider);
+            const decimals = await tokenContract.decimals();
+            const parsedAmount = ethers.parseUnits(amount, decimals);
+            const tx = await currentVaultContract.deposit(tokenAddr, parsedAmount);
+            showToast('Deposit submitted...', 'success');
+            await tx.wait();
+            showToast('Deposit successful!', 'success');
+            await refreshDashboard();
+        } catch (err) {
+            showToast('Deposit failed: ' + (err.reason || err.message), 'error');
+        }
+    }
+
+    // ==========================================
+    // STAKING
+    // ==========================================
+    async function stakeETH() {
+        const amount = document.getElementById('inputStakeAmount').value.trim();
+        const yieldOnly = document.getElementById('yieldOnlyCheck').checked;
+        if (!amount || parseFloat(amount) <= 0) {
+            showToast('Enter a valid ETH amount.', 'error');
+            return;
+        }
+        try {
+            const tx = await currentVaultContract.stakeETH(yieldOnly, {
+                value: ethers.parseEther(amount)
             });
+            showToast('Staking transaction submitted...', 'success');
+            await tx.wait();
+            showToast('ETH staked via Lido!', 'success');
+            await refreshDashboard();
+        } catch (err) {
+            showToast('Staking failed: ' + (err.reason || err.message), 'error');
         }
     }
 
-    function copyAgentCode(btn) {
-        copyDevCode(btn);
+    async function harvestYield() {
+        try {
+            const tx = await currentVaultContract.harvestYield();
+            showToast('Harvesting yield...', 'success');
+            await tx.wait();
+            showToast('Yield harvested!', 'success');
+            await refreshDashboard();
+        } catch (err) {
+            showToast('Harvest failed: ' + (err.reason || err.message), 'error');
+        }
     }
 
-    // ========================================================================
-    // SCROLL ANIMATIONS
-    // ========================================================================
+    // ==========================================
+    // SPENDING RULES
+    // ==========================================
+    async function togglePause() {
+        try {
+            const isPaused = await currentVaultContract.paused();
+            const tx = await currentVaultContract.setPaused(!isPaused);
+            showToast(isPaused ? 'Unpausing vault...' : 'Pausing vault...', 'success');
+            await tx.wait();
+            showToast(isPaused ? 'Vault unpaused!' : 'Vault paused!', 'success');
+            await refreshDashboard();
+        } catch (err) {
+            showToast('Failed: ' + (err.reason || err.message), 'error');
+        }
+    }
+
+    async function promptSetLimits() {
+        const dailyLimit = prompt('New daily limit (tokens):');
+        const perTxLimit = prompt('New per-tx limit (tokens):');
+        if (!dailyLimit || !perTxLimit) return;
+        try {
+            const tx = await currentVaultContract.setLimits(
+                ethers.parseUnits(dailyLimit, 18),
+                ethers.parseUnits(perTxLimit, 18)
+            );
+            showToast('Updating limits...', 'success');
+            await tx.wait();
+            showToast('Limits updated!', 'success');
+            await refreshDashboard();
+        } catch (err) {
+            showToast('Failed: ' + (err.reason || err.message), 'error');
+        }
+    }
+
+    async function promptWhitelist() {
+        const addr = prompt('Address to whitelist/un-whitelist:');
+        if (!addr || !ethers.isAddress(addr)) return;
+        const status = confirm('Whitelist this address? OK=Yes, Cancel=Remove');
+        try {
+            const tx = await currentVaultContract.setWhitelist(addr, status);
+            showToast('Updating whitelist...', 'success');
+            await tx.wait();
+            showToast('Whitelist updated!', 'success');
+        } catch (err) {
+            showToast('Failed: ' + (err.reason || err.message), 'error');
+        }
+    }
+
+    // ==========================================
+    // AGENT SNIPPETS
+    // ==========================================
+    function updateAgentSnippets(vaultAddr) {
+        document.getElementById('skillFileContent').textContent =
+`# .well-known/ai-plugin.json
+{
+  "schema_version": "v1",
+  "name": "AgentVault",
+  "vault_address": "${vaultAddr}",
+  "rpc_url": "${CONFIG.rpcUrl}",
+  "chain_id": ${CONFIG.chainId},
+  "capabilities": ["spend", "balance", "expenses"]
+}`;
+
+        document.getElementById('mcpContent').textContent =
+`// claude_desktop_config.json
+{
+  "mcpServers": {
+    "agentvault": {
+      "command": "npx",
+      "args": ["agentvault-mcp"],
+      "env": {
+        "VAULT_ADDRESS": "${vaultAddr}",
+        "AGENT_PRIVATE_KEY": "0xYourAgentKey...",
+        "RPC_URL": "${CONFIG.rpcUrl}"
+      }
+    }
+  }
+}`;
+
+        document.getElementById('sdkContent').textContent =
+`from agentvault import AgentVaultClient
+
+client = AgentVaultClient(
+    vault_address="${vaultAddr}",
+    private_key="0xYourAgentKey...",
+    rpc_url="${CONFIG.rpcUrl}"
+)
+
+# Check budget
+budget = client.remaining_daily_budget(token="USDC")
+print(f"Budget remaining: {budget} USDC")
+
+# Spend with reason
+tx = client.spend(
+    token="USDC",
+    to="0xVendor...",
+    amount="10.00",
+    reason="API subscription"
+)`;
+
+        document.getElementById('cliContent').textContent =
+`# Set vault context
+$ export VAULT_ADDRESS=${vaultAddr}
+$ export RPC_URL=${CONFIG.rpcUrl}
+
+# Check balance
+$ agentvault balance --token USDC
+
+# Spend from vault
+$ agentvault spend \\
+    --token USDC \\
+    --to 0xVendor... \\
+    --amount 25.00 \\
+    --reason "Cloud compute - batch job"
+
+# View expense log
+$ agentvault expenses --last 10`;
+    }
+
+    // ==========================================
+    // UTILITY
+    // ==========================================
+    function formatETH(val) {
+        if (typeof val === 'bigint') {
+            return parseFloat(ethers.formatEther(val)).toFixed(6);
+        }
+        return '0.000000';
+    }
+
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icon = type === 'success' ? '&#10003;' : '&#10007;';
+        toast.innerHTML = `<span class="toast-icon">${icon}</span> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(-10px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    // ==========================================
+    // TAB SWITCHING
+    // ==========================================
+    function switchDevTab(btn, panelId) {
+        document.querySelectorAll('.dev-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.dev-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(panelId).classList.add('active');
+    }
+
+    function switchAgentTab(btn, panelId) {
+        btn.closest('.agent-connect-card').querySelectorAll('.agent-tab').forEach(t => t.classList.remove('active'));
+        btn.closest('.agent-connect-card').querySelectorAll('.agent-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(panelId).classList.add('active');
+    }
+
+    // ==========================================
+    // SCROLL ANIMATIONS & NAVBAR
+    // ==========================================
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -1913,7 +2145,6 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
 
     document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
 
-    // Navbar scroll effect
     window.addEventListener('scroll', () => {
         const navbar = document.getElementById('navbar');
         if (window.scrollY > 20) {
@@ -1923,385 +2154,31 @@ cast call $VAULT <span class="code-string">"getStats()(uint256,uint256,uint256,u
         }
     });
 
-    // ========================================================================
-    // LOAD PROTOCOL STATS
-    // ========================================================================
-    async function loadProtocolStats() {
+    // ==========================================
+    // INIT: Load stats on page load
+    // ==========================================
+    (async function init() {
         try {
-            const rpcProvider = new ethers.JsonRpcProvider(CONFIG.rpcUrl);
-            const factory = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, rpcProvider);
-            const totalVaults = await factory.totalVaults();
-            const count = Number(totalVaults);
-
-            document.getElementById('statTotalVaults').textContent = count.toString();
-            document.getElementById('footerStatVaults').textContent = count.toString();
-
-            // Mock ETH staked (would need to iterate vaults in production)
-            document.getElementById('statTotalETH').textContent = count > 0 ? (count * 0.5).toFixed(1) : '0';
-        } catch (e) {
-            console.error('Failed to load protocol stats:', e);
-            document.getElementById('statTotalVaults').textContent = '--';
-            document.getElementById('footerStatVaults').textContent = '--';
-            document.getElementById('statTotalETH').textContent = '--';
-        }
-    }
-
-    // ========================================================================
-    // WALLET CONNECTION
-    // ========================================================================
-    async function connectWallet() {
-        if (!window.ethereum) {
-            toast('Please install MetaMask to use AgentVault', true);
-            return;
-        }
-        try {
-            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-            account = accounts[0];
-
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-
-            document.getElementById('walletAddr').textContent = short(account);
-            document.getElementById('connectPrompt').classList.add('hidden');
-            document.getElementById('mainUI').classList.remove('hidden');
-
-            const network = await provider.getNetwork();
-            const networkLabel =
-                network.chainId === 84532n ? 'Base Sepolia' :
-                network.chainId === 8453n ? 'Base Mainnet' :
-                'Chain ' + network.chainId;
-            document.getElementById('networkName').textContent = networkLabel;
-
-            const switchBtn = document.getElementById('switchNetworkBtn');
-            if (network.chainId !== BigInt(CONFIG.chainId)) {
-                switchBtn.classList.remove('hidden');
-            } else {
-                switchBtn.classList.add('hidden');
+            if (CONFIG.factoryAddress) {
+                const rpcProvider = new ethers.JsonRpcProvider(CONFIG.rpcUrl);
+                const factory = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, rpcProvider);
+                const total = await factory.totalVaults();
+                document.getElementById('statVaults').textContent = total.toString();
             }
-
-            await loadUserVaults();
-        } catch (e) {
-            toast('Connection failed: ' + e.message, true);
-        }
-    }
-
-    // ========================================================================
-    // VAULT MANAGEMENT
-    // ========================================================================
-    async function loadUserVaults() {
-        if (!CONFIG.factoryAddress) {
-            toast('Factory not deployed yet', true);
-            return;
-        }
-        try {
-            const factory = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, provider);
-            const ownerVaults = await factory.getVaultsByOwner(account);
-            const agentVaults = await factory.getVaultsByAgent(account);
-
-            const select = document.getElementById('vaultSelect');
-            select.innerHTML = '<option value="">Select a vault...</option>';
-
-            for (const v of ownerVaults) {
-                const opt = document.createElement('option');
-                opt.value = v;
-                opt.textContent = '[Owner] ' + short(v);
-                select.appendChild(opt);
-            }
-            for (const v of agentVaults) {
-                if (!ownerVaults.includes(v)) {
-                    const opt = document.createElement('option');
-                    opt.value = v;
-                    opt.textContent = '[Agent] ' + short(v);
-                    select.appendChild(opt);
-                }
-            }
-
-            const hasVaults = ownerVaults.length > 0 || agentVaults.length > 0;
-            document.getElementById('noVaultsMsg').classList.toggle('hidden', hasVaults);
-            document.getElementById('vaultSelect').classList.toggle('hidden', !hasVaults);
-
-            if (ownerVaults.length > 0) {
-                document.getElementById('roleTag').textContent = 'Owner';
-                document.getElementById('roleTag').className = 'tag tag-safe';
-            } else if (agentVaults.length > 0) {
-                document.getElementById('roleTag').textContent = 'Agent';
-                document.getElementById('roleTag').className = 'tag tag-warn';
-            }
-
-            // Auto-select first vault if only one
-            if (ownerVaults.length + agentVaults.length === 1) {
-                select.selectedIndex = 1;
-                await loadVault();
-            }
-        } catch (e) {
-            console.error('Failed to load vaults:', e);
-        }
-    }
-
-    async function loadVault() {
-        const addr = document.getElementById('vaultSelect').value;
-        if (!addr) {
-            document.getElementById('vaultDashboard').classList.add('hidden');
-            return;
+        } catch (err) {
+            console.error('Failed to load stats:', err);
         }
 
-        currentVault = new ethers.Contract(addr, VAULT_ABI, signer);
-        document.getElementById('vaultDashboard').classList.remove('hidden');
-
-        // Update agent code snippets with real vault address
-        document.querySelectorAll('.vault-addr-placeholder').forEach(el => {
-            el.textContent = addr;
-        });
-        const copyEl = document.getElementById('copyVaultAddr');
-        if (copyEl) copyEl.textContent = addr;
-
-        try {
-            // Read token info
-            const tokenAddr = await currentVault.token();
-            const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, provider);
+        // Auto-connect if wallet already connected
+        if (window.ethereum) {
             try {
-                currentTokenSymbol = await tokenContract.symbol();
-                currentTokenDecimals = Number(await tokenContract.decimals());
-            } catch(e) {
-                currentTokenSymbol = 'TOKEN';
-                currentTokenDecimals = 18;
-            }
-
-            // Update all token symbol displays
-            document.querySelectorAll('.vault-token-symbol').forEach(el => {
-                el.textContent = currentTokenSymbol;
-            });
-
-            const [balance, totalDeposited, totalSpent, availableBudget, remainingDaily] = await currentVault.getStats();
-
-            document.getElementById('principal').textContent = fmt(balance);
-            document.getElementById('yield').textContent = fmt(availableBudget);
-            document.getElementById('spent').textContent = fmt(totalSpent);
-            document.getElementById('dailyLeft').textContent = fmt(remainingDaily);
-
-            const vaultOwner = await currentVault.owner();
-            const vaultAgent = await currentVault.agent();
-            document.getElementById('vaultAddress').textContent = addr;
-            document.getElementById('agentAddress').textContent = vaultAgent;
-
-            const isOwner = vaultOwner.toLowerCase() === account.toLowerCase();
-            document.getElementById('ownerControls').style.display = isOwner ? 'block' : 'none';
-
-            const isPaused = await currentVault.paused();
-            document.getElementById('pauseBtn').textContent = isPaused ? 'Unpause Agent' : 'Pause Agent';
-
-            await loadEvents(addr);
-        } catch (e) {
-            toast('Failed to load vault: ' + e.message, true);
-        }
-    }
-
-    async function loadEvents(vaultAddr) {
-        try {
-            const filter = currentVault.filters.AgentSpent();
-            const events = await currentVault.queryFilter(filter, -10000);
-            const tbody = document.getElementById('eventsBody');
-
-            if (events.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-tertiary); text-align:center; padding:2rem;">No activity yet — expenses will appear here once your agent starts spending</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = '';
-            for (const e of events.reverse()) {
-                const block = await e.getBlock();
-                const time = new Date(block.timestamp * 1000).toLocaleString();
-                const reason = e.args[3] || '';
-                const reasonDisplay = reason
-                    ? '<span style="color:var(--text-primary);">' + reason + '</span>'
-                    : '<span style="color:var(--text-tertiary); font-style:italic;">no reason given</span>';
-                const row = document.createElement('tr');
-                row.innerHTML =
-                    '<td>' + time + '</td>' +
-                    '<td style="font-family:JetBrains Mono,monospace;font-size:0.8rem;">' + short(e.args[1]) + '</td>' +
-                    '<td>' + fmt(e.args[2]) + ' ' + currentTokenSymbol + '</td>' +
-                    '<td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;">' + reasonDisplay + '</td>' +
-                    '<td><a href="' + CONFIG.explorerUrl + '/tx/' + e.transactionHash + '" target="_blank">View</a></td>';
-                tbody.appendChild(row);
-            }
-        } catch (e) {
-            console.error('Failed to load events:', e);
-        }
-    }
-
-    // ========================================================================
-    // ACTIONS
-    // ========================================================================
-    function showCreateVault() {
-        document.getElementById('createVaultSection').classList.toggle('hidden');
-    }
-
-    function onTokenPresetChange() {
-        const preset = document.getElementById('newTokenPreset').value;
-        const customGroup = document.getElementById('customTokenGroup');
-        if (preset === 'custom') {
-            customGroup.classList.remove('hidden');
-        } else {
-            customGroup.classList.add('hidden');
-        }
-        // Update symbol display in the form
-        const symbolMap = {
-            '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 'USDC',
-            '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2': 'WETH',
-            '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0': 'wstETH',
-            'custom': 'TOKEN'
-        };
-        const sym = symbolMap[preset] || 'TOKEN';
-        document.querySelectorAll('.create-token-symbol').forEach(el => el.textContent = sym);
-    }
-
-    function getSelectedTokenAddress() {
-        const preset = document.getElementById('newTokenPreset').value;
-        if (preset === 'custom') {
-            return document.getElementById('newTokenAddr').value;
-        }
-        return preset;
-    }
-
-    async function createVault() {
-        try {
-            const factory = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, signer);
-            const agentAddr = document.getElementById('newAgentAddr').value;
-            const tokenAddr = getSelectedTokenAddress();
-            if (!tokenAddr) {
-                toast('Please enter a token address', true);
-                return;
-            }
-
-            // Read token decimals for proper parsing
-            const rpcProvider = new ethers.JsonRpcProvider(CONFIG.rpcUrl);
-            const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, rpcProvider);
-            let decimals = 18;
-            try { decimals = Number(await tokenContract.decimals()); } catch(e) {}
-
-            const daily = ethers.parseUnits(document.getElementById('newDailyLimit').value, decimals);
-            const perTx = ethers.parseUnits(document.getElementById('newPerTxLimit').value, decimals);
-
-            toast('Creating vault...');
-            const tx = await factory.createVault(agentAddr, tokenAddr, daily, perTx);
-            await tx.wait();
-            toast('Vault created!');
-            document.getElementById('createVaultSection').classList.add('hidden');
-            await loadUserVaults();
-        } catch (e) {
-            toast('Failed: ' + e.message, true);
-        }
-    }
-
-    async function depositToVault() {
-        try {
-            const amountStr = document.getElementById('depositTokenAmount').value;
-            if (!amountStr) { toast('Enter an amount', true); return; }
-
-            const tokenAddr = await currentVault.token();
-            const tokenContract = new ethers.Contract(tokenAddr, ERC20_ABI, signer);
-            const amount = ethers.parseUnits(amountStr, currentTokenDecimals);
-
-            const allowance = await tokenContract.allowance(account, currentVault.target);
-            if (allowance < amount) {
-                toast('Approving ' + currentTokenSymbol + '...');
-                const approveTx = await tokenContract.approve(currentVault.target, ethers.MaxUint256);
-                await approveTx.wait();
-            }
-
-            toast('Depositing ' + currentTokenSymbol + '...');
-            const tx = await currentVault.deposit(amount);
-            await tx.wait();
-            toast('Deposited!');
-            await loadVault();
-        } catch (e) {
-            toast('Failed: ' + e.message, true);
-        }
-    }
-
-    async function updateLimits() {
-        try {
-            const daily = ethers.parseUnits(document.getElementById('updateDailyLimit').value, currentTokenDecimals);
-            const perTx = ethers.parseUnits(document.getElementById('updatePerTxLimit').value, currentTokenDecimals);
-            toast('Updating limits...');
-            const tx = await currentVault.setLimits(daily, perTx);
-            await tx.wait();
-            toast('Limits updated!');
-            await loadVault();
-        } catch (e) {
-            toast('Failed: ' + e.message, true);
-        }
-    }
-
-    async function togglePause() {
-        try {
-            const isPaused = await currentVault.paused();
-            toast(isPaused ? 'Unpausing...' : 'Pausing...');
-            const tx = await currentVault.setPaused(!isPaused);
-            await tx.wait();
-            toast(isPaused ? 'Agent unpaused!' : 'Agent paused!');
-            await loadVault();
-        } catch (e) {
-            toast('Failed: ' + e.message, true);
-        }
-    }
-
-    async function switchToBaseSepolia() {
-        try {
-            await window.ethereum.request({
-                method: 'wallet_switchEthereumChain',
-                params: [{ chainId: '0x' + CONFIG.chainId.toString(16) }],
-            });
-            await connectWallet();
-        } catch (switchError) {
-            if (switchError.code === 4902) {
-                try {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: '0x' + CONFIG.chainId.toString(16),
-                            chainName: 'Base Sepolia',
-                            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-                            rpcUrls: [CONFIG.rpcUrl],
-                            blockExplorerUrls: [CONFIG.explorerUrl],
-                        }],
-                    });
-                    await connectWallet();
-                } catch (addError) {
-                    toast('Failed to add network: ' + addError.message, true);
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                    await handleConnect();
                 }
-            } else {
-                toast('Failed to switch network: ' + switchError.message, true);
-            }
+            } catch(_) {}
         }
-    }
-
-    // ========================================================================
-    // INIT
-    // ========================================================================
-    loadProtocolStats();
-    if (window.ethereum?.selectedAddress) {
-        // If already connected, go straight to app
-    }
-
-    // Listen for account/chain changes
-    if (window.ethereum) {
-        window.ethereum.on('accountsChanged', (accounts) => {
-            if (accounts.length === 0) {
-                showLanding();
-            } else {
-                account = accounts[0];
-                if (document.getElementById('appSection').style.display === 'block') {
-                    connectWallet();
-                }
-            }
-        });
-        window.ethereum.on('chainChanged', () => {
-            if (account && document.getElementById('appSection').style.display === 'block') {
-                connectWallet();
-            }
-        });
-    }
+    })();
     </script>
 </body>
 </html>
