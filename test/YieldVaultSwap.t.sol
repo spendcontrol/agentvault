@@ -76,7 +76,7 @@ contract YieldVaultSwapTest is Test {
         uint256 expectedOut = amountIn * mockRate / 1e18;
 
         vm.expectEmit(true, true, true, true);
-        emit YieldVault.YieldSwapped(agent, address(usdc), amountIn, expectedOut, recipient);
+        emit YieldVault.YieldSwapped(agent, address(usdc), amountIn, expectedOut, recipient, "");
 
         vm.prank(agent);
         vault.spendAndSwap(address(usdc), poolFee, amountIn, 0, recipient);

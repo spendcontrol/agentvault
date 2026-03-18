@@ -47,13 +47,25 @@ contract YieldVault {
 
     // --- Events ---
     event Deposited(address indexed owner, uint256 ethAmount, uint256 wstETHReceived);
-    event YieldWithdrawn(address indexed agent, address indexed to, uint256 amount);
+    event YieldWithdrawn(address indexed agent, address indexed to, uint256 amount, string reason);
     event AgentUpdated(address indexed oldAgent, address indexed newAgent);
     event LimitsUpdated(uint256 dailyLimit, uint256 perTxLimit);
     event WhitelistUpdated(address indexed addr, bool status);
     event Paused(bool paused);
     event PrincipalWithdrawn(address indexed owner, uint256 amount);
-    event YieldSwapped(address indexed agent, address indexed tokenOut, uint256 amountIn, uint256 amountOut, address indexed to);
+    event YieldSwapped(address indexed agent, address indexed tokenOut, uint256 amountIn, uint256 amountOut, address indexed to, string reason);
+
+    // --- Expense Reports ---
+    struct ExpenseReport {
+        uint256 timestamp;
+        address to;
+        uint256 amount;
+        string reason;
+        bytes32 txHash; // not set in contract, but useful for off-chain tracking
+    }
+
+    ExpenseReport[] public expenses;
+    uint256 public expenseCount;
 
     // --- State ---
     address public owner;
@@ -168,32 +180,116 @@ contract YieldVault {
     }
 
     // --- Agent: Spend Yield ---
-    /// @notice Agent spends from available yield
+    /// @notice Agent spends from available yield with a reason
     /// @param to Recipient address
     /// @param amount wstETH amount to send
+    /// @param reason Why the agent is spending (stored on-chain)
+    function spend(address to, uint256 amount, string calldata reason) external onlyAgent whenNotPaused {
+        _validateSpend(to, amount);
+
+        dailySpent[block.timestamp / 1 days] += amount;
+        totalYieldSpent += amount;
+
+        expenses.push(ExpenseReport({
+            timestamp: block.timestamp,
+            to: to,
+            amount: amount,
+            reason: reason,
+            txHash: bytes32(0)
+        }));
+        expenseCount++;
+
+        IERC20(wstETH).transfer(to, amount);
+        emit YieldWithdrawn(msg.sender, to, amount, reason);
+    }
+
+    /// @notice Agent spends without a reason (backwards compatible)
     function spend(address to, uint256 amount) external onlyAgent whenNotPaused {
+        _validateSpend(to, amount);
+
+        dailySpent[block.timestamp / 1 days] += amount;
+        totalYieldSpent += amount;
+
+        expenses.push(ExpenseReport({
+            timestamp: block.timestamp,
+            to: to,
+            amount: amount,
+            reason: "",
+            txHash: bytes32(0)
+        }));
+        expenseCount++;
+
+        IERC20(wstETH).transfer(to, amount);
+        emit YieldWithdrawn(msg.sender, to, amount, "");
+    }
+
+    /// @notice Internal validation for spend
+    function _validateSpend(address to, uint256 amount) internal view {
         if (amount == 0) revert ZeroAmount();
         if (amount > availableYield()) revert ExceedsYield();
         if (amount > perTxLimit) revert ExceedsPerTxLimit();
-
         uint256 today = block.timestamp / 1 days;
         if (dailySpent[today] + amount > dailyLimit) revert ExceedsDailyLimit();
-
         if (whitelistEnabled && !whitelisted[to]) revert RecipientNotWhitelisted();
-
-        dailySpent[today] += amount;
-        totalYieldSpent += amount;
-
-        IERC20(wstETH).transfer(to, amount);
-        emit YieldWithdrawn(msg.sender, to, amount);
     }
 
-    /// @notice Agent spends yield by swapping wstETH to another token via Uniswap V3
-    /// @param tokenOut The output token address
-    /// @param fee The Uniswap V3 pool fee tier
-    /// @param amountIn Amount of wstETH to swap
-    /// @param amountOutMinimum Minimum output tokens (slippage protection)
-    /// @param to Recipient of the output tokens
+    /// @notice Get expense report by index
+    function getExpense(uint256 index) external view returns (
+        uint256 timestamp, address to, uint256 amount, string memory reason
+    ) {
+        ExpenseReport storage e = expenses[index];
+        return (e.timestamp, e.to, e.amount, e.reason);
+    }
+
+    /// @notice Get recent expenses (last N)
+    function getRecentExpenses(uint256 count) external view returns (
+        uint256[] memory timestamps,
+        address[] memory tos,
+        uint256[] memory amounts,
+        string[] memory reasons
+    ) {
+        uint256 total = expenses.length;
+        uint256 start = total > count ? total - count : 0;
+        uint256 len = total - start;
+
+        timestamps = new uint256[](len);
+        tos = new address[](len);
+        amounts = new uint256[](len);
+        reasons = new string[](len);
+
+        for (uint256 i = 0; i < len; i++) {
+            ExpenseReport storage e = expenses[start + i];
+            timestamps[i] = e.timestamp;
+            tos[i] = e.to;
+            amounts[i] = e.amount;
+            reasons[i] = e.reason;
+        }
+    }
+
+    /// @notice Agent spends yield by swapping via Uniswap V3, with reason
+    function spendAndSwap(
+        address tokenOut,
+        uint24 fee,
+        uint256 amountIn,
+        uint256 amountOutMinimum,
+        address to,
+        string calldata reason
+    ) external onlyAgent whenNotPaused returns (uint256 amountOut) {
+        amountOut = _executeSwap(tokenOut, fee, amountIn, amountOutMinimum, to);
+
+        expenses.push(ExpenseReport({
+            timestamp: block.timestamp,
+            to: to,
+            amount: amountIn,
+            reason: reason,
+            txHash: bytes32(0)
+        }));
+        expenseCount++;
+
+        emit YieldSwapped(msg.sender, tokenOut, amountIn, amountOut, to, reason);
+    }
+
+    /// @notice Agent spends yield by swapping via Uniswap V3 (no reason)
     function spendAndSwap(
         address tokenOut,
         uint24 fee,
@@ -201,16 +297,30 @@ contract YieldVault {
         uint256 amountOutMinimum,
         address to
     ) external onlyAgent whenNotPaused returns (uint256 amountOut) {
-        if (amountIn == 0) revert ZeroAmount();
-        if (amountIn > availableYield()) revert ExceedsYield();
-        if (amountIn > perTxLimit) revert ExceedsPerTxLimit();
+        amountOut = _executeSwap(tokenOut, fee, amountIn, amountOutMinimum, to);
 
-        uint256 today = block.timestamp / 1 days;
-        if (dailySpent[today] + amountIn > dailyLimit) revert ExceedsDailyLimit();
+        expenses.push(ExpenseReport({
+            timestamp: block.timestamp,
+            to: to,
+            amount: amountIn,
+            reason: "",
+            txHash: bytes32(0)
+        }));
+        expenseCount++;
 
-        if (whitelistEnabled && !whitelisted[to]) revert RecipientNotWhitelisted();
+        emit YieldSwapped(msg.sender, tokenOut, amountIn, amountOut, to, "");
+    }
 
-        dailySpent[today] += amountIn;
+    function _executeSwap(
+        address tokenOut,
+        uint24 fee,
+        uint256 amountIn,
+        uint256 amountOutMinimum,
+        address to
+    ) internal returns (uint256 amountOut) {
+        _validateSpend(to, amountIn);
+
+        dailySpent[block.timestamp / 1 days] += amountIn;
         totalYieldSpent += amountIn;
 
         IERC20(wstETH).approve(swapRouter, amountIn);
@@ -227,8 +337,6 @@ contract YieldVault {
         });
 
         amountOut = ISwapRouter(swapRouter).exactInputSingle(params);
-
-        emit YieldSwapped(msg.sender, tokenOut, amountIn, amountOut, to);
     }
 
     // --- Owner: Manage ---
