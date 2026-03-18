@@ -1922,52 +1922,72 @@ $ agentvault <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre
         if (!currentVaultContract) return;
         const tbody = document.getElementById('activityBody');
         try {
-            // Get current block and scan last 50000 blocks (or from 0 if chain is young)
+            const vaultAddr = await currentVaultContract.getAddress();
             const currentBlock = await provider.getBlockNumber();
-            const fromBlock = Math.max(0, currentBlock - 50000);
-            const filter = currentVaultContract.filters.AgentSpent();
-            const events = await currentVaultContract.queryFilter(filter, fromBlock, currentBlock);
+            const fromBlock = Math.max(0, currentBlock - 100000);
 
-            if (events.length === 0) {
+            // Use raw getLogs with the event topic — more reliable than queryFilter
+            const eventTopic = ethers.id("AgentSpent(address,address,address,uint256,string)");
+            const rawLogs = await provider.getLogs({
+                address: vaultAddr,
+                topics: [eventTopic],
+                fromBlock: fromBlock,
+                toBlock: currentBlock,
+            });
+
+            if (rawLogs.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="activity-empty">No agent activity yet</td></tr>';
                 return;
             }
 
+            // Parse logs manually
+            const iface = currentVaultContract.interface;
             let html = '';
-            const reversedEvents = [...events].reverse().slice(0, 50);
-            for (const ev of reversedEvents) {
-                const block = await ev.getBlock();
-                const time = new Date(block.timestamp * 1000);
-                const timeStr = time.toLocaleDateString() + ' ' + time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const reversed = [...rawLogs].reverse().slice(0, 50);
 
-                let symbol = ev.args[1].slice(0, 8) + '...';
-                let decimals = 18;
+            for (const log of reversed) {
                 try {
-                    const tc = new ethers.Contract(ev.args[1], ERC20_ABI, provider);
-                    symbol = await tc.symbol();
-                    decimals = Number(await tc.decimals());
-                } catch(_) {}
+                    const parsed = iface.parseLog({topics: log.topics, data: log.data});
+                    if (!parsed) continue;
 
-                const toAddr = ev.args[2];
-                const shortTo = toAddr.slice(0, 6) + '...' + toAddr.slice(-4);
-                const amount = ethers.formatUnits(ev.args[3], decimals);
-                const reason = ev.args[4] || '--';
-                const txHash = ev.transactionHash;
-                const shortTx = txHash.slice(0, 8) + '...';
+                    const block = await provider.getBlock(log.blockNumber);
+                    const time = new Date(block.timestamp * 1000);
+                    const timeStr = time.toLocaleDateString() + ' ' + time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
-                html += `<tr>
-                    <td>${timeStr}</td>
-                    <td><strong>${symbol}</strong></td>
-                    <td class="mono">${shortTo}</td>
-                    <td class="mono">${parseFloat(amount).toLocaleString(undefined, { maximumFractionDigits: 6 })}</td>
-                    <td class="reason-cell" title="${reason}">${reason}</td>
-                    <td><a href="${CONFIG.explorerUrl}/tx/${txHash}" target="_blank">${shortTx}</a></td>
-                </tr>`;
+                    // parsed.args: [agent, token, to, amount, reason]
+                    const tokenAddr = parsed.args[1];
+                    const toAddr = parsed.args[2];
+                    const amount = parsed.args[3];
+                    const reason = parsed.args[4] || '--';
+
+                    let symbol = tokenAddr.slice(0,6) + '...';
+                    let decimals = 18;
+                    try {
+                        const tc = new ethers.Contract(tokenAddr, ERC20_ABI, provider);
+                        symbol = await tc.symbol();
+                        decimals = Number(await tc.decimals());
+                    } catch(_) {}
+
+                    const shortTo = toAddr.slice(0,6) + '...' + toAddr.slice(-4);
+                    const fmtAmount = parseFloat(ethers.formatUnits(amount, decimals)).toLocaleString(undefined, {maximumFractionDigits: 8});
+                    const shortTx = log.transactionHash.slice(0,10) + '...';
+
+                    html += `<tr>
+                        <td>${timeStr}</td>
+                        <td><strong>${symbol}</strong></td>
+                        <td class="mono">${shortTo}</td>
+                        <td class="mono">${fmtAmount}</td>
+                        <td class="reason-cell" title="${reason}">${reason}</td>
+                        <td><a href="${CONFIG.explorerUrl}/tx/${log.transactionHash}" target="_blank">${shortTx}</a></td>
+                    </tr>`;
+                } catch(e) {
+                    console.warn('Failed to parse log:', e);
+                }
             }
-            tbody.innerHTML = html;
+            tbody.innerHTML = html || '<tr><td colspan="6" class="activity-empty">No agent activity yet</td></tr>';
         } catch (err) {
             console.error('Failed to load activity:', err);
-            tbody.innerHTML = '<tr><td colspan="6" class="activity-empty">Failed to load activity log</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="6" class="activity-empty">Failed to load activity log: ${err.message}</td></tr>`;
         }
     }
 
