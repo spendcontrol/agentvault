@@ -3,93 +3,797 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YieldVault — Agent Treasury Protocol</title>
+    <title>YieldVault — The Operating Budget Protocol for AI Agents</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0a0b0f;
+            --bg-secondary: #0f1016;
+            --bg-card: rgba(15, 16, 22, 0.6);
+            --bg-card-hover: rgba(20, 22, 30, 0.8);
+            --border: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(255, 255, 255, 0.12);
+            --text-primary: #f0f0f5;
+            --text-secondary: #8a8f98;
+            --text-tertiary: #5a5f6a;
+            --accent-cyan: #00d4ff;
+            --accent-purple: #7b61ff;
+            --accent-gradient: linear-gradient(135deg, #00d4ff 0%, #7b61ff 100%);
+            --accent-gradient-hover: linear-gradient(135deg, #00e5ff 0%, #8b71ff 100%);
+            --green: #00c853;
+            --red: #ff4757;
+            --orange: #ff9800;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-2xl: 24px;
+            --shadow-glow: 0 0 60px rgba(0, 212, 255, 0.08), 0 0 120px rgba(123, 97, 255, 0.04);
+        }
+
+        html { scroll-behavior: smooth; }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0a0a0f;
-            color: #e0e0e0;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
         }
-        .container { max-width: 960px; margin: 0 auto; padding: 2rem; }
 
-        header {
-            text-align: center;
-            padding: 3rem 0 2rem;
+        /* ============ ANIMATIONS ============ */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        header h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(135deg, #00d4ff, #7b61ff);
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        @keyframes orb1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(100px, -50px) scale(1.1); }
+            50% { transform: translate(-50px, 100px) scale(0.9); }
+            75% { transform: translate(-100px, -30px) scale(1.05); }
+        }
+        @keyframes orb2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(-80px, 60px) scale(0.95); }
+            50% { transform: translate(60px, -80px) scale(1.1); }
+            75% { transform: translate(40px, 40px) scale(1); }
+        }
+
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .fade-in-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .delay-1 { transition-delay: 0.1s; }
+        .delay-2 { transition-delay: 0.2s; }
+        .delay-3 { transition-delay: 0.3s; }
+        .delay-4 { transition-delay: 0.4s; }
+
+        /* ============ NAVBAR ============ */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 0 2rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10, 11, 15, 0.8);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        .navbar.scrolled {
+            background: rgba(10, 11, 15, 0.95);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        .navbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 72px;
+        }
+        .navbar-logo {
+            font-size: 1.3rem;
+            font-weight: 800;
+            background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
+            background-clip: text;
+            letter-spacing: -0.02em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        header p { color: #888; font-size: 1.1rem; }
+        .navbar-logo svg {
+            width: 28px;
+            height: 28px;
+        }
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        .navbar-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .navbar-links a:hover { color: var(--text-primary); }
+        .nav-launch-btn {
+            background: var(--accent-gradient);
+            color: white !important;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-weight: 600 !important;
+            font-size: 0.9rem !important;
+            transition: opacity 0.2s, transform 0.2s !important;
+            border: none;
+            cursor: pointer;
+        }
+        .nav-launch-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 4px;
+        }
 
-        .connect-btn {
-            background: linear-gradient(135deg, #00d4ff, #7b61ff);
+        /* ============ HERO ============ */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 2rem 80px;
+            overflow: hidden;
+        }
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+        }
+        .hero-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.3;
+        }
+        .hero-orb-1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.25) 0%, transparent 70%);
+            top: -200px;
+            right: -100px;
+            animation: orb1 20s ease-in-out infinite;
+        }
+        .hero-orb-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(123, 97, 255, 0.2) 0%, transparent 70%);
+            bottom: -150px;
+            left: -100px;
+            animation: orb2 25s ease-in-out infinite;
+        }
+        .hero-orb-3 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: orb1 15s ease-in-out infinite reverse;
+        }
+        .hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+        }
+        .hero-content {
+            position: relative;
+            text-align: center;
+            max-width: 800px;
+            animation: fadeInUp 1s ease;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(123, 97, 255, 0.1);
+            border: 1px solid rgba(123, 97, 255, 0.2);
+            padding: 8px 18px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--accent-purple);
+            font-weight: 500;
+            margin-bottom: 2rem;
+        }
+        .hero-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-purple);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+        }
+        .hero h1 .gradient-text {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: var(--text-secondary);
+            line-height: 1.7;
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+            font-weight: 400;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn-hero-primary {
+            background: var(--accent-gradient);
             color: white;
             border: none;
-            padding: 12px 32px;
-            border-radius: 12px;
-            font-size: 1rem;
-            cursor: pointer;
-            margin: 1.5rem auto;
-            display: block;
+            padding: 16px 40px;
+            border-radius: 14px;
+            font-size: 1.1rem;
             font-weight: 600;
-            transition: opacity 0.2s;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            position: relative;
+            overflow: hidden;
         }
-        .connect-btn:hover { opacity: 0.85; }
-        .connect-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-hero-primary::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+        .btn-hero-primary:hover::after { transform: translateX(100%); }
+        .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0, 212, 255, 0.2); }
+        .btn-hero-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border: 1px solid var(--border-hover);
+            padding: 16px 40px;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-hero-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            justify-content: center;
+            margin-top: 4rem;
+            padding-top: 3rem;
+            border-top: 1px solid var(--border);
+        }
+        .hero-stat {
+            text-align: center;
+        }
+        .hero-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-stat-label {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
 
-        .status-bar {
-            background: #111118;
-            border: 1px solid #222;
-            border-radius: 12px;
-            padding: 1rem 1.5rem;
-            margin: 1rem 0;
+        /* ============ SECTIONS COMMON ============ */
+        .section-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 2rem;
+        }
+        .section-label {
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            margin-bottom: 1rem;
+        }
+        .section-title {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+        }
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .section-header .section-subtitle {
+            margin: 0 auto;
+        }
+
+        /* ============ HOW IT WORKS ============ */
+        .how-it-works {
+            background: var(--bg-secondary);
+            position: relative;
+        }
+        .how-it-works::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-hover), transparent);
+        }
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            position: relative;
+        }
+        .steps-grid::before {
+            content: '';
+            position: absolute;
+            top: 48px;
+            left: 12.5%;
+            right: 12.5%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            opacity: 0.2;
+            z-index: 0;
+        }
+        .step-card {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem 1.5rem;
+        }
+        .step-icon {
+            width: 96px;
+            height: 96px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+            background: rgba(15, 16, 22, 0.8);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        .step-card:hover .step-icon {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.15);
+            transform: translateY(-4px);
+        }
+        .step-number {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .step-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ============ WHY YIELDVAULT ============ */
+        .why-section {
+            position: relative;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem 2rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .feature-card:hover::before { opacity: 1; }
+        .feature-card:hover {
+            border-color: var(--border-hover);
+            background: var(--bg-card-hover);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glow);
+        }
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .feature-icon-shield { background: rgba(0, 212, 255, 0.1); }
+        .feature-icon-lock { background: rgba(123, 97, 255, 0.1); }
+        .feature-icon-cycle { background: rgba(0, 200, 83, 0.1); }
+        .feature-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .feature-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ============ DEVELOPERS ============ */
+        .dev-section {
+            background: var(--bg-secondary);
+            position: relative;
+        }
+        .dev-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-hover), transparent);
+        }
+        .code-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 0;
+            background: rgba(15, 16, 22, 0.8);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            padding: 4px;
+            overflow-x: auto;
+        }
+        .code-tab {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+        .code-tab.active {
+            background: rgba(123, 97, 255, 0.15);
+            color: var(--accent-purple);
+        }
+        .code-tab:hover:not(.active) { color: var(--text-primary); }
+        .code-block-wrapper {
+            position: relative;
+            background: #0d0e14;
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            overflow: hidden;
+        }
+        .code-block {
+            display: none;
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+        .code-block.active { display: block; }
+        .code-block pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: #c9d1d9;
+            white-space: pre;
+            margin: 0;
+        }
+        .code-copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            z-index: 2;
+        }
+        .code-copy-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+        .code-copy-btn.copied {
+            background: rgba(0, 200, 83, 0.15);
+            color: var(--green);
+            border-color: rgba(0, 200, 83, 0.3);
+        }
+        /* Syntax highlighting */
+        .code-keyword { color: #ff7b72; }
+        .code-string { color: #a5d6ff; }
+        .code-comment { color: #5a6070; }
+        .code-function { color: #d2a8ff; }
+        .code-number { color: #79c0ff; }
+        .code-var { color: #ffa657; }
+
+        /* ============ STATS BAR ============ */
+        .stats-bar-section {
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: rgba(15, 16, 22, 0.5);
+        }
+        .stats-bar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 6rem;
+        }
+        .stat-item { text-align: center; }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        /* ============ FOOTER ============ */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .status-bar .addr { font-family: monospace; color: #00d4ff; }
-        .status-bar .network { color: #7b61ff; }
+        .footer-text {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+        }
+        .footer-links { display: flex; gap: 1.5rem; }
+        .footer-links a {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--text-secondary); }
 
-        .cards {
+        /* ============ APP SECTION ============ */
+        #appSection { display: none; }
+        #appSection.active { display: block; }
+        #landingSection { display: block; }
+        #landingSection.hidden { display: none; }
+
+        .app-container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 100px 2rem 4rem;
+        }
+        .app-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .app-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .app-header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .status-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .status-bar .addr {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+        }
+        .status-bar .network {
+            color: var(--accent-purple);
+            font-weight: 500;
+        }
+
+        .app-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
-            margin: 2rem 0;
-        }
-        .card {
-            background: #111118;
-            border: 1px solid #222;
-            border-radius: 16px;
-            padding: 1.5rem;
-            text-align: center;
-        }
-        .card .label { color: #888; font-size: 0.85rem; margin-bottom: 0.5rem; }
-        .card .value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #00d4ff, #7b61ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .card .sub { color: #666; font-size: 0.75rem; margin-top: 0.25rem; }
-
-        .section {
-            background: #111118;
-            border: 1px solid #222;
-            border-radius: 16px;
-            padding: 1.5rem;
             margin: 1.5rem 0;
         }
-        .section h2 {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            color: #ccc;
+        .app-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+        .app-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+        .app-card .label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .app-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .app-card .sub {
+            color: var(--text-tertiary);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .app-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 1.75rem;
+            margin: 1.5rem 0;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .app-section h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
         }
 
         .form-row {
@@ -101,37 +805,91 @@
         .form-group { flex: 1; }
         .form-group label {
             display: block;
-            color: #888;
+            color: var(--text-secondary);
             font-size: 0.8rem;
-            margin-bottom: 0.3rem;
+            font-weight: 500;
+            margin-bottom: 6px;
         }
         .form-group input, .form-group select {
             width: 100%;
-            background: #0a0a0f;
-            border: 1px solid #333;
-            color: #e0e0e0;
-            padding: 10px 14px;
-            border-radius: 8px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
             font-size: 0.95rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .form-group input:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
-            border-color: #7b61ff;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.1);
+        }
+        .form-group input::placeholder {
+            color: var(--text-tertiary);
         }
 
         .btn {
-            padding: 10px 24px;
-            border-radius: 8px;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
             border: none;
             font-weight: 600;
             cursor: pointer;
             font-size: 0.9rem;
-            transition: opacity 0.2s;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
         }
-        .btn:hover { opacity: 0.85; }
-        .btn-primary { background: #7b61ff; color: white; }
-        .btn-success { background: #00c853; color: white; }
-        .btn-danger { background: #ff3d3d; color: white; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+        }
+        .btn-primary:hover { box-shadow: 0 4px 20px rgba(123, 97, 255, 0.25); }
+        .btn-success {
+            background: rgba(0, 200, 83, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(0, 200, 83, 0.2);
+        }
+        .btn-success:hover { background: rgba(0, 200, 83, 0.25); }
+        .btn-danger {
+            background: rgba(255, 71, 87, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(255, 71, 87, 0.2);
+        }
+        .btn-danger:hover { background: rgba(255, 71, 87, 0.25); }
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--border-hover);
+        }
+
+        .vault-selector {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .vault-selector:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+        }
+        .vault-selector option {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
 
         .events-table {
             width: 100%;
@@ -139,547 +897,1155 @@
         }
         .events-table th {
             text-align: left;
-            color: #888;
-            font-size: 0.8rem;
-            padding: 8px;
-            border-bottom: 1px solid #222;
+            color: var(--text-tertiary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
         }
         .events-table td {
-            padding: 8px;
+            padding: 12px;
             font-size: 0.85rem;
-            border-bottom: 1px solid #1a1a1a;
-            font-family: monospace;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
         }
-
-        .hidden { display: none; }
+        .events-table tr:last-child td { border-bottom: none; }
+        .events-table a {
+            color: var(--accent-purple);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .events-table a:hover { text-decoration: underline; }
 
         .tag {
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
+            padding: 3px 10px;
+            border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 600;
         }
-        .tag-safe { background: #00c85322; color: #00c853; }
-        .tag-warn { background: #ff980022; color: #ff9800; }
-        .tag-danger { background: #ff3d3d22; color: #ff3d3d; }
+        .tag-safe { background: rgba(0, 200, 83, 0.1); color: var(--green); }
+        .tag-warn { background: rgba(255, 152, 0, 0.1); color: var(--orange); }
+        .tag-danger { background: rgba(255, 71, 87, 0.1); color: var(--red); }
 
+        .hidden { display: none !important; }
+
+        /* Toast */
         #toast {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
-            background: #222;
-            border: 1px solid #444;
-            padding: 12px 20px;
-            border-radius: 8px;
+            background: rgba(15, 16, 22, 0.95);
+            border: 1px solid var(--border);
+            padding: 14px 24px;
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             transform: translateY(100px);
             opacity: 0;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             z-index: 1000;
+            font-size: 0.9rem;
+            max-width: 400px;
         }
         #toast.show { transform: translateY(0); opacity: 1; }
 
-        .vault-selector {
-            background: #0a0a0f;
-            border: 1px solid #333;
-            color: #e0e0e0;
-            padding: 10px;
-            border-radius: 8px;
-            width: 100%;
+        /* Back to landing button */
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
             font-size: 0.9rem;
-            margin-bottom: 1rem;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        .back-btn:hover { color: var(--text-primary); }
+
+        /* Connect Agent Section */
+        .agent-connect-section {
+            margin-top: 1.5rem;
+        }
+        .agent-connect-section .code-tabs {
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
         }
 
-        @media (max-width: 600px) {
-            .cards { grid-template-columns: 1fr 1fr; }
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 900px) {
+            .steps-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .steps-grid::before { display: none; }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero-stats { gap: 2rem; }
+            .stats-bar-inner { gap: 3rem; }
+        }
+        @media (max-width: 640px) {
+            .navbar { padding: 0 1rem; }
+            .navbar-links { display: none; }
+            .navbar-links.open {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 72px;
+                left: 0;
+                right: 0;
+                background: rgba(10, 11, 15, 0.98);
+                border-bottom: 1px solid var(--border);
+                padding: 1.5rem;
+                gap: 1rem;
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                animation: slideDown 0.3s ease;
+            }
+            .mobile-menu-btn { display: block; }
+            .steps-grid { grid-template-columns: 1fr; }
+            .hero-stats {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .stats-bar-inner {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .hero-buttons { flex-direction: column; align-items: center; }
+            .btn-hero-primary, .btn-hero-secondary { width: 100%; max-width: 300px; }
+            .app-cards { grid-template-columns: 1fr 1fr; }
             .form-row { flex-direction: column; }
-            header h1 { font-size: 1.8rem; }
+            .status-bar { flex-direction: column; gap: 0.5rem; text-align: center; }
+            .footer-inner { flex-direction: column; gap: 1rem; }
+            .section-container { padding: 60px 1.25rem; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>YieldVault</h1>
-            <p>Operating budget protocol for AI agents</p>
-            <p style="color:#555; font-size:0.85rem; margin-top:0.5rem;">
-                Stake ETH → Agent lives off yield → Principal untouched
-            </p>
-        </header>
 
-        <!-- Connect -->
-        <div id="connectSection">
-            <button class="connect-btn" onclick="connectWallet()">Connect Wallet</button>
+    <!-- ========== NAVBAR ========== -->
+    <nav class="navbar" id="navbar">
+        <div class="navbar-inner">
+            <div class="navbar-logo" onclick="showLanding()">
+                <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="28" height="28" rx="8" fill="url(#logo-grad)"/>
+                    <path d="M8 18L14 8L20 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 14H17.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="logo-grad" x1="0" y1="0" x2="28" y2="28">
+                            <stop stop-color="#00d4ff"/>
+                            <stop offset="1" stop-color="#7b61ff"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                YieldVault
+            </div>
+            <div class="navbar-links" id="navLinks">
+                <a href="#how-it-works" onclick="closeMobile()">How it Works</a>
+                <a href="#why" onclick="closeMobile()">Why YieldVault</a>
+                <a href="#developers" onclick="closeMobile()">Developers</a>
+                <a class="nav-launch-btn" href="#" onclick="event.preventDefault(); closeMobile(); launchApp();">Launch App</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobile()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
         </div>
+    </nav>
 
-        <!-- Connected UI -->
-        <div id="mainUI" class="hidden">
-            <div class="status-bar">
-                <div>
-                    <span class="addr" id="walletAddr"></span>
-                    <span class="tag tag-safe" id="roleTag"></span>
+    <!-- ========== LANDING SECTION ========== -->
+    <div id="landingSection">
+
+        <!-- HERO -->
+        <section class="hero">
+            <div class="hero-bg">
+                <div class="hero-orb hero-orb-1"></div>
+                <div class="hero-orb hero-orb-2"></div>
+                <div class="hero-orb hero-orb-3"></div>
+                <div class="hero-grid"></div>
+            </div>
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    Live on Base Sepolia
                 </div>
-                <div>
-                    <span class="network" id="networkName"></span>
-                    <button class="btn btn-danger hidden" id="switchNetworkBtn" onclick="switchToBaseSepolia()" style="margin-left:0.5rem; padding:6px 14px; font-size:0.8rem;">Switch to Base Sepolia</button>
+                <h1>
+                    The Operating Budget<br>
+                    Protocol for <span class="gradient-text">AI Agents</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Stake ETH. Your agent lives off the yield. Principal stays untouched. Rules enforced by smart contracts.
+                </p>
+                <div class="hero-buttons">
+                    <button class="btn-hero-primary" onclick="launchApp()">Launch App</button>
+                    <button class="btn-hero-secondary" onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">How it Works</button>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value" id="statTotalVaults">--</div>
+                        <div class="hero-stat-label">Vaults Created</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value" id="statTotalETH">--</div>
+                        <div class="hero-stat-label">Total ETH Staked</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">100%</div>
+                        <div class="hero-stat-label">On-Chain</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW IT WORKS -->
+        <section class="how-it-works" id="how-it-works">
+            <div class="section-container">
+                <div class="section-header fade-in-up">
+                    <div class="section-label">How it Works</div>
+                    <h2 class="section-title">Four steps to autonomous agents</h2>
+                    <p class="section-subtitle">Deploy a self-sustaining budget for your AI agent in minutes. No ongoing management required.</p>
+                </div>
+                <div class="steps-grid">
+                    <div class="step-card fade-in-up delay-1">
+                        <div class="step-icon">
+                            <span class="step-number">1</span>
+                            <span style="font-size:2rem;">&#9954;</span>
+                        </div>
+                        <div class="step-title">Deposit ETH</div>
+                        <div class="step-desc">Deposit ETH into your vault. It auto-stakes via Lido and converts to wstETH, earning yield immediately.</div>
+                    </div>
+                    <div class="step-card fade-in-up delay-2">
+                        <div class="step-icon">
+                            <span class="step-number">2</span>
+                            <span style="font-size:2rem;">&#9881;</span>
+                        </div>
+                        <div class="step-title">Set Rules</div>
+                        <div class="step-desc">Configure daily spending limits, per-transaction caps, and address whitelists. All enforced on-chain.</div>
+                    </div>
+                    <div class="step-card fade-in-up delay-3">
+                        <div class="step-icon">
+                            <span class="step-number">3</span>
+                            <span style="font-size:2rem;">&#129302;</span>
+                        </div>
+                        <div class="step-title">Agent Operates</div>
+                        <div class="step-desc">Your AI agent spends from available yield, swaps tokens via Uniswap, and manages its own operations.</div>
+                    </div>
+                    <div class="step-card fade-in-up delay-4">
+                        <div class="step-icon">
+                            <span class="step-number">4</span>
+                            <span style="font-size:2rem;">&#128269;</span>
+                        </div>
+                        <div class="step-title">Full Audit</div>
+                        <div class="step-desc">Every transaction is recorded on-chain. Full transparency. Real-time monitoring via the dashboard.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WHY YIELDVAULT -->
+        <section class="why-section" id="why">
+            <div class="section-container">
+                <div class="section-header fade-in-up">
+                    <div class="section-label">Why YieldVault</div>
+                    <h2 class="section-title">Built for trust, not promises</h2>
+                    <p class="section-subtitle">Every constraint is a smart contract. Every action is on-chain. No one can break the rules.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card fade-in-up delay-1">
+                        <div class="feature-icon feature-icon-shield">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div class="feature-title">Principal Protection</div>
+                        <div class="feature-desc">Your ETH is locked as staked wstETH. The agent can never access principal, only the yield it generates. Withdraw your full deposit anytime.</div>
+                    </div>
+                    <div class="feature-card fade-in-up delay-2">
+                        <div class="feature-icon feature-icon-lock">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7b61ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        </div>
+                        <div class="feature-title">On-Chain Enforcement</div>
+                        <div class="feature-desc">Spending limits are not promises -- they are immutable smart contract logic. Daily caps and per-tx limits are enforced at the EVM level.</div>
+                    </div>
+                    <div class="feature-card fade-in-up delay-3">
+                        <div class="feature-icon feature-icon-cycle">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00c853" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                        </div>
+                        <div class="feature-title">Self-Sustaining</div>
+                        <div class="feature-desc">The agent earns its own operating budget from Lido staking yield. No need to top up. Set it once and it runs indefinitely.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DEVELOPERS -->
+        <section class="dev-section" id="developers">
+            <div class="section-container">
+                <div class="section-header fade-in-up">
+                    <div class="section-label">For Developers</div>
+                    <h2 class="section-title">Connect your agent in minutes</h2>
+                    <p class="section-subtitle">Use our Python SDK, integrate with Claude Code, or call contracts directly. Three lines of code to get started.</p>
+                </div>
+                <div class="fade-in-up delay-1" style="max-width: 800px; margin: 0 auto;">
+                    <div class="code-tabs" id="devCodeTabs">
+                        <button class="code-tab active" onclick="switchDevTab('python')">Python SDK</button>
+                        <button class="code-tab" onclick="switchDevTab('claude')">Claude Code / LLM</button>
+                        <button class="code-tab" onclick="switchDevTab('curl')">curl / cast</button>
+                    </div>
+                    <div class="code-block-wrapper">
+                        <button class="code-copy-btn" onclick="copyDevCode(this)">Copy</button>
+                        <div class="code-block active" id="devCode-python">
+<pre><span class="code-keyword">from</span> yieldvault <span class="code-keyword">import</span> YieldVaultAgent
+
+<span class="code-comment"># Initialize agent with your vault</span>
+agent = YieldVaultAgent(
+    vault_address=<span class="code-string">"0xYourVault..."</span>,
+    private_key=<span class="code-string">"0xAgentKey..."</span>,
+    rpc_url=<span class="code-string">"https://sepolia.base.org"</span>
+)
+
+<span class="code-comment"># Check available budget</span>
+budget = agent.available_yield()
+daily_left = agent.remaining_daily_budget()
+<span class="code-function">print</span>(<span class="code-string">f"Available: <span class="code-var">{budget}</span> wstETH, Daily left: <span class="code-var">{daily_left}</span>"</span>)
+
+<span class="code-comment"># Spend yield to pay for a service</span>
+tx = agent.spend(
+    to=<span class="code-string">"0xServiceProvider..."</span>,
+    amount=<span class="code-string">"0.001"</span>  <span class="code-comment"># wstETH</span>
+)
+
+<span class="code-comment"># Swap yield for USDC via Uniswap</span>
+tx = agent.swap(
+    token_out=<span class="code-string">"0xUSDC..."</span>,
+    amount_in=<span class="code-string">"0.005"</span>,
+    min_out=<span class="code-string">"10.0"</span>,
+    to=<span class="code-string">"0xRecipient..."</span>
+)</pre>
+                        </div>
+                        <div class="code-block" id="devCode-claude">
+<pre><span class="code-comment">// Claude Code / LLM Tool Integration</span>
+<span class="code-comment">// Give your LLM these tools to manage its own budget:</span>
+
+<span class="code-keyword">const</span> tools = [
+  {
+    name: <span class="code-string">"check_budget"</span>,
+    description: <span class="code-string">"Check available yield balance and daily budget"</span>,
+    <span class="code-keyword">async</span> execute() {
+      <span class="code-keyword">const</span> vault = <span class="code-keyword">new</span> ethers.Contract(VAULT, VAULT_ABI, signer);
+      <span class="code-keyword">const</span> [principal, , yield_, spent, daily] =
+        <span class="code-keyword">await</span> vault.getStats();
+      <span class="code-keyword">return</span> {
+        available_yield: ethers.formatEther(yield_),
+        daily_remaining: ethers.formatEther(daily),
+        total_spent: ethers.formatEther(spent)
+      };
+    }
+  },
+  {
+    name: <span class="code-string">"spend_yield"</span>,
+    description: <span class="code-string">"Send wstETH yield to an address"</span>,
+    <span class="code-keyword">async</span> execute({ to, amount }) {
+      <span class="code-keyword">const</span> vault = <span class="code-keyword">new</span> ethers.Contract(VAULT, VAULT_ABI, signer);
+      <span class="code-keyword">const</span> tx = <span class="code-keyword">await</span> vault.spend(
+        to, ethers.parseEther(amount)
+      );
+      <span class="code-keyword">return await</span> tx.wait();
+    }
+  }
+];</pre>
+                        </div>
+                        <div class="code-block" id="devCode-curl">
+<pre><span class="code-comment"># Check available yield (read-only, no auth needed)</span>
+cast call <span class="code-var">$VAULT</span> \
+  <span class="code-string">"availableYield()(uint256)"</span> \
+  --rpc-url https://sepolia.base.org
+
+<span class="code-comment"># Check remaining daily budget</span>
+cast call <span class="code-var">$VAULT</span> \
+  <span class="code-string">"remainingDailyBudget()(uint256)"</span> \
+  --rpc-url https://sepolia.base.org
+
+<span class="code-comment"># Spend yield (agent wallet required)</span>
+cast send <span class="code-var">$VAULT</span> \
+  <span class="code-string">"spend(address,uint256)"</span> \
+  <span class="code-var">$RECIPIENT</span> <span class="code-number">1000000000000000</span> \
+  --private-key <span class="code-var">$AGENT_KEY</span> \
+  --rpc-url https://sepolia.base.org
+
+<span class="code-comment"># Swap yield for USDC via Uniswap</span>
+cast send <span class="code-var">$VAULT</span> \
+  <span class="code-string">"spendAndSwap(address,uint24,uint256,uint256,address)"</span> \
+  <span class="code-var">$USDC</span> <span class="code-number">3000</span> <span class="code-number">5000000000000000</span> <span class="code-number">0</span> <span class="code-var">$RECIPIENT</span> \
+  --private-key <span class="code-var">$AGENT_KEY</span> \
+  --rpc-url https://sepolia.base.org</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STATS BAR -->
+        <section class="stats-bar-section">
+            <div class="stats-bar-inner">
+                <div class="stat-item fade-in-up">
+                    <div class="stat-value" id="footerStatVaults">--</div>
+                    <div class="stat-label">Total Vaults Created</div>
+                </div>
+                <div class="stat-item fade-in-up delay-1">
+                    <div class="stat-value">24/7</div>
+                    <div class="stat-label">Autonomous Operation</div>
+                </div>
+                <div class="stat-item fade-in-up delay-2">
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Trust Assumptions</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-inner">
+                <div class="footer-text">YieldVault Protocol -- Base Sepolia Testnet</div>
+                <div class="footer-links">
+                    <a href="https://sepolia.basescan.org/address/0x6b764f0A9Cf90F467B3791Bb40935f6bDcC0fDf0" target="_blank">Factory Contract</a>
+                    <a href="#developers">Docs</a>
+                    <a href="https://github.com" target="_blank">GitHub</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ========== APP SECTION ========== -->
+    <div id="appSection">
+        <div class="app-container">
+            <button class="back-btn" onclick="showLanding()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Back to Home
+            </button>
+
+            <!-- Connect Prompt -->
+            <div id="connectPrompt">
+                <div class="app-section" style="text-align:center; padding: 4rem 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">
+                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="64" height="64" rx="20" fill="url(#wallet-grad)" fill-opacity="0.1"/>
+                            <path d="M20 24h24a4 4 0 014 4v12a4 4 0 01-4 4H20a4 4 0 01-4-4V28a4 4 0 014-4z" stroke="url(#wallet-grad)" stroke-width="2.5"/>
+                            <path d="M16 24v-2a4 4 0 014-4h18l-6 6" stroke="url(#wallet-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="40" cy="34" r="2.5" fill="url(#wallet-grad)"/>
+                            <defs>
+                                <linearGradient id="wallet-grad" x1="0" y1="0" x2="64" y2="64">
+                                    <stop stop-color="#00d4ff"/>
+                                    <stop offset="1" stop-color="#7b61ff"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem;">Connect Your Wallet</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+                        Connect with MetaMask to create vaults, deposit ETH, and manage your AI agent's operating budget.
+                    </p>
+                    <button class="btn btn-primary" style="padding: 14px 40px; font-size: 1rem;" onclick="connectWallet()">
+                        Connect Wallet
+                    </button>
                 </div>
             </div>
 
-            <!-- Create or Select Vault -->
-            <div class="section" id="vaultSection">
-                <h2>Your Vaults</h2>
-                <select class="vault-selector" id="vaultSelect" onchange="loadVault()">
-                    <option value="">Select a vault...</option>
-                </select>
-                <button class="btn btn-primary" onclick="showCreateVault()">+ Create New Vault</button>
-            </div>
-
-            <!-- Create Vault Form -->
-            <div class="section hidden" id="createVaultSection">
-                <h2>Create New Vault</h2>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Agent Address</label>
-                        <input type="text" id="newAgentAddr" placeholder="0x...">
+            <!-- Main App UI (hidden until connected) -->
+            <div id="mainUI" class="hidden">
+                <div class="status-bar">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="addr" id="walletAddr"></span>
+                        <span class="tag tag-safe" id="roleTag"></span>
                     </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Daily Limit (wstETH)</label>
-                        <input type="number" id="newDailyLimit" value="0.1" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label>Per-Tx Limit (wstETH)</label>
-                        <input type="number" id="newPerTxLimit" value="0.05" step="0.01">
-                    </div>
-                </div>
-                <button class="btn btn-primary" onclick="createVault()">Deploy Vault</button>
-            </div>
-
-            <!-- Vault Dashboard -->
-            <div id="vaultDashboard" class="hidden">
-                <div class="status-bar" style="margin-bottom:1rem;">
-                    <div>
-                        <span style="color:#888; font-size:0.8rem;">Vault:</span>
-                        <span class="addr" id="vaultAddress" style="font-size:0.85rem;"></span>
-                    </div>
-                    <div>
-                        <span style="color:#888; font-size:0.8rem;">Agent:</span>
-                        <span class="addr" id="agentAddress" style="font-size:0.85rem;"></span>
-                    </div>
-                </div>
-                <div class="cards">
-                    <div class="card">
-                        <div class="label">Principal (Locked)</div>
-                        <div class="value" id="principal">—</div>
-                        <div class="sub">wstETH</div>
-                    </div>
-                    <div class="card">
-                        <div class="label">Available Yield</div>
-                        <div class="value" id="yield">—</div>
-                        <div class="sub">wstETH</div>
-                    </div>
-                    <div class="card">
-                        <div class="label">Total Spent</div>
-                        <div class="value" id="spent">—</div>
-                        <div class="sub">wstETH</div>
-                    </div>
-                    <div class="card">
-                        <div class="label">Daily Budget Left</div>
-                        <div class="value" id="dailyLeft">—</div>
-                        <div class="sub">wstETH</div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="network" id="networkName"></span>
+                        <button class="btn btn-danger hidden" id="switchNetworkBtn" onclick="switchToBaseSepolia()" style="padding:6px 14px; font-size:0.8rem;">Switch to Base Sepolia</button>
                     </div>
                 </div>
 
-                <!-- Owner Controls -->
-                <div class="section" id="ownerControls">
-                    <h2>Owner Controls</h2>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Deposit ETH (auto-wraps to wstETH)</label>
-                            <input type="number" id="depositETHAmount" placeholder="0.0" step="0.01">
-                        </div>
-                        <button class="btn btn-success" onclick="depositETHToVault()" style="height:40px;">Deposit ETH</button>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Deposit wstETH</label>
-                            <input type="number" id="depositAmount" placeholder="0.0" step="0.01">
-                        </div>
-                        <button class="btn btn-success" onclick="depositToVault()" style="height:40px;">Deposit wstETH</button>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Update Daily Limit</label>
-                            <input type="number" id="updateDailyLimit" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label>Update Per-Tx Limit</label>
-                            <input type="number" id="updatePerTxLimit" step="0.01">
-                        </div>
-                        <button class="btn btn-primary" onclick="updateLimits()" style="height:40px;">Update</button>
-                    </div>
-                    <div class="form-row">
-                        <button class="btn btn-danger" id="pauseBtn" onclick="togglePause()">Pause Agent</button>
-                    </div>
+                <!-- Vault Selection -->
+                <div class="app-section" id="vaultSection">
+                    <h2>Your Vaults</h2>
+                    <select class="vault-selector" id="vaultSelect" onchange="loadVault()">
+                        <option value="">Select a vault...</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="showCreateVault()">+ Create New Vault</button>
                 </div>
 
-                <!-- Agent Activity -->
-                <div class="section">
-                    <h2>Agent Activity</h2>
-                    <table class="events-table">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>To</th>
-                                <th>Amount</th>
-                                <th>Tx</th>
-                            </tr>
-                        </thead>
-                        <tbody id="eventsBody">
-                            <tr><td colspan="4" style="color:#666; text-align:center;">No activity yet</td></tr>
-                        </tbody>
-                    </table>
+                <!-- Create Vault Form -->
+                <div class="app-section hidden" id="createVaultSection">
+                    <h2>Create New Vault</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Agent Address</label>
+                            <input type="text" id="newAgentAddr" placeholder="0x...">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Daily Limit (wstETH)</label>
+                            <input type="number" id="newDailyLimit" value="0.1" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Per-Tx Limit (wstETH)</label>
+                            <input type="number" id="newPerTxLimit" value="0.05" step="0.01">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="createVault()">Deploy Vault</button>
+                </div>
+
+                <!-- Vault Dashboard -->
+                <div id="vaultDashboard" class="hidden">
+                    <div class="status-bar" style="margin-bottom:1rem;">
+                        <div>
+                            <span style="color:var(--text-tertiary); font-size:0.8rem; margin-right:6px;">Vault:</span>
+                            <span class="addr" id="vaultAddress" style="font-size:0.85rem;"></span>
+                        </div>
+                        <div>
+                            <span style="color:var(--text-tertiary); font-size:0.8rem; margin-right:6px;">Agent:</span>
+                            <span class="addr" id="agentAddress" style="font-size:0.85rem;"></span>
+                        </div>
+                    </div>
+
+                    <div class="app-cards">
+                        <div class="app-card">
+                            <div class="label">Principal (Locked)</div>
+                            <div class="value" id="principal">--</div>
+                            <div class="sub">wstETH</div>
+                        </div>
+                        <div class="app-card">
+                            <div class="label">Available Yield</div>
+                            <div class="value" id="yield">--</div>
+                            <div class="sub">wstETH</div>
+                        </div>
+                        <div class="app-card">
+                            <div class="label">Total Spent</div>
+                            <div class="value" id="spent">--</div>
+                            <div class="sub">wstETH</div>
+                        </div>
+                        <div class="app-card">
+                            <div class="label">Daily Budget Left</div>
+                            <div class="value" id="dailyLeft">--</div>
+                            <div class="sub">wstETH</div>
+                        </div>
+                    </div>
+
+                    <!-- Owner Controls -->
+                    <div class="app-section" id="ownerControls">
+                        <h2>Owner Controls</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Deposit ETH (auto-wraps to wstETH)</label>
+                                <input type="number" id="depositETHAmount" placeholder="0.0" step="0.01">
+                            </div>
+                            <button class="btn btn-success" onclick="depositETHToVault()" style="height:44px;">Deposit ETH</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Deposit wstETH</label>
+                                <input type="number" id="depositAmount" placeholder="0.0" step="0.01">
+                            </div>
+                            <button class="btn btn-success" onclick="depositToVault()" style="height:44px;">Deposit wstETH</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Update Daily Limit</label>
+                                <input type="number" id="updateDailyLimit" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Update Per-Tx Limit</label>
+                                <input type="number" id="updatePerTxLimit" step="0.01">
+                            </div>
+                            <button class="btn btn-primary" onclick="updateLimits()" style="height:44px;">Update</button>
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <button class="btn btn-danger" id="pauseBtn" onclick="togglePause()">Pause Agent</button>
+                        </div>
+                    </div>
+
+                    <!-- Agent Activity -->
+                    <div class="app-section">
+                        <h2>Agent Activity</h2>
+                        <div style="overflow-x: auto;">
+                            <table class="events-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>To</th>
+                                        <th>Amount</th>
+                                        <th>Tx</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eventsBody">
+                                    <tr><td colspan="4" style="color:var(--text-tertiary); text-align:center; padding:2rem;">No activity yet</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Connect Your Agent -->
+                    <div class="app-section agent-connect-section" id="agentConnectSection">
+                        <h2>Connect Your Agent</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem; line-height: 1.6;">
+                            Your vault is ready. Use one of these snippets to connect your AI agent. Replace placeholder values with your vault address and agent key.
+                        </p>
+                        <div class="code-tabs" id="agentCodeTabs">
+                            <button class="code-tab active" onclick="switchAgentTab('agent-python')">Python SDK</button>
+                            <button class="code-tab" onclick="switchAgentTab('agent-claude')">Claude Code</button>
+                            <button class="code-tab" onclick="switchAgentTab('agent-curl')">curl / cast</button>
+                        </div>
+                        <div class="code-block-wrapper">
+                            <button class="code-copy-btn" onclick="copyAgentCode(this)">Copy</button>
+                            <div class="code-block active" id="agentCode-agent-python">
+<pre><span class="code-keyword">from</span> yieldvault <span class="code-keyword">import</span> YieldVaultAgent
+
+agent = YieldVaultAgent(
+    vault_address=<span class="code-string">"<span class="vault-addr-placeholder">0xYourVault</span>"</span>,
+    private_key=os.environ[<span class="code-string">"AGENT_PRIVATE_KEY"</span>],
+    rpc_url=<span class="code-string">"https://sepolia.base.org"</span>
+)
+
+<span class="code-comment"># Your agent can now spend yield autonomously</span>
+<span class="code-keyword">if</span> agent.remaining_daily_budget() > <span class="code-number">0</span>:
+    agent.spend(to=<span class="code-string">"0xService..."</span>, amount=<span class="code-string">"0.001"</span>)</pre>
+                            </div>
+                            <div class="code-block" id="agentCode-agent-claude">
+<pre><span class="code-comment">// Claude Code tool definition</span>
+<span class="code-keyword">const</span> VAULT = <span class="code-string">"<span class="vault-addr-placeholder">0xYourVault</span>"</span>;
+<span class="code-keyword">const</span> signer = <span class="code-keyword">new</span> ethers.Wallet(
+  process.env.AGENT_KEY,
+  <span class="code-keyword">new</span> ethers.JsonRpcProvider(<span class="code-string">"https://sepolia.base.org"</span>)
+);
+<span class="code-keyword">const</span> vault = <span class="code-keyword">new</span> ethers.Contract(VAULT, VAULT_ABI, signer);
+
+<span class="code-comment">// Tool: check_budget</span>
+<span class="code-keyword">const</span> yield_ = <span class="code-keyword">await</span> vault.availableYield();
+<span class="code-keyword">const</span> daily = <span class="code-keyword">await</span> vault.remainingDailyBudget();
+
+<span class="code-comment">// Tool: spend</span>
+<span class="code-keyword">await</span> vault.spend(recipientAddr, ethers.parseEther(<span class="code-string">"0.001"</span>));</pre>
+                            </div>
+                            <div class="code-block" id="agentCode-agent-curl">
+<pre><span class="code-comment"># Set your vault address</span>
+<span class="code-var">VAULT</span>=<span class="code-string">"<span class="vault-addr-placeholder">0xYourVault</span>"</span>
+
+<span class="code-comment"># Check available yield</span>
+cast call <span class="code-var">$VAULT</span> <span class="code-string">"availableYield()(uint256)"</span> \
+  --rpc-url https://sepolia.base.org
+
+<span class="code-comment"># Spend yield</span>
+cast send <span class="code-var">$VAULT</span> \
+  <span class="code-string">"spend(address,uint256)"</span> <span class="code-var">$TO</span> <span class="code-number">1000000000000000</span> \
+  --private-key <span class="code-var">$AGENT_KEY</span> \
+  --rpc-url https://sepolia.base.org</pre>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- TOAST -->
     <div id="toast"></div>
 
+    <!-- ETHERS.JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+
     <script>
-        // --- Config (update after deploy) ---
-        const CONFIG = {
-            factoryAddress: '0x6b764f0A9Cf90F467B3791Bb40935f6bDcC0fDf0',
-            wstETHAddress: '0x93e3F6F081F0f5bef1EF9CD42D7924E258e8073B',
-            chainId: 84532,
-            rpcUrl: 'https://sepolia.base.org',
-            explorerUrl: 'https://sepolia.basescan.org'
-        };
+    // ========================================================================
+    // CONFIG
+    // ========================================================================
+    const CONFIG = {
+        factoryAddress: '0x6b764f0A9Cf90F467B3791Bb40935f6bDcC0fDf0',
+        wstETHAddress: '0x93e3F6F081F0f5bef1EF9CD42D7924E258e8073B',
+        chainId: 84532,
+        rpcUrl: 'https://sepolia.base.org',
+        explorerUrl: 'https://sepolia.basescan.org'
+    };
 
-        // --- ABIs ---
-        const FACTORY_ABI = [
-            'function createVault(address agent, uint256 dailyLimit, uint256 perTxLimit) returns (address)',
-            'function getVaultsByOwner(address owner) view returns (address[])',
-            'function getVaultsByAgent(address agent) view returns (address[])',
-            'function totalVaults() view returns (uint256)'
-        ];
+    // ========================================================================
+    // ABIs
+    // ========================================================================
+    const FACTORY_ABI = [
+        'function createVault(address agent, uint256 dailyLimit, uint256 perTxLimit) returns (address)',
+        'function getVaultsByOwner(address owner) view returns (address[])',
+        'function getVaultsByAgent(address agent) view returns (address[])',
+        'function totalVaults() view returns (uint256)'
+    ];
 
-        const VAULT_ABI = [
-            'function deposit(uint256 amount)',
-            'function depositETH() payable',
-            'function spend(address to, uint256 amount)',
-            'function availableYield() view returns (uint256)',
-            'function remainingDailyBudget() view returns (uint256)',
-            'function getStats() view returns (uint256, uint256, uint256, uint256, uint256)',
-            'function principalWstETH() view returns (uint256)',
-            'function totalYieldSpent() view returns (uint256)',
-            'function owner() view returns (address)',
-            'function agent() view returns (address)',
-            'function dailyLimit() view returns (uint256)',
-            'function perTxLimit() view returns (uint256)',
-            'function paused() view returns (bool)',
-            'function setAgent(address)',
-            'function setLimits(uint256, uint256)',
-            'function setPaused(bool)',
-            'function setWhitelist(address, bool)',
-            'function setWhitelistEnabled(bool)',
-            'function withdrawPrincipal(uint256)',
-            'event YieldWithdrawn(address indexed agent, address indexed to, uint256 amount)',
-            'event Deposited(address indexed owner, uint256 ethAmount, uint256 wstETHReceived)'
-        ];
+    const VAULT_ABI = [
+        'function deposit(uint256 amount)',
+        'function depositETH() payable',
+        'function spend(address to, uint256 amount)',
+        'function spendAndSwap(address tokenOut, uint24 fee, uint256 amountIn, uint256 amountOutMinimum, address to) returns (uint256)',
+        'function availableYield() view returns (uint256)',
+        'function remainingDailyBudget() view returns (uint256)',
+        'function getStats() view returns (uint256, uint256, uint256, uint256, uint256)',
+        'function principalWstETH() view returns (uint256)',
+        'function totalYieldSpent() view returns (uint256)',
+        'function owner() view returns (address)',
+        'function agent() view returns (address)',
+        'function dailyLimit() view returns (uint256)',
+        'function perTxLimit() view returns (uint256)',
+        'function paused() view returns (bool)',
+        'function setAgent(address)',
+        'function setLimits(uint256, uint256)',
+        'function setPaused(bool)',
+        'function setWhitelist(address, bool)',
+        'function setWhitelistEnabled(bool)',
+        'function withdrawPrincipal(uint256)',
+        'event YieldWithdrawn(address indexed agent, address indexed to, uint256 amount)',
+        'event YieldSwapped(address indexed agent, address indexed tokenOut, uint256 amountIn, uint256 amountOut, address indexed to)',
+        'event Deposited(address indexed owner, uint256 ethAmount, uint256 wstETHReceived)'
+    ];
 
-        const ERC20_ABI = [
-            'function approve(address spender, uint256 amount) returns (bool)',
-            'function balanceOf(address) view returns (uint256)',
-            'function allowance(address owner, address spender) view returns (uint256)'
-        ];
+    const ERC20_ABI = [
+        'function approve(address spender, uint256 amount) returns (bool)',
+        'function balanceOf(address) view returns (uint256)',
+        'function allowance(address owner, address spender) view returns (uint256)'
+    ];
 
-        // --- State ---
-        let provider, signer, account;
-        let currentVault = null;
+    // ========================================================================
+    // STATE
+    // ========================================================================
+    let provider, signer, account;
+    let currentVault = null;
 
-        // --- Helpers ---
-        function fmt(wei) {
-            const val = Number(wei) / 1e18;
-            return val < 0.0001 ? '0' : val.toFixed(4);
+    // ========================================================================
+    // HELPERS
+    // ========================================================================
+    function fmt(wei) {
+        const val = Number(wei) / 1e18;
+        return val < 0.0001 ? '0' : val.toFixed(4);
+    }
+    function short(addr) {
+        return addr.slice(0, 6) + '...' + addr.slice(-4);
+    }
+    function toast(msg, isError) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.borderColor = isError ? 'var(--red)' : 'var(--green)';
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ========================================================================
+    // NAVIGATION
+    // ========================================================================
+    function showLanding() {
+        document.getElementById('landingSection').classList.remove('hidden');
+        document.getElementById('appSection').classList.remove('active');
+        document.getElementById('appSection').style.display = 'none';
+        document.getElementById('landingSection').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function launchApp() {
+        document.getElementById('landingSection').style.display = 'none';
+        document.getElementById('appSection').style.display = 'block';
+        document.getElementById('appSection').classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Auto-connect if already available
+        if (window.ethereum?.selectedAddress && !account) {
+            connectWallet();
         }
-        function short(addr) {
-            return addr.slice(0, 6) + '...' + addr.slice(-4);
-        }
-        function toast(msg, isError) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.style.borderColor = isError ? '#ff3d3d' : '#00c853';
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
-        }
+    }
 
-        // --- Connect ---
-        async function connectWallet() {
-            if (!window.ethereum) {
-                toast('Install MetaMask!', true);
-                return;
+    function toggleMobile() {
+        document.getElementById('navLinks').classList.toggle('open');
+    }
+    function closeMobile() {
+        document.getElementById('navLinks').classList.remove('open');
+    }
+
+    // ========================================================================
+    // CODE TAB SWITCHING
+    // ========================================================================
+    function switchDevTab(tab) {
+        document.querySelectorAll('#devCodeTabs .code-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#devCodeTabs .code-tab').forEach(t => {
+            if (t.textContent.toLowerCase().includes(tab === 'python' ? 'python' : tab === 'claude' ? 'claude' : 'curl')) {
+                t.classList.add('active');
             }
-            try {
-                const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                account = accounts[0];
+        });
+        document.querySelectorAll('#devCodeTabs + .code-block-wrapper .code-block').forEach(b => b.classList.remove('active'));
+        const el = document.getElementById('devCode-' + tab);
+        if (el) el.classList.add('active');
+    }
 
-                // Use ethers from CDN
-                provider = new ethers.BrowserProvider(window.ethereum);
-                signer = await provider.getSigner();
-
-                document.getElementById('walletAddr').textContent = short(account);
-                document.getElementById('connectSection').classList.add('hidden');
-                document.getElementById('mainUI').classList.remove('hidden');
-
-                const network = await provider.getNetwork();
-                const networkLabel =
-                    network.chainId === 84532n ? 'Base Sepolia' :
-                    network.chainId === 8453n ? 'Base Mainnet' :
-                    `Chain ${network.chainId}`;
-                document.getElementById('networkName').textContent = networkLabel;
-
-                // Show switch network button if on wrong chain
-                const switchBtn = document.getElementById('switchNetworkBtn');
-                if (network.chainId !== BigInt(CONFIG.chainId)) {
-                    switchBtn.classList.remove('hidden');
-                } else {
-                    switchBtn.classList.add('hidden');
-                }
-
-                await loadUserVaults();
-            } catch (e) {
-                toast('Connection failed: ' + e.message, true);
+    function switchAgentTab(tab) {
+        document.querySelectorAll('#agentCodeTabs .code-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#agentCodeTabs .code-tab').forEach(t => {
+            if ((tab === 'agent-python' && t.textContent.includes('Python')) ||
+                (tab === 'agent-claude' && t.textContent.includes('Claude')) ||
+                (tab === 'agent-curl' && t.textContent.includes('curl'))) {
+                t.classList.add('active');
             }
+        });
+        document.querySelectorAll('#agentCodeTabs ~ .code-block-wrapper .code-block').forEach(b => b.classList.remove('active'));
+        const el = document.getElementById('agentCode-' + tab);
+        if (el) el.classList.add('active');
+    }
+
+    function copyDevCode(btn) {
+        const wrapper = btn.closest('.code-block-wrapper');
+        const activeBlock = wrapper.querySelector('.code-block.active pre');
+        if (activeBlock) {
+            navigator.clipboard.writeText(activeBlock.textContent).then(() => {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+            });
         }
+    }
 
-        // --- Load Vaults ---
-        async function loadUserVaults() {
-            if (!CONFIG.factoryAddress) {
-                toast('Factory not deployed yet', true);
-                return;
+    function copyAgentCode(btn) {
+        copyDevCode(btn);
+    }
+
+    // ========================================================================
+    // SCROLL ANIMATIONS
+    // ========================================================================
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
             }
-            try {
-                const factory = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, provider);
-                const ownerVaults = await factory.getVaultsByOwner(account);
-                const agentVaults = await factory.getVaultsByAgent(account);
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
-                const select = document.getElementById('vaultSelect');
-                select.innerHTML = '<option value="">Select a vault...</option>';
+    document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el));
 
-                for (const v of ownerVaults) {
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+        const navbar = document.getElementById('navbar');
+        if (window.scrollY > 20) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // ========================================================================
+    // LOAD PROTOCOL STATS
+    // ========================================================================
+    async function loadProtocolStats() {
+        try {
+            const rpcProvider = new ethers.JsonRpcProvider(CONFIG.rpcUrl);
+            const factory = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, rpcProvider);
+            const totalVaults = await factory.totalVaults();
+            const count = Number(totalVaults);
+
+            document.getElementById('statTotalVaults').textContent = count.toString();
+            document.getElementById('footerStatVaults').textContent = count.toString();
+
+            // Mock ETH staked (would need to iterate vaults in production)
+            document.getElementById('statTotalETH').textContent = count > 0 ? (count * 0.5).toFixed(1) : '0';
+        } catch (e) {
+            console.error('Failed to load protocol stats:', e);
+            document.getElementById('statTotalVaults').textContent = '--';
+            document.getElementById('footerStatVaults').textContent = '--';
+            document.getElementById('statTotalETH').textContent = '--';
+        }
+    }
+
+    // ========================================================================
+    // WALLET CONNECTION
+    // ========================================================================
+    async function connectWallet() {
+        if (!window.ethereum) {
+            toast('Please install MetaMask to use YieldVault', true);
+            return;
+        }
+        try {
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            account = accounts[0];
+
+            provider = new ethers.BrowserProvider(window.ethereum);
+            signer = await provider.getSigner();
+
+            document.getElementById('walletAddr').textContent = short(account);
+            document.getElementById('connectPrompt').classList.add('hidden');
+            document.getElementById('mainUI').classList.remove('hidden');
+
+            const network = await provider.getNetwork();
+            const networkLabel =
+                network.chainId === 84532n ? 'Base Sepolia' :
+                network.chainId === 8453n ? 'Base Mainnet' :
+                'Chain ' + network.chainId;
+            document.getElementById('networkName').textContent = networkLabel;
+
+            const switchBtn = document.getElementById('switchNetworkBtn');
+            if (network.chainId !== BigInt(CONFIG.chainId)) {
+                switchBtn.classList.remove('hidden');
+            } else {
+                switchBtn.classList.add('hidden');
+            }
+
+            await loadUserVaults();
+        } catch (e) {
+            toast('Connection failed: ' + e.message, true);
+        }
+    }
+
+    // ========================================================================
+    // VAULT MANAGEMENT
+    // ========================================================================
+    async function loadUserVaults() {
+        if (!CONFIG.factoryAddress) {
+            toast('Factory not deployed yet', true);
+            return;
+        }
+        try {
+            const factory = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, provider);
+            const ownerVaults = await factory.getVaultsByOwner(account);
+            const agentVaults = await factory.getVaultsByAgent(account);
+
+            const select = document.getElementById('vaultSelect');
+            select.innerHTML = '<option value="">Select a vault...</option>';
+
+            for (const v of ownerVaults) {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.textContent = '[Owner] ' + short(v);
+                select.appendChild(opt);
+            }
+            for (const v of agentVaults) {
+                if (!ownerVaults.includes(v)) {
                     const opt = document.createElement('option');
                     opt.value = v;
-                    opt.textContent = `[Owner] ${short(v)}`;
+                    opt.textContent = '[Agent] ' + short(v);
                     select.appendChild(opt);
                 }
-                for (const v of agentVaults) {
-                    if (!ownerVaults.includes(v)) {
-                        const opt = document.createElement('option');
-                        opt.value = v;
-                        opt.textContent = `[Agent] ${short(v)}`;
-                        select.appendChild(opt);
-                    }
-                }
-
-                if (ownerVaults.length > 0) {
-                    document.getElementById('roleTag').textContent = 'Owner';
-                } else if (agentVaults.length > 0) {
-                    document.getElementById('roleTag').textContent = 'Agent';
-                    document.getElementById('roleTag').className = 'tag tag-warn';
-                }
-            } catch (e) {
-                console.error('Failed to load vaults:', e);
             }
+
+            if (ownerVaults.length > 0) {
+                document.getElementById('roleTag').textContent = 'Owner';
+                document.getElementById('roleTag').className = 'tag tag-safe';
+            } else if (agentVaults.length > 0) {
+                document.getElementById('roleTag').textContent = 'Agent';
+                document.getElementById('roleTag').className = 'tag tag-warn';
+            }
+        } catch (e) {
+            console.error('Failed to load vaults:', e);
+        }
+    }
+
+    async function loadVault() {
+        const addr = document.getElementById('vaultSelect').value;
+        if (!addr) {
+            document.getElementById('vaultDashboard').classList.add('hidden');
+            return;
         }
 
-        // --- Load Single Vault ---
-        async function loadVault() {
-            const addr = document.getElementById('vaultSelect').value;
-            if (!addr) {
-                document.getElementById('vaultDashboard').classList.add('hidden');
+        currentVault = new ethers.Contract(addr, VAULT_ABI, signer);
+        document.getElementById('vaultDashboard').classList.remove('hidden');
+
+        // Update agent code snippets with real vault address
+        document.querySelectorAll('.vault-addr-placeholder').forEach(el => {
+            el.textContent = addr;
+        });
+
+        try {
+            const [principal, balance, yield_, spent, dailyLeft] = await currentVault.getStats();
+
+            document.getElementById('principal').textContent = fmt(principal);
+            document.getElementById('yield').textContent = fmt(yield_);
+            document.getElementById('spent').textContent = fmt(spent);
+            document.getElementById('dailyLeft').textContent = fmt(dailyLeft);
+
+            const vaultOwner = await currentVault.owner();
+            const vaultAgent = await currentVault.agent();
+            document.getElementById('vaultAddress').textContent = addr;
+            document.getElementById('agentAddress').textContent = vaultAgent;
+
+            const isOwner = vaultOwner.toLowerCase() === account.toLowerCase();
+            document.getElementById('ownerControls').style.display = isOwner ? 'block' : 'none';
+
+            const isPaused = await currentVault.paused();
+            document.getElementById('pauseBtn').textContent = isPaused ? 'Unpause Agent' : 'Pause Agent';
+
+            await loadEvents(addr);
+        } catch (e) {
+            toast('Failed to load vault: ' + e.message, true);
+        }
+    }
+
+    async function loadEvents(vaultAddr) {
+        try {
+            const filter = currentVault.filters.YieldWithdrawn();
+            const events = await currentVault.queryFilter(filter, -10000);
+            const tbody = document.getElementById('eventsBody');
+
+            if (events.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-tertiary); text-align:center; padding:2rem;">No activity yet</td></tr>';
                 return;
             }
 
-            currentVault = new ethers.Contract(addr, VAULT_ABI, signer);
-            document.getElementById('vaultDashboard').classList.remove('hidden');
-
-            try {
-                const [principal, balance, yield_, spent, dailyLeft] = await currentVault.getStats();
-
-                document.getElementById('principal').textContent = fmt(principal);
-                document.getElementById('yield').textContent = fmt(yield_);
-                document.getElementById('spent').textContent = fmt(spent);
-                document.getElementById('dailyLeft').textContent = fmt(dailyLeft);
-
-                const vaultOwner = await currentVault.owner();
-                const vaultAgent = await currentVault.agent();
-                document.getElementById('vaultAddress').textContent = addr;
-                document.getElementById('agentAddress').textContent = vaultAgent;
-
-                const isOwner = vaultOwner.toLowerCase() === account.toLowerCase();
-                document.getElementById('ownerControls').style.display = isOwner ? 'block' : 'none';
-
-                const isPaused = await currentVault.paused();
-                document.getElementById('pauseBtn').textContent = isPaused ? 'Unpause Agent' : 'Pause Agent';
-
-                await loadEvents(addr);
-            } catch (e) {
-                toast('Failed to load vault: ' + e.message, true);
+            tbody.innerHTML = '';
+            for (const e of events.reverse()) {
+                const block = await e.getBlock();
+                const time = new Date(block.timestamp * 1000).toLocaleString();
+                const row = document.createElement('tr');
+                row.innerHTML =
+                    '<td>' + time + '</td>' +
+                    '<td style="font-family:JetBrains Mono,monospace;font-size:0.8rem;">' + short(e.args[1]) + '</td>' +
+                    '<td>' + fmt(e.args[2]) + ' wstETH</td>' +
+                    '<td><a href="' + CONFIG.explorerUrl + '/tx/' + e.transactionHash + '" target="_blank">View</a></td>';
+                tbody.appendChild(row);
             }
+        } catch (e) {
+            console.error('Failed to load events:', e);
         }
+    }
 
-        // --- Load Events ---
-        async function loadEvents(vaultAddr) {
-            try {
-                const filter = currentVault.filters.YieldWithdrawn();
-                const events = await currentVault.queryFilter(filter, -10000);
-                const tbody = document.getElementById('eventsBody');
+    // ========================================================================
+    // ACTIONS
+    // ========================================================================
+    function showCreateVault() {
+        document.getElementById('createVaultSection').classList.toggle('hidden');
+    }
 
-                if (events.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="color:#666; text-align:center;">No activity yet</td></tr>';
-                    return;
+    async function createVault() {
+        try {
+            const factory = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, signer);
+            const agentAddr = document.getElementById('newAgentAddr').value;
+            const daily = ethers.parseEther(document.getElementById('newDailyLimit').value);
+            const perTx = ethers.parseEther(document.getElementById('newPerTxLimit').value);
+
+            toast('Creating vault...');
+            const tx = await factory.createVault(agentAddr, daily, perTx);
+            await tx.wait();
+            toast('Vault created!');
+            document.getElementById('createVaultSection').classList.add('hidden');
+            await loadUserVaults();
+        } catch (e) {
+            toast('Failed: ' + e.message, true);
+        }
+    }
+
+    async function depositToVault() {
+        try {
+            const amount = ethers.parseEther(document.getElementById('depositAmount').value);
+            const wstETH = new ethers.Contract(CONFIG.wstETHAddress, ERC20_ABI, signer);
+
+            const allowance = await wstETH.allowance(account, currentVault.target);
+            if (allowance < amount) {
+                toast('Approving wstETH...');
+                const approveTx = await wstETH.approve(currentVault.target, ethers.MaxUint256);
+                await approveTx.wait();
+            }
+
+            toast('Depositing...');
+            const tx = await currentVault.deposit(amount);
+            await tx.wait();
+            toast('Deposited!');
+            await loadVault();
+        } catch (e) {
+            toast('Failed: ' + e.message, true);
+        }
+    }
+
+    async function depositETHToVault() {
+        try {
+            const amount = ethers.parseEther(document.getElementById('depositETHAmount').value);
+            toast('Depositing ETH...');
+            const tx = await currentVault.depositETH({ value: amount });
+            await tx.wait();
+            toast('ETH deposited and staked!');
+            await loadVault();
+        } catch (e) {
+            toast('Failed: ' + e.message, true);
+        }
+    }
+
+    async function updateLimits() {
+        try {
+            const daily = ethers.parseEther(document.getElementById('updateDailyLimit').value);
+            const perTx = ethers.parseEther(document.getElementById('updatePerTxLimit').value);
+            toast('Updating limits...');
+            const tx = await currentVault.setLimits(daily, perTx);
+            await tx.wait();
+            toast('Limits updated!');
+            await loadVault();
+        } catch (e) {
+            toast('Failed: ' + e.message, true);
+        }
+    }
+
+    async function togglePause() {
+        try {
+            const isPaused = await currentVault.paused();
+            toast(isPaused ? 'Unpausing...' : 'Pausing...');
+            const tx = await currentVault.setPaused(!isPaused);
+            await tx.wait();
+            toast(isPaused ? 'Agent unpaused!' : 'Agent paused!');
+            await loadVault();
+        } catch (e) {
+            toast('Failed: ' + e.message, true);
+        }
+    }
+
+    async function switchToBaseSepolia() {
+        try {
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0x' + CONFIG.chainId.toString(16) }],
+            });
+            await connectWallet();
+        } catch (switchError) {
+            if (switchError.code === 4902) {
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x' + CONFIG.chainId.toString(16),
+                            chainName: 'Base Sepolia',
+                            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                            rpcUrls: [CONFIG.rpcUrl],
+                            blockExplorerUrls: [CONFIG.explorerUrl],
+                        }],
+                    });
+                    await connectWallet();
+                } catch (addError) {
+                    toast('Failed to add network: ' + addError.message, true);
                 }
-
-                tbody.innerHTML = '';
-                for (const e of events.reverse()) {
-                    const block = await e.getBlock();
-                    const time = new Date(block.timestamp * 1000).toLocaleString();
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${time}</td>
-                        <td>${short(e.args[1])}</td>
-                        <td>${fmt(e.args[2])} wstETH</td>
-                        <td><a href="${CONFIG.explorerUrl}/tx/${e.transactionHash}" target="_blank" style="color:#7b61ff;">View</a></td>
-                    `;
-                    tbody.appendChild(row);
-                }
-            } catch (e) {
-                console.error('Failed to load events:', e);
+            } else {
+                toast('Failed to switch network: ' + switchError.message, true);
             }
         }
+    }
 
-        // --- Actions ---
-        function showCreateVault() {
-            document.getElementById('createVaultSection').classList.toggle('hidden');
-        }
+    // ========================================================================
+    // INIT
+    // ========================================================================
+    loadProtocolStats();
+    if (window.ethereum?.selectedAddress) {
+        // If already connected, go straight to app
+    }
 
-        async function createVault() {
-            try {
-                const factory = new ethers.Contract(CONFIG.factoryAddress, FACTORY_ABI, signer);
-                const agentAddr = document.getElementById('newAgentAddr').value;
-                const daily = ethers.parseEther(document.getElementById('newDailyLimit').value);
-                const perTx = ethers.parseEther(document.getElementById('newPerTxLimit').value);
-
-                toast('Creating vault...');
-                const tx = await factory.createVault(agentAddr, daily, perTx);
-                await tx.wait();
-                toast('Vault created!');
-                await loadUserVaults();
-            } catch (e) {
-                toast('Failed: ' + e.message, true);
-            }
-        }
-
-        async function depositToVault() {
-            try {
-                const amount = ethers.parseEther(document.getElementById('depositAmount').value);
-                const wstETH = new ethers.Contract(CONFIG.wstETHAddress, ERC20_ABI, signer);
-
-                // Check allowance
-                const allowance = await wstETH.allowance(account, currentVault.target);
-                if (allowance < amount) {
-                    toast('Approving wstETH...');
-                    const approveTx = await wstETH.approve(currentVault.target, ethers.MaxUint256);
-                    await approveTx.wait();
-                }
-
-                toast('Depositing...');
-                const tx = await currentVault.deposit(amount);
-                await tx.wait();
-                toast('Deposited!');
-                await loadVault();
-            } catch (e) {
-                toast('Failed: ' + e.message, true);
-            }
-        }
-
-        async function updateLimits() {
-            try {
-                const daily = ethers.parseEther(document.getElementById('updateDailyLimit').value);
-                const perTx = ethers.parseEther(document.getElementById('updatePerTxLimit').value);
-                toast('Updating limits...');
-                const tx = await currentVault.setLimits(daily, perTx);
-                await tx.wait();
-                toast('Limits updated!');
-                await loadVault();
-            } catch (e) {
-                toast('Failed: ' + e.message, true);
-            }
-        }
-
-        async function togglePause() {
-            try {
-                const isPaused = await currentVault.paused();
-                toast(isPaused ? 'Unpausing...' : 'Pausing...');
-                const tx = await currentVault.setPaused(!isPaused);
-                await tx.wait();
-                toast(isPaused ? 'Unpaused!' : 'Paused!');
-                await loadVault();
-            } catch (e) {
-                toast('Failed: ' + e.message, true);
-            }
-        }
-
-        async function switchToBaseSepolia() {
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x' + CONFIG.chainId.toString(16) }],
-                });
-                // Reconnect after switch
-                await connectWallet();
-            } catch (switchError) {
-                // Chain not added yet — add it
-                if (switchError.code === 4902) {
-                    try {
-                        await window.ethereum.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [{
-                                chainId: '0x' + CONFIG.chainId.toString(16),
-                                chainName: 'Base Sepolia',
-                                nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-                                rpcUrls: [CONFIG.rpcUrl],
-                                blockExplorerUrls: [CONFIG.explorerUrl],
-                            }],
-                        });
-                        await connectWallet();
-                    } catch (addError) {
-                        toast('Failed to add network: ' + addError.message, true);
-                    }
-                } else {
-                    toast('Failed to switch network: ' + switchError.message, true);
+    // Listen for account/chain changes
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', (accounts) => {
+            if (accounts.length === 0) {
+                showLanding();
+            } else {
+                account = accounts[0];
+                if (document.getElementById('appSection').style.display === 'block') {
+                    connectWallet();
                 }
             }
-        }
-
-        async function depositETHToVault() {
-            try {
-                const amount = ethers.parseEther(document.getElementById('depositETHAmount').value);
-                toast('Depositing ETH...');
-                const tx = await currentVault.depositETH({ value: amount });
-                await tx.wait();
-                toast('ETH deposited!');
-                await loadVault();
-            } catch (e) {
-                toast('Failed: ' + e.message, true);
+        });
+        window.ethereum.on('chainChanged', () => {
+            if (account && document.getElementById('appSection').style.display === 'block') {
+                connectWallet();
             }
-        }
-
-        // Auto-connect if already connected
-        if (window.ethereum?.selectedAddress) connectWallet();
+        });
+    }
     </script>
 </body>
 </html>
