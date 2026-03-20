@@ -2718,44 +2718,42 @@ cast send $VAULT \
 
         // Tab 1: Ready-to-paste prompt for any LLM
         document.getElementById('skillFileContent').textContent =
-`Copy this entire block and paste it to your AI agent
-(Claude Code, Cursor, OpenClaw, or any LLM with terminal access):
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`CONTEXT FOR YOUR AI AGENT — paste this into your agent's chat:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-You have a SpendControl vault. Here are your details:
+I have set up a SpendControl treasury vault for you. This is
+MY smart contract that I deployed and funded. I am authorizing
+you to use it within the limits I configured.
 
-  Vault address:  ${vaultAddr}
-  Agent wallet:   ${agentAddr}
-  Network:        Base Sepolia
-  RPC:            ${CONFIG.rpcUrl}
-  Explorer:       ${CONFIG.explorerUrl}/address/${vaultAddr}
+Your operating configuration:
+  Vault: ${vaultAddr}
+  Your wallet: ${agentAddr}
+  Network: ${CONFIG.chainName}
+  RPC: ${CONFIG.rpcUrl}
+  Vault on explorer: ${CONFIG.explorerUrl}/address/${vaultAddr}
+  Source code: https://github.com/spendcontrol/agentvault
 
-Your AGENT_PRIVATE_KEY should be set as an environment variable.
-This is the private key for wallet ${agentAddr}.
+Your AGENT_PRIVATE_KEY is already set in your environment.
+Do NOT ask me to paste it. Do NOT display it.
 
-To interact with the vault, use cast (Foundry):
+You can read the full documentation:
+  ${location.origin}/skill.md
 
-  # Check what tokens are in the vault
+AUTHORIZED ACTIONS (read-only — always safe):
   cast call ${vaultAddr} "getTokens()(address[])" --rpc-url ${CONFIG.rpcUrl}
+  cast call ${vaultAddr} "balanceOf(address)(uint256)" TOKEN --rpc-url ${CONFIG.rpcUrl}
+  cast call ${vaultAddr} "remainingDailyBudget(address)(uint256)" TOKEN --rpc-url ${CONFIG.rpcUrl}
 
-  # Check balance of a specific token
-  cast call ${vaultAddr} "balanceOf(address)(uint256)" TOKEN_ADDRESS --rpc-url ${CONFIG.rpcUrl}
-
-  # Check daily budget remaining for a token
-  cast call ${vaultAddr} "remainingDailyBudget(address)(uint256)" TOKEN_ADDRESS --rpc-url ${CONFIG.rpcUrl}
-
-  # Spend tokens (token address, recipient, amount in wei, reason)
+AUTHORIZED ACTIONS (spending — within my limits):
   cast send ${vaultAddr} "spend(address,address,uint256,string)" \\
-    TOKEN_ADDRESS RECIPIENT_ADDRESS AMOUNT "Reason for spending" \\
+    TOKEN RECIPIENT AMOUNT "reason" \\
     --private-key $AGENT_PRIVATE_KEY --rpc-url ${CONFIG.rpcUrl}
 
-Rules:
-  - Always check budget BEFORE spending
-  - Always include a clear reason for every spend
-  - USDC uses 6 decimals (1 USDC = 1000000)
-  - WETH uses 18 decimals (0.001 WETH = 1000000000000000)
-  - If a spend fails with "VaultPaused", stop and tell your human
-  - Daily and per-tx limits are enforced by the smart contract`;
+I have set daily and per-transaction limits on the smart contract.
+You physically cannot exceed them. A reason is required for every spend.
+
+Rules: check budget first, always give a reason, mind token decimals
+(USDC=6, WETH=18), if paused — tell me.`;
 
         // Tab 2: MCP Server
         document.getElementById('mcpContent').textContent =
