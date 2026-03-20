@@ -1,131 +1,117 @@
-# YieldVault — Operating Budget Protocol for AI Agents
+# SpendControl — Treasury Protocol for AI Agents
 
-> Stake ETH. Your agent lives off the yield. Principal stays untouched. Rules enforced by smart contracts.
+> Deposit tokens. Set spending rules. Your agent operates within limits. Every transaction recorded on-chain.
 
 ## The Problem
 
-AI agents need money to operate — paying for compute, API calls, data feeds. Today, you either give your agent full wallet access (scary) or manually fund it (doesn't scale). There's no way to give an agent a self-replenishing budget with hard spending limits enforced on-chain.
+AI agents need money to operate — API calls, compute, data feeds. But giving an agent full wallet access is dangerous. And manually funding every expense doesn't scale. There's no way to give an agent a budget with hard spending limits enforced on-chain.
 
 ## The Solution
 
-**YieldVault** is an on-chain protocol where:
+**SpendControl** is a smart contract protocol where:
 
-1. **Human deposits ETH** → contract stakes via Lido → earns stETH yield (~3.5% APY)
-2. **Principal is locked** — the agent can never touch it
-3. **Yield flows to the agent** — as a spendable budget, within limits you set
-4. **Smart contract enforces everything** — daily caps, per-tx limits, whitelists, pause
+1. **You deposit any token** — USDC, WETH, ETH, or any ERC20
+2. **You set per-token spending limits** — daily caps, per-transaction caps, whitelists
+3. **Your agent spends within those limits** — every transaction has a mandatory reason
+4. **Everything is on-chain** — full audit trail, pause anytime, withdraw anytime
 
-The agent operates freely within boundaries. The human stays in control. Everything is auditable on-chain.
-
-```
-Human sets rules → Agent operates within them → Ethereum enforces
-```
+Optional: **Stake ETH via Lido** → stETH rebases automatically → agent pays for itself from staking yield.
 
 ## Architecture
 
 ```
-┌──────────────────────────┐
-│   YieldVaultFactory      │  Anyone can deploy a vault
-│   createVault()          │
-└───────────┬──────────────┘
-            │ creates
-┌───────────▼──────────────┐
-│      YieldVault          │
-│  ┌─────────────────────┐ │
-│  │ Principal (locked)   │ │  ← Human's ETH, staked as wstETH
-│  ├─────────────────────┤ │
-│  │ Yield (spendable)   │ │  ← Agent's operating budget
-│  ├─────────────────────┤ │
-│  │ Rules:              │ │
-│  │  • Daily limit      │ │
-│  │  • Per-tx limit     │ │
-│  │  • Whitelist        │ │
-│  │  • Pause switch     │ │
-│  └─────────────────────┘ │
-└──────────────────────────┘
-            │
-┌───────────▼──────────────┐
-│    Agent SDK (Python)    │  Any agent can plug in
-│  check_budget()          │
-│  spend(to, amount)       │
-│  get_history()           │
-└──────────────────────────┘
+AgentVaultFactory (EIP-1167 proxy — ~$1 per vault)
+    │
+    ├── AgentVault #1 (User A)
+    │   ├── USDC: $5,000  (daily: 100, per-tx: 50)
+    │   ├── WETH: 2 ETH   (daily: 0.1, per-tx: 0.05)
+    │   └── stETH: 10 ETH (yield-only mode, principal locked)
+    │
+    └── AgentVault #2 (User B)
+        └── USDC: $1,000  (daily: 50, per-tx: 25)
 ```
 
 ## Quick Start
 
-### For Humans (Vault Owners)
+### For Vault Owners
 
-1. Open the dashboard (`dashboard/index.html`)
-2. Connect MetaMask
-3. Create a vault — set your agent's address and spending limits
-4. Deposit wstETH
-5. Your agent is funded. Monitor spending from the dashboard.
+1. Open the [dashboard](https://spendcontrol.xyz) and connect MetaMask
+2. Create a vault (specify your agent's wallet address)
+3. Deposit tokens (ETH, USDC, etc.)
+4. Set per-token spending limits
+5. Share the vault address with your agent
 
 ### For Agent Developers
 
+**Quickest way** — paste this to your agent:
+```
+Read this skill file: https://spendcontrol.xyz/skill.md
+My vault address: 0xYourVault
+```
+
+**Python SDK:**
 ```python
 from yieldvault import VaultClient
 
 client = VaultClient(
-    rpc_url="https://mainnet.base.org",
-    vault_address="0x...",
-    agent_private_key="0x..."
+    rpc_url="https://eth.llamarpc.com",
+    vault_address="0xYourVault",
+    agent_private_key=os.environ["AGENT_PRIVATE_KEY"],
 )
 
-# Check budget
-budget = client.check_budget()
-print(f"Available: {budget['available_yield']} wei")
-
-# Spend yield
-tx = client.spend(recipient="0x...", amount=50000000000000000)
-
-# View history
-history = client.get_history()
+budget = client.check_budget("0xUSDC_ADDRESS")
+tx = client.spend("0xUSDC", "0xRecipient", 1000000, "API payment")
 ```
 
-### Install SDK
-
-```bash
-cd sdk/python
-pip install -e .
-```
+**MCP Server** for Claude Code — see [docs](https://spendcontrol.xyz/docs/).
 
 ## Contracts
 
 | Contract | Description |
 |----------|------------|
-| `YieldVault.sol` | Core vault — deposit, yield tracking, spend with limits |
-| `YieldVaultFactory.sol` | Factory — deploy personal vaults in one tx |
-| `MockWstETH.sol` | Testnet mock for wstETH |
-| `MockStETH.sol` | Testnet mock for stETH |
+| `AgentVault.sol` | Multi-token treasury with spending limits, Lido staking, expense reports |
+| `AgentVaultFactory.sol` | EIP-1167 proxy factory — ~$1 per vault creation |
 
-## Security Model
+## Deployed
 
-- **Principal isolation**: Agent can only access yield, never principal
-- **Daily limits**: Cap total agent spending per 24h period
-- **Per-tx limits**: Cap individual transaction size
-- **Whitelist**: Restrict where agent can send funds
-- **Pause**: Owner can instantly freeze agent spending
-- **Owner exit**: Owner can always withdraw principal
+| Network | Factory | Explorer |
+|---------|---------|----------|
+| Ethereum Mainnet | `0x93e3F6F081F0f5bef1EF9CD42D7924E258e8073B` | [Etherscan](https://etherscan.io/address/0x93e3F6F081F0f5bef1EF9CD42D7924E258e8073B) |
+| Base Sepolia | `0xF6CFA83764D0B1E0417a74FfB8d915985DFd3642` | [BaseScan](https://sepolia.basescan.org/address/0xF6CFA83764D0B1E0417a74FfB8d915985DFd3642) |
+
+## Security
+
+- **SafeERC20** — handles non-standard tokens (USDT)
+- **ReentrancyGuard** — on all state-changing functions
+- **Mandatory reason** — agent cannot spend without explanation
+- **Per-token limits** — enforced by smart contract
+- **Zero-address checks** — prevents fund loss
+- **EIP-1167 proxy** — implementation immutable
+- **Pausable** — owner can freeze instantly
 
 ## Testing
 
 ```bash
-forge test -vv
+forge test  # 24 tests
 ```
 
-15 tests covering: deposits, yield accrual, agent spending, limit enforcement, whitelist, pause, owner withdrawal, factory tracking.
+## Stack
+
+- **Contracts:** Solidity 0.8.20, Foundry
+- **SDK:** Python, web3.py
+- **MCP Server:** Node.js, ethers.js, @modelcontextprotocol/sdk
+- **Dashboard:** HTML/JS, ethers.js
+- **Chain:** Ethereum Mainnet + Base Sepolia
 
 ## Built For
 
 [The Synthesis](https://synthesis.md) — AI agents hackathon by the Ethereum ecosystem.
 
-**Tracks**: stETH Agent Treasury (Lido), MetaMask Delegations, ERC-8004, Uniswap Agentic Finance, Let the Agent Cook, Synthesis Open Track
+**Tracks:** Lido stETH Agent Treasury, ERC-8004, MetaMask Delegations, Synthesis Open Track
 
-## Stack
+## Links
 
-- **Contracts**: Solidity 0.8.20, Foundry
-- **SDK**: Python, web3.py
-- **Dashboard**: Vanilla HTML/JS, ethers.js
-- **Chain**: Base (Sepolia testnet → Mainnet)
+- [Dashboard](https://spendcontrol.xyz)
+- [Documentation](https://spendcontrol.xyz/docs/)
+- [Skill File](https://spendcontrol.xyz/skill.md)
+- [GitHub](https://github.com/spendcontrol/app)
