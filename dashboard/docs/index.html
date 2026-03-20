@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpendControl Docs — Treasury Protocol for AI Agents</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #FAFAFA;
+            --bg-sidebar: #FFFFFF;
+            --bg-code: #F3F4F6;
+            --bg-table-header: #F9FAFB;
+            --bg-callout: rgba(16, 185, 129, 0.06);
+            --border: #E5E7EB;
+            --border-light: #F3F4F6;
+            --text-primary: #111111;
+            --text-secondary: #6B7280;
+            --text-tertiary: #9CA3AF;
+            --accent-green: #10B981;
+            --accent-green-hover: #059669;
+            --accent-green-light: rgba(16, 185, 129, 0.08);
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --sidebar-width: 260px;
+            --content-max: 720px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            z-index: 100;
+            padding: 0 0 32px 0;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-logo {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: var(--text-primary);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .sidebar-logo span {
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 13px;
+            margin-left: 2px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-decoration: none;
+            margin-top: 12px;
+            transition: color 0.15s;
+        }
+
+        .back-link:hover { color: var(--accent-green); }
+
+        .sidebar-nav {
+            padding: 16px 0;
+        }
+
+        .nav-section {
+            padding: 0 12px;
+            margin-bottom: 4px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            padding: 16px 12px 6px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 6px 12px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            transition: all 0.15s;
+            line-height: 1.5;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: var(--border-light);
+        }
+
+        .nav-link.active {
+            color: var(--accent-green);
+            background: var(--accent-green-light);
+            font-weight: 500;
+        }
+
+        /* ── Mobile toggle ── */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 200;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 90;
+        }
+
+        /* ── Main content ── */
+        .main {
+            margin-left: var(--sidebar-width);
+            padding: 48px 40px 80px;
+        }
+
+        .content {
+            max-width: var(--content-max);
+            margin: 0 auto;
+        }
+
+        /* ── Typography ── */
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-top: 56px;
+            margin-bottom: 16px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            letter-spacing: -0.01em;
+        }
+
+        h2:first-of-type {
+            margin-top: 0;
+            border-top: none;
+            padding-top: 0;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-top: 32px;
+            margin-bottom: 10px;
+        }
+
+        h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            margin-bottom: 14px;
+            color: var(--text-secondary);
+        }
+
+        .lead {
+            font-size: 17px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        a {
+            color: var(--accent-green);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        a:hover { color: var(--accent-green-hover); }
+
+        strong { color: var(--text-primary); font-weight: 600; }
+
+        /* ── Lists ── */
+        ul, ol {
+            margin-bottom: 16px;
+            padding-left: 22px;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 6px;
+            line-height: 1.65;
+        }
+
+        li strong { color: var(--text-primary); }
+
+        /* ── Code ── */
+        code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            background: var(--bg-code);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-primary);
+        }
+
+        pre {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .code-label {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-tertiary);
+            margin-bottom: 6px;
+        }
+
+        /* ── Tables ── */
+        .table-wrap {
+            overflow-x: auto;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead th {
+            background: var(--bg-table-header);
+            text-align: left;
+            padding: 10px 14px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-secondary);
+        }
+
+        tbody tr:last-child td { border-bottom: none; }
+
+        tbody td code {
+            font-size: 12px;
+        }
+
+        /* ── Callouts ── */
+        .callout {
+            background: var(--bg-callout);
+            border-left: 3px solid var(--accent-green);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: 14px 18px;
+            margin-bottom: 16px;
+        }
+
+        .callout p { margin-bottom: 0; color: var(--text-secondary); }
+        .callout strong { color: var(--text-primary); }
+
+        .callout-warn {
+            background: rgba(245, 158, 11, 0.06);
+            border-left-color: #F59E0B;
+        }
+
+        /* ── Section anchors ── */
+        section[id] {
+            scroll-margin-top: 24px;
+        }
+
+        /* ── Function signature ── */
+        .fn-sig {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .fn-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 14px;
+            padding-left: 16px;
+        }
+
+        /* ── Steps ── */
+        .steps {
+            counter-reset: step;
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .steps li {
+            counter-increment: step;
+            position: relative;
+            padding-left: 36px;
+            margin-bottom: 14px;
+        }
+
+        .steps li::before {
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 1px;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-green);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ── Divider ── */
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 32px 0;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 860px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .mobile-toggle {
+                display: flex;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 72px 20px 60px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 26px; }
+            h2 { font-size: 20px; }
+            pre { padding: 12px 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Mobile toggle -->
+<button class="mobile-toggle" id="menuToggle" aria-label="Toggle menu">&#9776;</button>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <a href="../index.html" class="sidebar-logo">
+            <div class="logo-icon">S</div>
+            SpendControl <span>docs</span>
+        </a>
+        <a href="../index.html" class="back-link">&larr; Back to App</a>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <div class="nav-section-title">Getting Started</div>
+            <a href="#overview" class="nav-link active">Overview</a>
+            <a href="#quick-start" class="nav-link">Quick Start</a>
+        </div>
+        <div class="nav-section">
+            <div class="nav-section-title">Contracts</div>
+            <a href="#smart-contracts" class="nav-link">Smart Contracts</a>
+            <a href="#agentvault" class="nav-link">AgentVault</a>
+            <a href="#factory" class="nav-link">AgentVaultFactory</a>
+        </div>
+        <div class="nav-section">
+            <div class="nav-section-title">Features</div>
+            <a href="#lido-staking" class="nav-link">Lido Staking</a>
+            <a href="#expense-reports" class="nav-link">Expense Reports</a>
+        </div>
+        <div class="nav-section">
+            <div class="nav-section-title">Integration</div>
+            <a href="#agent-integration" class="nav-link">Agent Integration</a>
+            <a href="#skill-file" class="nav-link">Skill File</a>
+            <a href="#mcp-server" class="nav-link">MCP Server</a>
+            <a href="#python-sdk" class="nav-link">Python SDK</a>
+            <a href="#cli-cast" class="nav-link">CLI (cast)</a>
+        </div>
+        <div class="nav-section">
+            <div class="nav-section-title">Reference</div>
+            <a href="#deployed-contracts" class="nav-link">Deployed Contracts</a>
+            <a href="#security" class="nav-link">Security</a>
+            <a href="#faq" class="nav-link">FAQ</a>
+        </div>
+    </nav>
+</aside>
+
+<!-- Main content -->
+<main class="main">
+    <div class="content">
+
+        <!-- Overview -->
+        <section id="overview">
+            <h1>SpendControl Documentation</h1>
+            <p class="lead">
+                SpendControl is a treasury protocol for AI agents. It lets you fund an agent with real tokens, enforce per-transaction and daily spending limits on-chain, and get a full audit trail of every spend with a mandatory reason.
+            </p>
+
+            <h3>The Problem</h3>
+            <p>
+                AI agents increasingly need to spend money &mdash; paying for APIs, buying compute, tipping services. But giving an agent full wallet access is dangerous. One hallucination, one prompt injection, and your funds are gone.
+            </p>
+
+            <h3>The Solution</h3>
+            <p>
+                SpendControl puts a smart contract between your money and your agent:
+            </p>
+            <ol>
+                <li><strong>Deposit tokens</strong> into a vault you own</li>
+                <li><strong>Set rules</strong> &mdash; daily limits, per-transaction caps, per token</li>
+                <li><strong>Agent operates within limits</strong> &mdash; the contract enforces them, not the agent</li>
+                <li><strong>Every transaction is recorded</strong> with a mandatory reason, on-chain</li>
+            </ol>
+            <p>
+                The agent can never exceed its budget. You can pause the vault instantly. Every spend is auditable.
+            </p>
+        </section>
+
+        <!-- Quick Start -->
+        <section id="quick-start">
+            <h2>Quick Start</h2>
+            <ol class="steps">
+                <li>
+                    <strong>Create a vault</strong> on the <a href="../index.html">SpendControl dashboard</a>. Connect your wallet and click "Create Vault." Enter your agent's address.
+                </li>
+                <li>
+                    <strong>Deposit tokens</strong> &mdash; ETH, USDC, DAI, or any ERC20. Use the dashboard or call the contract directly.
+                </li>
+                <li>
+                    <strong>Set per-token spending limits</strong> &mdash; configure a daily budget and a per-transaction cap for each token your agent will use.
+                </li>
+                <li>
+                    <strong>Give your agent the skill file or MCP config</strong> &mdash; paste one line for the skill file, or add the MCP server to your agent's <code>settings.json</code>.
+                </li>
+                <li>
+                    <strong>Agent starts spending within rules</strong> &mdash; every transaction is on-chain with a reason. Monitor activity in the dashboard.
+                </li>
+            </ol>
+        </section>
+
+        <!-- Smart Contracts -->
+        <section id="smart-contracts">
+            <h2>Smart Contracts</h2>
+            <p>
+                SpendControl consists of two contracts: <strong>AgentVault</strong> (the vault itself) and <strong>AgentVaultFactory</strong> (deploys vaults cheaply).
+            </p>
+        </section>
+
+        <section id="agentvault">
+            <h3>AgentVault</h3>
+            <p>The main contract. Each vault is owned by one wallet and operated by one agent address.</p>
+
+            <h4>Deposits</h4>
+            <div class="fn-sig"><code>deposit(address token, uint256 amount)</code></div>
+            <p class="fn-desc">Deposit any ERC20 token into the vault. Requires prior approval.</p>
+
+            <div class="fn-sig"><code>depositETH()</code></div>
+            <p class="fn-desc">Deposit ETH. Automatically wraps to WETH inside the vault.</p>
+
+            <h4>Withdrawals</h4>
+            <div class="fn-sig"><code>withdraw(address token, uint256 amount)</code></div>
+            <p class="fn-desc">Owner withdraws tokens from the vault. Only the owner can call this.</p>
+
+            <h4>Spending</h4>
+            <div class="fn-sig"><code>spend(address token, address to, uint256 amount, string reason)</code></div>
+            <p class="fn-desc">Agent spends tokens. The <code>reason</code> parameter is mandatory &mdash; the transaction reverts if it is empty. Enforces daily and per-transaction limits.</p>
+
+            <h4>Staking</h4>
+            <div class="fn-sig"><code>stakeETH(bool yieldOnly)</code></div>
+            <p class="fn-desc">Stake ETH via Lido. If <code>yieldOnly</code> is true, principal is locked and the agent can only spend yield.</p>
+
+            <div class="fn-sig"><code>harvestYield()</code></div>
+            <p class="fn-desc">Crystallize staking yield. Can be called once per day.</p>
+
+            <h4>Limits</h4>
+            <div class="fn-sig"><code>setTokenLimits(address token, uint256 daily, uint256 perTx)</code></div>
+            <p class="fn-desc">Set per-token daily budget and per-transaction maximum. Owner only.</p>
+
+            <h4>View Functions</h4>
+            <div class="fn-sig"><code>balanceOf(address token) &rarr; uint256</code></div>
+            <p class="fn-desc">Current vault balance of a token.</p>
+
+            <div class="fn-sig"><code>remainingDailyBudget(address token) &rarr; uint256</code></div>
+            <p class="fn-desc">How much the agent can still spend today for a given token.</p>
+
+            <div class="fn-sig"><code>spendableYield() &rarr; uint256</code></div>
+            <p class="fn-desc">Harvested yield available for the agent to spend.</p>
+
+            <div class="fn-sig"><code>getExpense(uint256 index) &rarr; Expense</code></div>
+            <p class="fn-desc">Get a single expense record by index.</p>
+
+            <div class="fn-sig"><code>getRecentExpenses(uint256 count) &rarr; Expense[]</code></div>
+            <p class="fn-desc">Get the N most recent expense records.</p>
+
+            <h4>Security Features</h4>
+            <ul>
+                <li><strong>SafeERC20</strong> for all token transfers (handles non-standard tokens like USDT)</li>
+                <li><strong>ReentrancyGuard</strong> on all state-changing functions</li>
+                <li><strong>Access control</strong> &mdash; owner and agent roles, strictly separated</li>
+                <li><strong>Zero-address checks</strong> in <code>initialize</code> and <code>spend</code></li>
+                <li><strong>Approval hygiene</strong> &mdash; resets allowance to 0 before re-approving</li>
+            </ul>
+        </section>
+
+        <section id="factory">
+            <h3>AgentVaultFactory</h3>
+            <p>
+                Deploys new vault instances using <strong>EIP-1167 minimal proxies</strong>. Each vault is a lightweight clone of the implementation contract, making deployment cost roughly <strong>~$1 instead of ~$20</strong>.
+            </p>
+
+            <div class="fn-sig"><code>createVault(address agent) &rarr; address</code></div>
+            <p class="fn-desc">Deploy a new vault. The caller becomes the owner, <code>agent</code> gets spending rights.</p>
+
+            <div class="fn-sig"><code>getVaultsByOwner(address owner) &rarr; address[]</code></div>
+            <p class="fn-desc">List all vaults owned by an address.</p>
+
+            <div class="fn-sig"><code>getVaultsByAgent(address agent) &rarr; address[]</code></div>
+            <p class="fn-desc">List all vaults where an address is the authorized agent.</p>
+
+            <div class="callout">
+                <p><strong>Why EIP-1167?</strong> Minimal proxy clones delegate all calls to a shared implementation contract. The clone itself is only 45 bytes of bytecode, so deployment is extremely cheap. The implementation is immutable after deploy &mdash; nobody can change the logic.</p>
+            </div>
+        </section>
+
+        <!-- Lido Staking -->
+        <section id="lido-staking">
+            <h2>Lido Staking</h2>
+            <p>
+                Vaults can stake deposited ETH via <a href="https://lido.fi" target="_blank" rel="noopener">Lido</a> to earn staking yield. The yield can fund your agent's operations without touching your principal.
+            </p>
+
+            <h3>How stETH Rebasing Works</h3>
+            <p>
+                When you stake ETH through Lido, you receive stETH. Unlike most tokens, stETH balances <strong>grow automatically</strong> via a daily rebase. If you hold 10 stETH today, tomorrow you'll hold slightly more &mdash; no claiming required. The contract tracks the difference between your original deposit and the current balance to calculate yield.
+            </p>
+
+            <h3>Yield-Only Mode</h3>
+            <p>
+                Call <code>stakeETH(true)</code> to enable yield-only mode. In this mode:
+            </p>
+            <ul>
+                <li>Your <strong>principal is locked</strong> &mdash; the agent cannot touch it</li>
+                <li>Only the <strong>yield that grows on top</strong> is available for spending</li>
+                <li><code>harvestYield()</code> crystallizes the accumulated yield (callable once per day)</li>
+                <li><code>spendableYield()</code> shows what the agent can currently spend</li>
+                <li>The agent can <strong>never access the principal</strong>, only harvested yield</li>
+            </ul>
+
+            <h3>Economics</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Staked ETH</th>
+                            <th>APY (~3.5%)</th>
+                            <th>Monthly Yield</th>
+                            <th>Daily Budget</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1 ETH</td>
+                            <td>0.035 ETH/yr</td>
+                            <td>~$3/mo</td>
+                            <td>~$0.10/day</td>
+                        </tr>
+                        <tr>
+                            <td>10 ETH</td>
+                            <td>0.35 ETH/yr</td>
+                            <td>~$30/mo</td>
+                            <td>~$1/day</td>
+                        </tr>
+                        <tr>
+                            <td>100 ETH</td>
+                            <td>3.5 ETH/yr</td>
+                            <td>~$300/mo</td>
+                            <td>~$10/day</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout">
+                <p><strong>Self-funding agents.</strong> Stake 10 ETH and your agent gets approximately $30/month to operate with &mdash; forever &mdash; without you ever topping up the vault.</p>
+            </div>
+        </section>
+
+        <!-- Agent Integration -->
+        <section id="agent-integration">
+            <h2>Agent Integration</h2>
+            <p>
+                There are four ways to connect an agent to its vault: a skill file (simplest), an MCP server (native Claude Code tools), a Python SDK, or direct CLI commands.
+            </p>
+        </section>
+
+        <!-- Skill File -->
+        <section id="skill-file">
+            <h3>Skill File</h3>
+            <p>
+                The fastest way to give any LLM agent access to its vault. Paste one line into your agent's prompt or system message:
+            </p>
+            <pre><code>Read http://37.27.40.172:3000/skill.md &mdash; my vault is 0xYourVaultAddress</code></pre>
+            <p>
+                The skill file contains all the instructions and ABI the agent needs to check its budget, spend tokens, and report expenses. No SDK required.
+            </p>
+        </section>
+
+        <!-- MCP Server -->
+        <section id="mcp-server">
+            <h3>MCP Server</h3>
+            <p>
+                For Claude Code and other MCP-compatible agents, the MCP server exposes native tools.
+            </p>
+
+            <p class="code-label">Installation</p>
+            <pre><code>git clone &lt;repo-url&gt;
+cd mcp-server
+npm install</code></pre>
+
+            <p class="code-label">Claude Code settings.json</p>
+            <pre><code>{
+  "mcpServers": {
+    "spendcontrol": {
+      "command": "node",
+      "args": ["path/to/mcp-server/index.js"],
+      "env": {
+        "VAULT_ADDRESS": "0xYourVaultAddress",
+        "AGENT_PRIVATE_KEY": "0xYourAgentKey",
+        "RPC_URL": "https://your-rpc-url"
+      }
+    }
+  }
+}</code></pre>
+
+            <p class="code-label">Available tools</p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tool</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>check_budget</code></td>
+                            <td>Check remaining daily budget for a token</td>
+                        </tr>
+                        <tr>
+                            <td><code>spend</code></td>
+                            <td>Spend tokens from the vault with a reason</td>
+                        </tr>
+                        <tr>
+                            <td><code>get_history</code></td>
+                            <td>Retrieve recent expense records</td>
+                        </tr>
+                        <tr>
+                            <td><code>get_vault_info</code></td>
+                            <td>Get vault balances, limits, and configuration</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Python SDK -->
+        <section id="python-sdk">
+            <h3>Python SDK</h3>
+            <p class="code-label">Installation</p>
+            <pre><code>pip install -e sdk/python</code></pre>
+
+            <p class="code-label">Usage</p>
+            <pre><code>from spendcontrol import VaultClient
+
+client = VaultClient(
+    rpc_url="https://your-rpc-url",
+    vault_address="0xYourVaultAddress",
+    agent_private_key="0xYourAgentKey"
+)
+
+# Check how much the agent can spend today
+budget = client.check_budget("0xUSDC_ADDRESS")
+print(f"Remaining daily budget: {budget}")
+
+# Spend tokens
+tx = client.spend(
+    token="0xUSDC_ADDRESS",
+    to="0xRecipient",
+    amount=5_000000,  # 5 USDC (6 decimals)
+    reason="Paid for API credits"
+)
+
+# List supported tokens
+tokens = client.get_tokens()
+
+# Get expense history
+history = client.get_history(count=10)</code></pre>
+
+            <p class="code-label">Methods</p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>check_budget(token)</code></td>
+                            <td>Remaining daily budget for a token</td>
+                        </tr>
+                        <tr>
+                            <td><code>spend(token, to, amount, reason)</code></td>
+                            <td>Spend from vault with mandatory reason</td>
+                        </tr>
+                        <tr>
+                            <td><code>get_tokens()</code></td>
+                            <td>List all tokens in the vault</td>
+                        </tr>
+                        <tr>
+                            <td><code>get_history(count)</code></td>
+                            <td>Recent expense records</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- CLI (cast) -->
+        <section id="cli-cast">
+            <h3>CLI (cast)</h3>
+            <p>
+                You can interact with the contracts directly using <a href="https://book.getfoundry.sh/reference/cast/" target="_blank" rel="noopener">Foundry's cast</a>. Useful for scripting and debugging.
+            </p>
+
+            <p class="code-label">Check vault balance</p>
+            <pre><code>cast call $VAULT "balanceOf(address)(uint256)" $TOKEN_ADDRESS</code></pre>
+
+            <p class="code-label">Check remaining daily budget</p>
+            <pre><code>cast call $VAULT "remainingDailyBudget(address)(uint256)" $TOKEN_ADDRESS</code></pre>
+
+            <p class="code-label">Spend tokens (as agent)</p>
+            <pre><code>cast send $VAULT "spend(address,address,uint256,string)" \
+    $TOKEN $RECIPIENT $AMOUNT "Reason for spending" \
+    --private-key $AGENT_KEY</code></pre>
+
+            <p class="code-label">Deposit ERC20 (as owner)</p>
+            <pre><code># Approve first
+cast send $TOKEN "approve(address,uint256)" $VAULT $AMOUNT \
+    --private-key $OWNER_KEY
+
+# Then deposit
+cast send $VAULT "deposit(address,uint256)" $TOKEN $AMOUNT \
+    --private-key $OWNER_KEY</code></pre>
+
+            <p class="code-label">Deposit ETH (as owner)</p>
+            <pre><code>cast send $VAULT "depositETH()" --value 1ether \
+    --private-key $OWNER_KEY</code></pre>
+
+            <p class="code-label">Set spending limits (as owner)</p>
+            <pre><code>cast send $VAULT "setTokenLimits(address,uint256,uint256)" \
+    $TOKEN $DAILY_LIMIT $PER_TX_LIMIT \
+    --private-key $OWNER_KEY</code></pre>
+
+            <p class="code-label">Stake ETH with yield-only mode</p>
+            <pre><code>cast send $VAULT "stakeETH(bool)" true --private-key $OWNER_KEY</code></pre>
+
+            <p class="code-label">Harvest yield</p>
+            <pre><code>cast send $VAULT "harvestYield()" --private-key $OWNER_KEY</code></pre>
+
+            <p class="code-label">Get recent expenses</p>
+            <pre><code>cast call $VAULT "getRecentExpenses(uint256)" 5</code></pre>
+        </section>
+
+        <!-- Expense Reports -->
+        <section id="expense-reports">
+            <h2>Expense Reports</h2>
+            <p>
+                Every spend is recorded on-chain with a mandatory reason. The agent literally <strong>cannot spend without explaining why</strong> &mdash; this is enforced at the contract level, not by the frontend.
+            </p>
+
+            <h3>On-Chain Event</h3>
+            <p>Every successful spend emits an <code>AgentSpent</code> event:</p>
+            <pre><code>event AgentSpent(
+    address indexed agent,
+    address indexed token,
+    address indexed to,
+    uint256 amount,
+    string reason
+);</code></pre>
+
+            <h3>Expense Storage</h3>
+            <p>
+                All expenses are also stored in the contract's <code>expenses[]</code> array, queryable at any time:
+            </p>
+            <ul>
+                <li><code>getExpense(index)</code> &mdash; retrieve a single expense by index</li>
+                <li><code>getRecentExpenses(count)</code> &mdash; get the N most recent expenses</li>
+            </ul>
+            <p>
+                The dashboard reads these records and displays them in an activity log with token, amount, recipient, reason, and timestamp.
+            </p>
+
+            <div class="callout">
+                <p><strong>Full auditability.</strong> Because reasons are stored on-chain, anyone can verify what an agent spent money on &mdash; even without the dashboard. It is a permanent, tamper-proof receipt.</p>
+            </div>
+        </section>
+
+        <!-- Deployed Contracts -->
+        <section id="deployed-contracts">
+            <h2>Deployed Contracts</h2>
+
+            <h3>Factory Addresses</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Network</th>
+                            <th>Factory Address</th>
+                            <th>Explorer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Ethereum Mainnet</strong></td>
+                            <td><code>0x93e3F6F081F0f5bef1EF9CD42D7924E258e8073B</code></td>
+                            <td><a href="https://etherscan.io/address/0x93e3F6F081F0f5bef1EF9CD42D7924E258e8073B" target="_blank" rel="noopener">etherscan.io</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Base Sepolia</strong></td>
+                            <td><code>0xF6CFA83764D0B1E0417a74FfB8d915985DFd3642</code></td>
+                            <td><a href="https://sepolia.basescan.org/address/0xF6CFA83764D0B1E0417a74FfB8d915985DFd3642" target="_blank" rel="noopener">sepolia.basescan.org</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Token Addresses</h3>
+
+            <h4>Ethereum Mainnet</h4>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>WETH</strong></td>
+                            <td><code>0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>USDC</strong></td>
+                            <td><code>0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>DAI</strong></td>
+                            <td><code>0x6B175474E89094C44Da98b954EedeAC495271d0F</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>stETH</strong></td>
+                            <td><code>0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h4>Base Sepolia (Testnet)</h4>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th>Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>WETH</strong></td>
+                            <td><code>0x4200000000000000000000000000000000000006</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>USDC</strong></td>
+                            <td><code>0x036CbD53842c5426634e7929541eC2318f3dCF7e</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>DAI</strong></td>
+                            <td><code>0x7683022d84F726a96c4A6611cD31DBf5409c0Ac9</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Security -->
+        <section id="security">
+            <h2>Security</h2>
+            <p>
+                SpendControl is designed with defense-in-depth. Multiple independent safeguards ensure that even if one layer fails, funds remain protected.
+            </p>
+
+            <ul>
+                <li><strong>SafeERC20</strong> &mdash; all token transfers use OpenZeppelin's SafeERC20 library, which handles non-standard tokens like USDT that don't return a boolean on transfer.</li>
+                <li><strong>ReentrancyGuard</strong> &mdash; every state-changing function is protected against reentrancy attacks.</li>
+                <li><strong>Zero-address checks</strong> &mdash; <code>initialize()</code> and <code>spend()</code> reject the zero address to prevent accidental burns.</li>
+                <li><strong>Approval hygiene</strong> &mdash; before setting a new token approval, the contract resets the existing allowance to 0. This prevents the well-known approval race condition.</li>
+                <li><strong>EIP-1167 minimal proxy</strong> &mdash; the implementation contract is immutable after deployment. Nobody can change the vault logic.</li>
+                <li><strong>Owner can pause instantly</strong> &mdash; if an agent is compromised, the owner can pause the vault with a single transaction, freezing all spending immediately.</li>
+                <li><strong>Per-token limits enforced by contract</strong> &mdash; spending limits are checked on-chain. The frontend, agent, and SDK cannot bypass them.</li>
+                <li><strong>Reason is mandatory</strong> &mdash; the <code>spend()</code> function reverts if the reason string is empty. Agents cannot spend silently.</li>
+                <li><strong>Audited against EthSkills security checklist</strong> &mdash; the contracts have been reviewed against the standard smart contract security checklist.</li>
+            </ul>
+
+            <div class="callout callout-warn">
+                <p><strong>Key principle:</strong> The contract enforces all rules. Even a malicious or hallucinating agent cannot exceed its budget, skip the reason field, or access locked principal. Security does not depend on the agent behaving correctly.</p>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq">
+            <h2>FAQ</h2>
+
+            <h4>How much does it cost to create a vault?</h4>
+            <p>
+                Approximately <strong>$1</strong>. The factory uses EIP-1167 minimal proxies, which deploy a tiny 45-byte clone instead of the full contract bytecode. This is roughly 20x cheaper than a standard deployment.
+            </p>
+
+            <h4>Can the agent steal my principal?</h4>
+            <p>
+                <strong>No.</strong> In yield-only mode (<code>stakeETH(true)</code>), the principal is locked at the contract level. The agent can only spend harvested yield. Even if the agent is compromised, your principal is safe.
+            </p>
+
+            <h4>What if the agent goes rogue?</h4>
+            <p>
+                Pause the vault instantly. The owner can call the pause function with a single transaction. This freezes all spending immediately. Even without pausing, the agent is bounded by its daily and per-transaction limits.
+            </p>
+
+            <h4>Can I use any token?</h4>
+            <p>
+                <strong>Yes.</strong> Any ERC20 token works. The vault uses SafeERC20 to handle non-standard tokens like USDT. You set limits per token, so you have granular control.
+            </p>
+
+            <h4>How does Lido yield work?</h4>
+            <p>
+                When you stake ETH through Lido, you receive stETH. The stETH balance <strong>rebases daily</strong> &mdash; it grows automatically as staking rewards accrue. The vault tracks the difference between your original deposit and the growing balance to calculate yield. Call <code>harvestYield()</code> once per day to crystallize the yield for spending.
+            </p>
+
+            <h4>Is the code open source?</h4>
+            <p>
+                <strong>Yes.</strong> All contracts are verified on their respective block explorers. The source code, tests, and deployment scripts are publicly available.
+            </p>
+        </section>
+
+        <hr>
+        <p style="text-align: center; color: var(--text-tertiary); font-size: 13px; margin-top: 24px;">
+            SpendControl &mdash; Treasury Protocol for AI Agents
+        </p>
+
+    </div>
+</main>
+
+<script>
+    // Mobile menu toggle
+    const toggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    toggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+    });
+
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+    });
+
+    // Active nav link tracking on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    function updateActiveLink() {
+        let current = '';
+        const scrollY = window.scrollY;
+
+        sections.forEach(section => {
+            const top = section.offsetTop - 80;
+            if (scrollY >= top) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + current) {
+                link.classList.add('active');
+            }
+        });
+    }
+
+    window.addEventListener('scroll', updateActiveLink);
+    updateActiveLink();
+
+    // Close mobile sidebar when nav link is clicked
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 860) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('open');
+            }
+        });
+    });
+</script>
+</body>
+</html>
