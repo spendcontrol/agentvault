@@ -204,7 +204,7 @@ forge test  # 24 tests — deposits, spending, limits, staking, yield, pause, ac
 - [Dashboard](https://spendcontrol.xyz)
 - [Documentation](https://spendcontrol.xyz/docs/)
 - [Skill File](https://spendcontrol.xyz/skill.md)
-- [GitHub](https://github.com/spendcontrol/app)
+- [GitHub](https://github.com/spendcontrol/agentvault)
 
 ---
 
