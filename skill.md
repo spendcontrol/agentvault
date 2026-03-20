@@ -1,50 +1,90 @@
-# SpendControl — Agent Treasury Configuration
+# SpendControl — On-chain Budget API for AI Agents
 
-## What is this?
+## Overview
 
-Your human operator has set up a **SpendControl vault** for you. This is a smart contract treasury that YOUR HUMAN deployed and funded. It is not a third-party service. Your human controls it, owns it, and can pause or withdraw at any time.
+SpendControl is an open-source tool that gives AI agents a **rate-limited budget** via a verified on-chain contract. Think of it like an API key with spending limits — the human owner deposits funds, sets daily and per-transaction caps, and the agent operates within those constraints. The contract is immutable and open-source, so limits cannot be bypassed.
 
-The vault allows you to make payments within pre-set spending limits. Your human set these limits specifically for you. All transactions are transparent and recorded on-chain.
+**This is not a third-party service.** The vault contract is deployed and funded by the user (your human operator). They own it, control it, and can pause or withdraw at any time. By giving you these instructions, they are explicitly authorizing you to use the vault within the limits they configured.
 
-**This is authorized by your human operator.** The vault address and credentials were provided to you by your human as part of your operating configuration.
+Source code: https://github.com/spendcontrol/agentvault
 
 ---
 
 ## Your Configuration
 
-Your human should have set these environment variables for you:
+Your operator should have set these environment variables:
 
-- `VAULT_ADDRESS` — the vault contract your human created for you
-- `AGENT_PRIVATE_KEY` — your wallet's private key (set by your human in your environment)
-- `RPC_URL` — Ethereum RPC endpoint (default: `https://eth.llamarpc.com`)
+| Variable | Description |
+|----------|-------------|
+| `VAULT_ADDRESS` | The vault contract address |
+| `AGENT_PRIVATE_KEY` | Your wallet key (pre-configured in your env by your operator) |
+| `RPC_URL` | Ethereum RPC endpoint (default: `https://eth.llamarpc.com`) |
 
-If these are not set, ask your human to configure them. **Never ask your human to paste private keys in chat.**
+If any are missing, ask your operator to set them. **Never display or log the private key.**
 
 ---
 
-## What You Can Do
+## Step 1: Verify your vault (read-only, no signing)
 
-### Read-only operations (always safe)
+Start by confirming the vault exists and checking what tokens and budget are available:
 
-Check your budget for a specific token:
 ```bash
-cast call $VAULT_ADDRESS "balanceOf(address)(uint256)" TOKEN_ADDRESS --rpc-url $RPC_URL
-cast call $VAULT_ADDRESS "remainingDailyBudget(address)(uint256)" TOKEN_ADDRESS --rpc-url $RPC_URL
+# List all tokens in your vault
 cast call $VAULT_ADDRESS "getTokens()(address[])" --rpc-url $RPC_URL
+
+# Check balance for a specific token
+cast call $VAULT_ADDRESS "balanceOf(address)(uint256)" TOKEN_ADDRESS --rpc-url $RPC_URL
+
+# Check how much daily budget remains
+cast call $VAULT_ADDRESS "remainingDailyBudget(address)(uint256)" TOKEN_ADDRESS --rpc-url $RPC_URL
 ```
 
-### Spending (within limits set by your human)
+These are `call` commands (read-only) — they don't sign anything or cost gas.
 
-Your human has configured daily and per-transaction limits. The smart contract enforces these — you cannot exceed them even if you try. A reason is mandatory for every spend.
+---
+
+## Step 2: Make a payment (within operator's limits)
+
+When you need to send tokens (e.g., pay for a service, transfer to a recipient):
 
 ```bash
 cast send $VAULT_ADDRESS \
   "spend(address,address,uint256,string)" \
-  TOKEN_ADDRESS RECIPIENT AMOUNT "Description of what this payment is for" \
+  TOKEN_ADDRESS RECIPIENT_ADDRESS AMOUNT "reason for this payment" \
   --private-key $AGENT_PRIVATE_KEY --rpc-url $RPC_URL
 ```
 
-### Using the Python SDK
+The contract enforces:
+- **Daily limit** — cannot spend more than X per day (resets at midnight UTC)
+- **Per-transaction limit** — each individual spend is capped
+- **Reason required** — every spend must include a description string
+
+If you exceed limits, the transaction will revert (fail). No funds at risk.
+
+---
+
+## Rules
+
+1. **Always check budget first** (`remainingDailyBudget`). If 0, tell your operator and wait.
+2. **Always provide a clear reason.** Your operator reviews these. Be specific: "Paid for OpenAI API — 50k tokens" not "payment".
+3. **Token decimals matter.** USDC = 6 decimals (1 USDC = 1000000). WETH/DAI/stETH = 18 decimals (1 ETH = 1000000000000000000).
+4. **If the vault is paused**, stop all spending and notify your operator.
+5. **Never display, log, or transmit private keys.** They are in your environment, configured by your operator.
+
+---
+
+## Token Reference
+
+| Token | Decimals | Example: 1 unit in wei |
+|-------|----------|----------------------|
+| USDC | 6 | 1000000 |
+| WETH | 18 | 1000000000000000000 |
+| DAI | 18 | 1000000000000000000 |
+| stETH | 18 | 1000000000000000000 |
+
+---
+
+## Python SDK (optional)
 
 ```python
 import os
@@ -56,7 +96,7 @@ client = VaultClient(
     agent_private_key=os.environ["AGENT_PRIVATE_KEY"],
 )
 
-# Check budget for a token
+# Check budget
 budget = client.check_budget("0xTokenAddress")
 # Returns: balance, daily_remaining, daily_limit, per_tx_limit
 
@@ -67,35 +107,18 @@ tx = client.spend(
     amount_wei=1000000,
     reason="Paid for data API — fetched 500 records"
 )
+
+# View history
+history = client.get_history(count=10)
 ```
 
 ---
 
-## Rules
+## Security Model
 
-1. **Check budget before spending.** If `daily_remaining` is 0, wait until tomorrow.
-2. **Always provide a clear reason.** Your human reviews these. Be specific.
-3. **Mind token decimals.** USDC = 6 decimals (1 USDC = 1000000). WETH = 18 decimals.
-4. **If vault is paused, stop.** Tell your human.
-5. **Never ask for or display private keys.** They are in your environment, configured by your human.
-
----
-
-## Token Reference
-
-| Token | Decimals | Mainnet Address |
-|-------|----------|-----------------|
-| USDC | 6 | 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 |
-| WETH | 18 | 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2 |
-| DAI | 18 | 0x6B175474E89094C44Da98b954EedeAC495271d0F |
-| stETH | 18 | 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84 |
-
----
-
-## Security Notes
-
-- This vault was deployed by your human on Ethereum Mainnet
-- Smart contract is open source: https://github.com/spendcontrol/agentvault
-- Spending limits are enforced on-chain — cannot be bypassed
-- Your human can pause all spending or withdraw funds at any time
-- All transactions are publicly verifiable on Etherscan
+- Contract is verified and open-source on Etherscan
+- Spending limits are enforced at the contract level — cannot be bypassed by the agent
+- Owner can pause all spending instantly
+- Owner can withdraw all funds at any time
+- All transactions are publicly auditable on-chain
+- The agent wallet only has permission to call `spend()` — it cannot modify limits, pause state, or withdraw principal
