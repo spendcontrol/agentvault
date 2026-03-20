@@ -108,7 +108,7 @@ contract AgentVaultTest is Test {
         // Agent tries to spend — no harvested yield, should fail
         vm.prank(agent);
         vm.expectRevert(AgentVault.ExceedsBudget.selector);
-        yVault.spend(address(stETH), recipient, 0.1 ether);
+        yVault.spend(address(stETH), recipient, 0.1 ether, "test yield spend");
 
         // Simulate stETH rebase: mint extra stETH to vault (this is what Lido does)
         stETH.mint(address(yVault), 0.5 ether);
@@ -120,7 +120,7 @@ contract AgentVaultTest is Test {
         // Agent still can't spend (not harvested)
         vm.prank(agent);
         vm.expectRevert(AgentVault.ExceedsBudget.selector);
-        yVault.spend(address(stETH), recipient, 0.1 ether);
+        yVault.spend(address(stETH), recipient, 0.1 ether, "test yield spend");
 
         // Harvest yield (anyone can call, once per day)
         vm.warp(block.timestamp + 1 days);
@@ -226,7 +226,7 @@ contract AgentVaultTest is Test {
 
         vm.prank(agent);
         vm.expectRevert(AgentVault.TokenNotSupported.selector);
-        vault.spend(address(random), recipient, 100e18);
+        vault.spend(address(random), recipient, 100e18, "test unsupported");
     }
 
     function test_expenseReportWithToken() public {
@@ -251,7 +251,7 @@ contract AgentVaultTest is Test {
 
         vm.prank(agent);
         vm.expectRevert(AgentVault.ExceedsPerTxLimit.selector);
-        vault.spend(address(usdc), recipient, 600e6);
+        vault.spend(address(usdc), recipient, 600e6, "exceeds per tx");
     }
 
     function test_dailyLimit() public {
@@ -259,13 +259,13 @@ contract AgentVaultTest is Test {
         vault.deposit(address(usdc), 10_000e6);
 
         vm.prank(agent);
-        vault.spend(address(usdc), recipient, 500e6);
+        vault.spend(address(usdc), recipient, 500e6, "daily spend 1");
         vm.prank(agent);
-        vault.spend(address(usdc), recipient, 500e6);
+        vault.spend(address(usdc), recipient, 500e6, "daily spend 2");
 
         vm.prank(agent);
         vm.expectRevert(AgentVault.ExceedsDailyLimit.selector);
-        vault.spend(address(usdc), recipient, 100e6);
+        vault.spend(address(usdc), recipient, 100e6, "daily spend 3");
     }
 
     function test_dailyLimitResetsNextDay() public {
@@ -273,14 +273,14 @@ contract AgentVaultTest is Test {
         vault.deposit(address(usdc), 10_000e6);
 
         vm.prank(agent);
-        vault.spend(address(usdc), recipient, 500e6);
+        vault.spend(address(usdc), recipient, 500e6, "day1 spend 1");
         vm.prank(agent);
-        vault.spend(address(usdc), recipient, 500e6);
+        vault.spend(address(usdc), recipient, 500e6, "day1 spend 2");
 
         vm.warp(block.timestamp + 1 days);
 
         vm.prank(agent);
-        vault.spend(address(usdc), recipient, 500e6);
+        vault.spend(address(usdc), recipient, 500e6, "day2 spend 1");
         assertEq(usdc.balanceOf(recipient), 1_500e6);
     }
 
@@ -307,7 +307,7 @@ contract AgentVaultTest is Test {
 
         vm.prank(agent);
         vm.expectRevert(AgentVault.VaultPaused.selector);
-        vault.spend(address(usdc), recipient, 100e6);
+        vault.spend(address(usdc), recipient, 100e6, "paused spend");
     }
 
     // --- Access control ---
@@ -324,7 +324,18 @@ contract AgentVaultTest is Test {
 
         vm.prank(owner);
         vm.expectRevert(AgentVault.OnlyAgent.selector);
-        vault.spend(address(usdc), recipient, 100e6);
+        vault.spend(address(usdc), recipient, 100e6, "owner trying to spend");
+    }
+
+    // --- Empty reason reverts ---
+
+    function test_spendWithEmptyReasonReverts() public {
+        vm.prank(owner);
+        vault.deposit(address(usdc), 10_000e6);
+
+        vm.prank(agent);
+        vm.expectRevert("Reason required");
+        vault.spend(address(usdc), recipient, 100e6, "");
     }
 
     // --- Factory ---

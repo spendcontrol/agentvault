@@ -302,20 +302,13 @@ contract AgentVault {
     // AGENT: Spend
     // =============================================
 
-    /// @notice Agent spends tokens with a reason
+    /// @notice Agent spends tokens with a reason (reason is mandatory)
     function spend(address token, address to, uint256 amount, string calldata reason) external onlyAgent whenNotPaused nonReentrant {
+        require(bytes(reason).length > 0, "Reason required");
         _validateSpend(token, to, amount);
         _recordSpend(token, to, amount, reason);
         IERC20(token).safeTransfer(to, amount);
         emit AgentSpent(msg.sender, token, to, amount, reason);
-    }
-
-    /// @notice Agent spends tokens (no reason)
-    function spend(address token, address to, uint256 amount) external onlyAgent whenNotPaused nonReentrant {
-        _validateSpend(token, to, amount);
-        _recordSpend(token, to, amount, "");
-        IERC20(token).safeTransfer(to, amount);
-        emit AgentSpent(msg.sender, token, to, amount, "");
     }
 
     // =============================================
