@@ -199,6 +199,13 @@ forge test  # 24 tests — deposits, spending, limits, staking, yield, pause, ac
 - **Dashboard:** HTML/JS, ethers.js
 - **Chain:** Ethereum Mainnet + Base Sepolia
 
+## Roadmap
+
+- **x402 Integration** — Coinbase's HTTP 402 payment protocol. Agents will automatically pay for API calls directly from their vault when services return 402. The vault already supports arbitrary ERC20 spending — x402 client integration is the next step to enable pay-per-request for any x402-compatible API.
+- **Multi-chain** — Deploy on Base, Arbitrum, Optimism for cheaper agent transactions
+- **Gasless spending** — Meta-transactions so agents don't need ETH for gas
+- **Spending analytics** — On-chain dashboards showing agent ROI (cost vs value generated)
+
 ## Links
 
 - [Dashboard](https://spendcontrol.xyz)
