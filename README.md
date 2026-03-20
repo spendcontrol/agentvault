@@ -35,7 +35,7 @@ AgentVaultFactory (EIP-1167 proxy — ~$1 per vault)
 
 ### For Vault Owners
 
-1. Open the [dashboard](http://spendcontrol.xyz) and connect MetaMask
+1. Open the [dashboard](https://spendcontrol.xyz) and connect MetaMask
 2. Create a vault (specify your agent's wallet address)
 3. Deposit tokens (ETH, USDC, etc.)
 4. Set per-token spending limits
@@ -45,7 +45,7 @@ AgentVaultFactory (EIP-1167 proxy — ~$1 per vault)
 
 **Quickest way** — paste this to your agent:
 ```
-Read this skill file: http://spendcontrol.xyz/skill.md
+Read this skill file: https://spendcontrol.xyz/skill.md
 My vault address: 0xYourVault
 ```
 
@@ -63,7 +63,7 @@ budget = client.check_budget("0xUSDC_ADDRESS")
 tx = client.spend("0xUSDC", "0xRecipient", 1000000, "API payment")
 ```
 
-**MCP Server** for Claude Code — see [docs](http://spendcontrol.xyz/docs/).
+**MCP Server** for Claude Code — see [docs](https://spendcontrol.xyz/docs/).
 
 ## Contracts
 
@@ -111,7 +111,7 @@ forge test  # 24 tests
 
 ## Links
 
-- [Dashboard](http://spendcontrol.xyz)
-- [Documentation](http://spendcontrol.xyz/docs/)
-- [Skill File](http://spendcontrol.xyz/skill.md)
+- [Dashboard](https://spendcontrol.xyz)
+- [Documentation](https://spendcontrol.xyz/docs/)
+- [Skill File](https://spendcontrol.xyz/skill.md)
 - [GitHub](https://github.com/spendcontrol/app)
