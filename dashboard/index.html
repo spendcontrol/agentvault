@@ -1245,85 +1245,104 @@
             </div>
             <div class="dev-section fade-in-up delay-3">
                 <div class="dev-tabs">
-                    <button class="dev-tab active" onclick="switchDevTab(this, 'panel-mcp')">MCP Server</button>
+                    <button class="dev-tab active" onclick="switchDevTab(this, 'panel-quick')">Quick Start</button>
+                    <button class="dev-tab" onclick="switchDevTab(this, 'panel-mcp')">MCP Server</button>
                     <button class="dev-tab" onclick="switchDevTab(this, 'panel-python')">Python SDK</button>
-                    <button class="dev-tab" onclick="switchDevTab(this, 'panel-skill')">Skill File</button>
-                    <button class="dev-tab" onclick="switchDevTab(this, 'panel-terminal')">CLI</button>
+                    <button class="dev-tab" onclick="switchDevTab(this, 'panel-terminal')">CLI (cast)</button>
                 </div>
-                <div class="dev-panel active" id="panel-mcp">
+                <div class="dev-panel active" id="panel-quick">
                     <button class="copy-btn" onclick="copyDevPanel(this)">Copy</button>
-                    <pre><span class="comment">// claude_desktop_config.json</span>
+                    <pre><span class="comment"># Paste this to your agent (Claude Code, Cursor, OpenClaw, etc.):</span>
+
+Read the SpendControl skill file and use it:
+<span class="string">http://37.27.40.172:3000/skill.md</span>
+
+My vault address: <span class="string">0xYourVault</span>
+Your private key is in AGENT_PRIVATE_KEY env variable.
+Network: Ethereum Mainnet (RPC: https://eth.llamarpc.com)
+
+<span class="comment"># That's it. The skill file teaches the agent everything:</span>
+<span class="comment"># - How to check budget per token</span>
+<span class="comment"># - How to spend (reason required)</span>
+<span class="comment"># - Token decimals (USDC=6, WETH=18)</span>
+<span class="comment"># - Daily/per-tx limits</span>
+<span class="comment"># - Rules to follow</span></pre>
+                </div>
+                <div class="dev-panel" id="panel-mcp">
+                    <button class="copy-btn" onclick="copyDevPanel(this)">Copy</button>
+                    <pre><span class="comment"># Add to ~/.claude/settings.json (Claude Code)</span>
+
 {
   <span class="string">"mcpServers"</span>: {
     <span class="string">"spendcontrol"</span>: {
-      <span class="string">"command"</span>: <span class="string">"npx"</span>,
-      <span class="string">"args"</span>: [<span class="string">"spendcontrol-mcp"</span>],
+      <span class="string">"command"</span>: <span class="string">"node"</span>,
+      <span class="string">"args"</span>: [<span class="string">"/path/to/spendcontrol/mcp-server/index.js"</span>],
       <span class="string">"env"</span>: {
-        <span class="string">"VAULT_ADDRESS"</span>: <span class="string">"0xYourVault..."</span>,
-        <span class="string">"AGENT_PRIVATE_KEY"</span>: <span class="string">"0x..."</span>,
-        <span class="string">"RPC_URL"</span>: <span class="string">"https://sepolia.base.org"</span>
+        <span class="string">"VAULT_ADDRESS"</span>: <span class="string">"0xYourVault"</span>,
+        <span class="string">"AGENT_PRIVATE_KEY"</span>: <span class="string">"0xYourAgentKey"</span>,
+        <span class="string">"RPC_URL"</span>: <span class="string">"https://eth.llamarpc.com"</span>
       }
     }
   }
-}</pre>
+}
+
+<span class="comment"># Tools your agent gets:</span>
+<span class="comment">#   check_budget(token)  — balance + daily remaining</span>
+<span class="comment">#   spend(token, to, amount, reason) — on-chain transfer</span>
+<span class="comment">#   get_history — past transactions with reasons</span>
+<span class="comment">#   get_vault_info — tokens, limits, status</span></pre>
                 </div>
                 <div class="dev-panel" id="panel-python">
                     <button class="copy-btn" onclick="copyDevPanel(this)">Copy</button>
-                    <pre><span class="keyword">from</span> spendcontrol <span class="keyword">import</span> SpendControlClient
+                    <pre><span class="comment"># Install</span>
+git clone https://github.com/YourRepo/spendcontrol
+cd spendcontrol/sdk/python && pip install -e .
 
-client = SpendControlClient(
-    vault_address=<span class="string">"0xYourVault..."</span>,
-    private_key=<span class="string">"0x..."</span>,
-    rpc_url=<span class="string">"https://sepolia.base.org"</span>
+<span class="comment"># Usage</span>
+<span class="keyword">from</span> yieldvault <span class="keyword">import</span> VaultClient
+
+client = VaultClient(
+    rpc_url=<span class="string">"https://eth.llamarpc.com"</span>,
+    vault_address=<span class="string">"0xYourVault"</span>,
+    agent_private_key=os.environ[<span class="string">"AGENT_PRIVATE_KEY"</span>],
 )
 
-<span class="comment"># Check available budget</span>
-budget = client.<span class="fn">remaining_daily_budget</span>(token=<span class="string">"USDC"</span>)
-<span class="keyword">print</span>(<span class="string">f"Daily budget remaining: {budget} USDC"</span>)
+<span class="comment"># Check budget for a token</span>
+budget = client.<span class="fn">check_budget</span>(<span class="string">"0xA0b8...eB48"</span>)  <span class="comment"># USDC address</span>
+<span class="keyword">print</span>(<span class="string">f"Balance: {budget['balance']}"</span>)
+<span class="keyword">print</span>(<span class="string">f"Daily remaining: {budget['daily_remaining']}"</span>)
 
-<span class="comment"># Spend with a reason</span>
+<span class="comment"># Spend (reason is mandatory)</span>
 tx = client.<span class="fn">spend</span>(
-    token=<span class="string">"USDC"</span>,
-    to=<span class="string">"0xVendor..."</span>,
-    amount=<span class="string">"10.00"</span>,
-    reason=<span class="string">"API subscription - March 2026"</span>
+    token_address=<span class="string">"0xA0b8...eB48"</span>,
+    to_address=<span class="string">"0xRecipient"</span>,
+    amount_wei=1000000,  <span class="comment"># 1 USDC (6 decimals)</span>
+    reason=<span class="string">"GPT-4 API call — price analysis"</span>
 )</pre>
-                </div>
-                <div class="dev-panel" id="panel-skill">
-                    <button class="copy-btn" onclick="copyDevPanel(this)">Copy</button>
-                    <pre><span class="comment">// .well-known/ai-plugin.json</span>
-{
-  <span class="string">"schema_version"</span>: <span class="string">"v1"</span>,
-  <span class="string">"name"</span>: <span class="string">"SpendControl"</span>,
-  <span class="string">"description"</span>: <span class="string">"Treasury for AI agent spending"</span>,
-  <span class="string">"api"</span>: {
-    <span class="string">"type"</span>: <span class="string">"openapi"</span>,
-    <span class="string">"url"</span>: <span class="string">"https://spendcontrol.xyz/openapi.yaml"</span>
-  },
-  <span class="string">"auth"</span>: {
-    <span class="string">"type"</span>: <span class="string">"none"</span>
-  }
-}</pre>
                 </div>
                 <div class="dev-panel" id="panel-terminal">
                     <button class="copy-btn" onclick="copyDevPanel(this)">Copy</button>
-                    <pre><span class="comment"># Install the CLI</span>
-$ npm install -g spendcontrol-cli
+                    <pre><span class="comment"># Direct smart contract calls via Foundry (cast)</span>
 
-<span class="comment"># Check vault balance</span>
-$ spendcontrol <span class="fn">balance</span> --vault 0xYourVault --token USDC
-<span class="string">Balance: 5,000.00 USDC</span>
+<span class="keyword">export</span> VAULT=<span class="string">"0xYourVault"</span>
+<span class="keyword">export</span> KEY=<span class="string">"0xYourAgentKey"</span>
+<span class="keyword">export</span> RPC=<span class="string">"https://eth.llamarpc.com"</span>
+<span class="keyword">export</span> TOKEN=<span class="string">"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"</span>  <span class="comment"># USDC</span>
 
-<span class="comment"># Spend from the vault</span>
-$ spendcontrol <span class="fn">spend</span> \
-    --vault 0xYourVault \
-    --token USDC \
-    --to 0xVendor \
-    --amount 25.00 \
-    --reason <span class="string">"Cloud compute - batch job #4291"</span>
+<span class="comment"># List tokens in vault</span>
+cast call $VAULT <span class="string">"getTokens()(address[])"</span> --rpc-url $RPC
 
-<span class="comment"># View recent expenses</span>
-$ spendcontrol <span class="fn">expenses</span> --vault 0xYourVault --last 10</pre>
+<span class="comment"># Check balance</span>
+cast call $VAULT <span class="string">"balanceOf(address)(uint256)"</span> $TOKEN --rpc-url $RPC
+
+<span class="comment"># Check daily budget remaining</span>
+cast call $VAULT <span class="string">"remainingDailyBudget(address)(uint256)"</span> $TOKEN --rpc-url $RPC
+
+<span class="comment"># Spend with reason (mandatory)</span>
+cast send $VAULT \
+  <span class="string">"spend(address,address,uint256,string)"</span> \
+  $TOKEN 0xRecipient 1000000 <span class="string">"API payment"</span> \
+  --private-key $KEY --rpc-url $RPC</pre>
                 </div>
             </div>
         </section>

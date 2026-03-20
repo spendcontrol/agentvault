@@ -14,26 +14,33 @@ const RPC_URL = process.env.RPC_URL || "https://sepolia.base.org";
 // ABI
 // ---------------------------------------------------------------------------
 const VAULT_ABI = [
-  "function deposit(uint256 amount)",
-  "function withdraw(uint256 amount)",
-  "function spend(address to, uint256 amount)",
-  "function spend(address to, uint256 amount, string reason)",
-  "function spendAndSwap(address tokenOut, uint24 fee, uint256 amountIn, uint256 amountOutMinimum, address to) returns (uint256)",
-  "function spendAndSwap(address tokenOut, uint24 fee, uint256 amountIn, uint256 amountOutMinimum, address to, string reason) returns (uint256)",
-  "function availableBudget() view returns (uint256)",
-  "function remainingDailyBudget() view returns (uint256)",
-  "function getStats() view returns (uint256, uint256, uint256, uint256, uint256)",
-  "function totalDeposited() view returns (uint256)",
-  "function totalSpent() view returns (uint256)",
-  "function owner() view returns (address)",
-  "function agent() view returns (address)",
-  "function token() view returns (address)",
-  "function dailyLimit() view returns (uint256)",
-  "function perTxLimit() view returns (uint256)",
-  "function paused() view returns (bool)",
-  "function expenseCount() view returns (uint256)",
-  "event AgentSpent(address indexed agent, address indexed to, uint256 amount, string reason)",
-  "event AgentSwapped(address indexed agent, address indexed tokenOut, uint256 amountIn, uint256 amountOut, address indexed to, string reason)",
+  'function deposit(address token, uint256 amount)',
+  'function depositETH() payable',
+  'function withdraw(address token, uint256 amount)',
+  'function stakeETH(bool yieldOnly) payable',
+  'function harvestYield()',
+  'function spend(address token, address to, uint256 amount, string reason)',
+  'function balanceOf(address token) view returns (uint256)',
+  'function getTokens() view returns (address[])',
+  'function remainingDailyBudget(address token) view returns (uint256)',
+  'function effectiveDailyLimit(address token) view returns (uint256)',
+  'function effectivePerTxLimit(address token) view returns (uint256)',
+  'function stakedPrincipal() view returns (uint256)',
+  'function pendingYield() view returns (uint256)',
+  'function spendableYield() view returns (uint256)',
+  'function harvestedYield() view returns (uint256)',
+  'function yieldSpent() view returns (uint256)',
+  'function lastHarvestTime() view returns (uint256)',
+  'function yieldOnly() view returns (bool)',
+  'function totalSpent(address token) view returns (uint256)',
+  'function expenseCount() view returns (uint256)',
+  'function owner() view returns (address)',
+  'function agent() view returns (address)',
+  'function paused() view returns (bool)',
+  'event AgentSpent(address indexed agent, address indexed token, address indexed to, uint256 amount, string reason)',
+  'event Deposited(address indexed owner, address indexed token, uint256 amount)',
+  'event StakedETH(address indexed owner, uint256 ethAmount, uint256 stETHReceived, bool yieldOnly)',
+  'event YieldHarvested(uint256 amount, uint256 totalSpendable)',
 ];
 
 // ---------------------------------------------------------------------------
@@ -72,21 +79,36 @@ const server = new McpServer({
 // ---- check_budget ----
 server.tool(
   "check_budget",
-  "Returns available budget, daily remaining, total deposited and spent in human-readable format",
-  {},
-  async () => {
+  "Returns token balances, daily remaining, limits for a specific token. Also lists all supported tokens.",
+  {
+    token: z.string().describe("Token contract address to check budget for"),
+  },
+  async ({ token }) => {
     try {
+      if (!ethers.isAddress(token)) {
+        throw new Error(`Invalid token address: ${token}`);
+      }
+
       const vault = getVault(getProvider());
 
-      const [balance, totalDeposited, totalSpent, availableBudget, dailyRemaining] =
-        await vault.getStats();
+      const [balance, dailyRemaining, dailyLimit, perTxLimit, tokens] =
+        await Promise.all([
+          vault.balanceOf(token),
+          vault.remainingDailyBudget(token),
+          vault.effectiveDailyLimit(token),
+          vault.effectivePerTxLimit(token),
+          vault.getTokens(),
+        ]);
 
       const text = [
-        `Available Budget:   ${fmtEth(availableBudget)}`,
+        `Token:              ${token}`,
+        `Balance:            ${fmtEth(balance)}`,
         `Daily Remaining:    ${fmtEth(dailyRemaining)}`,
-        `Vault Balance:      ${fmtEth(balance)}`,
-        `Total Deposited:    ${fmtEth(totalDeposited)}`,
-        `Total Spent:        ${fmtEth(totalSpent)}`,
+        `Daily Limit:        ${fmtEth(dailyLimit)}`,
+        `Per-Tx Limit:       ${fmtEth(perTxLimit)}`,
+        ``,
+        `All supported tokens (${tokens.length}):`,
+        ...tokens.map((t, i) => `  ${i + 1}. ${t}`),
       ].join("\n");
 
       return { content: [{ type: "text", text }] };
@@ -102,16 +124,23 @@ server.tool(
 // ---- spend ----
 server.tool(
   "spend",
-  "Spend tokens from the vault to an address, with an optional reason",
+  "Spend tokens from the vault to an address. Reason is required.",
   {
+    token: z.string().describe("Token contract address to spend"),
     to: z.string().describe("Recipient address"),
-    amount: z.string().describe('Amount of tokens to spend (e.g. "0.001" or "100" for USDC)'),
-    reason: z.string().optional().describe("Why you are spending (stored on-chain)"),
+    amount: z.string().describe('Amount of tokens to spend (e.g. "0.001" or "100")'),
+    reason: z.string().describe("Why you are spending (stored on-chain, required)"),
   },
-  async ({ to, amount, reason }) => {
+  async ({ token, to, amount, reason }) => {
     try {
+      if (!ethers.isAddress(token)) {
+        throw new Error(`Invalid token address: ${token}`);
+      }
       if (!ethers.isAddress(to)) {
         throw new Error(`Invalid recipient address: ${to}`);
+      }
+      if (!reason) {
+        throw new Error("Reason is required and must be non-empty");
       }
 
       const amountWei = ethers.parseEther(amount);
@@ -120,18 +149,17 @@ server.tool(
       }
 
       const vault = getVault(getSigner());
-      const tx = reason
-        ? await vault["spend(address,uint256,string)"](to, amountWei, reason)
-        : await vault["spend(address,uint256)"](to, amountWei);
+      const tx = await vault["spend(address,address,uint256,string)"](token, to, amountWei, reason);
       const receipt = await tx.wait();
 
       const text = [
         `Spend successful!`,
+        `Token:   ${token}`,
         `To:      ${to}`,
         `Amount:  ${amount}`,
-        reason ? `Reason:  ${reason}` : null,
+        `Reason:  ${reason}`,
         `Tx Hash: ${receipt.hash}`,
-      ].filter(Boolean).join("\n");
+      ].join("\n");
 
       return { content: [{ type: "text", text }] };
     } catch (err) {
@@ -143,87 +171,10 @@ server.tool(
   }
 );
 
-// ---- spend_and_swap ----
-server.tool(
-  "spend_and_swap",
-  "Swap vault tokens to another token via Uniswap V3 and send to an address",
-  {
-    token_out: z.string().describe("Address of the token to receive"),
-    amount: z.string().describe('Amount of vault tokens to swap (e.g. "0.01")'),
-    min_out: z
-      .string()
-      .default("0")
-      .describe('Minimum output amount (default "0")'),
-    to: z.string().describe("Recipient address for the swapped tokens"),
-  },
-  async ({ token_out, amount, min_out, to }) => {
-    try {
-      if (!ethers.isAddress(token_out)) {
-        throw new Error(`Invalid token_out address: ${token_out}`);
-      }
-      if (!ethers.isAddress(to)) {
-        throw new Error(`Invalid recipient address: ${to}`);
-      }
-
-      const amountWei = ethers.parseEther(amount);
-      if (amountWei <= 0n) {
-        throw new Error("Amount must be greater than zero");
-      }
-      const minOutWei = ethers.parseEther(min_out);
-
-      const vault = getVault(getSigner());
-      const fee = 3000; // Uniswap 0.3% pool fee tier
-      const tx = await vault.spendAndSwap(
-        token_out,
-        fee,
-        amountWei,
-        minOutWei,
-        to
-      );
-      const receipt = await tx.wait();
-
-      // Try to parse the YieldSwapped event for actual output amount
-      let amountOutStr = "unknown";
-      for (const log of receipt.logs) {
-        try {
-          const parsed = vault.interface.parseLog({
-            topics: log.topics,
-            data: log.data,
-          });
-          if (parsed && parsed.name === "AgentSwapped") {
-            amountOutStr = fmtEth(parsed.args.amountOut);
-            break;
-          }
-        } catch {
-          // not our event, skip
-        }
-      }
-
-      const text = [
-        `Swap successful!`,
-        `Token Out: ${token_out}`,
-        `Amount In: ${amount} wstETH`,
-        `Amount Out: ${amountOutStr}`,
-        `Recipient: ${to}`,
-        `Tx Hash:   ${receipt.hash}`,
-      ].join("\n");
-
-      return { content: [{ type: "text", text }] };
-    } catch (err) {
-      return {
-        content: [
-          { type: "text", text: `Error swapping yield: ${err.message}` },
-        ],
-        isError: true,
-      };
-    }
-  }
-);
-
 // ---- get_history ----
 server.tool(
   "get_history",
-  "Get recent agent transactions (withdrawals and swaps) from the vault",
+  "Get recent agent spending transactions from the vault",
   {},
   async () => {
     try {
@@ -234,37 +185,20 @@ server.tool(
       // Look back ~7 days worth of blocks (~2s block time on Base)
       const fromBlock = Math.max(0, currentBlock - 302_400);
 
-      const [withdrawEvents, swapEvents] = await Promise.all([
-        vault.queryFilter("AgentSpent", fromBlock, currentBlock),
-        vault.queryFilter("AgentSwapped", fromBlock, currentBlock),
-      ]);
+      const spentEvents = await vault.queryFilter("AgentSpent", fromBlock, currentBlock);
 
       const entries = [];
 
-      for (const ev of withdrawEvents) {
+      for (const ev of spentEvents) {
         const block = await ev.getBlock();
         entries.push({
-          type: "withdraw",
           block: ev.blockNumber,
           timestamp: block ? new Date(block.timestamp * 1000).toISOString() : "unknown",
-          agent: ev.args.agent,
-          to: ev.args.to,
-          amount: fmtEth(ev.args.amount),
-          txHash: ev.transactionHash,
-        });
-      }
-
-      for (const ev of swapEvents) {
-        const block = await ev.getBlock();
-        entries.push({
-          type: "swap",
-          block: ev.blockNumber,
-          timestamp: block ? new Date(block.timestamp * 1000).toISOString() : "unknown",
-          agent: ev.args.agent,
-          tokenOut: ev.args.tokenOut,
-          amountIn: fmtEth(ev.args.amountIn),
-          amountOut: fmtEth(ev.args.amountOut),
-          to: ev.args.to,
+          agent: ev.args[0],
+          token: ev.args[1],
+          to: ev.args[2],
+          amount: fmtEth(ev.args[3]),
+          reason: ev.args[4],
           txHash: ev.transactionHash,
         });
       }
@@ -281,21 +215,13 @@ server.tool(
       }
 
       const lines = entries.map((e, i) => {
-        if (e.type === "withdraw") {
-          return [
-            `#${i + 1} WITHDRAW  [${e.timestamp}]`,
-            `    To:      ${e.to}`,
-            `    Amount:  ${e.amount} wstETH`,
-            `    Tx:      ${e.txHash}`,
-          ].join("\n");
-        }
         return [
-          `#${i + 1} SWAP  [${e.timestamp}]`,
-          `    Token Out: ${e.tokenOut}`,
-          `    In:        ${e.amountIn} wstETH`,
-          `    Out:       ${e.amountOut}`,
-          `    To:        ${e.to}`,
-          `    Tx:        ${e.txHash}`,
+          `#${i + 1} SPEND  [${e.timestamp}]`,
+          `    Token:   ${e.token}`,
+          `    To:      ${e.to}`,
+          `    Amount:  ${e.amount}`,
+          `    Reason:  ${e.reason}`,
+          `    Tx:      ${e.txHash}`,
         ].join("\n");
       });
 
@@ -321,30 +247,54 @@ server.tool(
 // ---- get_vault_info ----
 server.tool(
   "get_vault_info",
-  "Get vault configuration: owner, agent, daily limit, per-tx limit, paused status",
+  "Get vault configuration: owner, agent, paused status, all tokens with limits, and staking info",
   {},
   async () => {
     try {
       const vault = getVault(getProvider());
 
-      const [owner, agent, dailyLimit, perTxLimit, paused] = await Promise.all([
-        vault.owner(),
-        vault.agent(),
-        vault.dailyLimit(),
-        vault.perTxLimit(),
-        vault.paused(),
-      ]);
+      const [owner, agent, paused, tokens, stakedPrincipal, pendingYield, spendableYield, yieldOnly] =
+        await Promise.all([
+          vault.owner(),
+          vault.agent(),
+          vault.paused(),
+          vault.getTokens(),
+          vault.stakedPrincipal(),
+          vault.pendingYield(),
+          vault.spendableYield(),
+          vault.yieldOnly(),
+        ]);
 
-      const text = [
-        `Vault Address:  ${VAULT_ADDRESS}`,
-        `Owner:          ${owner}`,
-        `Agent:          ${agent}`,
-        `Daily Limit:    ${fmtEth(dailyLimit)} wstETH`,
-        `Per-Tx Limit:   ${fmtEth(perTxLimit)} wstETH`,
-        `Paused:         ${paused ? "YES" : "NO"}`,
-      ].join("\n");
+      const lines = [
+        `Vault Address:      ${VAULT_ADDRESS}`,
+        `Owner:              ${owner}`,
+        `Agent:              ${agent}`,
+        `Paused:             ${paused ? "YES" : "NO"}`,
+        ``,
+        `Staking:`,
+        `  Staked Principal:  ${fmtEth(stakedPrincipal)}`,
+        `  Pending Yield:     ${fmtEth(pendingYield)}`,
+        `  Spendable Yield:   ${fmtEth(spendableYield)}`,
+        `  Yield Only:        ${yieldOnly ? "YES" : "NO"}`,
+        ``,
+        `Tokens (${tokens.length}):`,
+      ];
 
-      return { content: [{ type: "text", text }] };
+      for (const token of tokens) {
+        const [balance, dailyLimit, perTxLimit] = await Promise.all([
+          vault.balanceOf(token),
+          vault.effectiveDailyLimit(token),
+          vault.effectivePerTxLimit(token),
+        ]);
+        lines.push(
+          `  ${token}`,
+          `    Balance:       ${fmtEth(balance)}`,
+          `    Daily Limit:   ${fmtEth(dailyLimit)}`,
+          `    Per-Tx Limit:  ${fmtEth(perTxLimit)}`,
+        );
+      }
+
+      return { content: [{ type: "text", text: lines.join("\n") }] };
     } catch (err) {
       return {
         content: [

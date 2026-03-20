@@ -115,37 +115,73 @@ class VaultClient:
             abi=AGENT_VAULT_ABI,
         )
 
-    def check_budget(self) -> dict[str, int]:
-        """Return the current budget snapshot."""
+    def check_budget(self, token_address: str) -> dict[str, int]:
+        """Return the current budget snapshot for a specific token.
+
+        Parameters
+        ----------
+        token_address : str
+            Address of the ERC-20 token to query.
+
+        Returns
+        -------
+        dict with keys: balance, daily_remaining, daily_limit, per_tx_limit
+        """
+        token = Web3.to_checksum_address(token_address)
         try:
-            stats = self.vault.functions.getStats().call()
+            balance = self.vault.functions.balanceOf(token).call()
+            daily_remaining = self.vault.functions.remainingDailyBudget(token).call()
+            daily_limit = self.vault.functions.effectiveDailyLimit(token).call()
+            per_tx_limit = self.vault.functions.effectivePerTxLimit(token).call()
         except ContractLogicError as exc:
             raise _translate_revert(exc) from exc
 
         return {
-            "balance": stats[0],
-            "total_deposited": stats[1],
-            "total_spent": stats[2],
-            "available_budget": stats[3],
-            "daily_remaining": stats[4],
+            "balance": balance,
+            "daily_remaining": daily_remaining,
+            "daily_limit": daily_limit,
+            "per_tx_limit": per_tx_limit,
         }
 
-    def get_stats(self) -> dict[str, int]:
-        """Alias for check_budget with different key names."""
+    def spend(self, token_address: str, to_address: str, amount_wei: int, reason: str) -> str:
+        """Spend tokens from the vault.
+
+        Parameters
+        ----------
+        token_address : str
+            Address of the ERC-20 token to spend.
+        to_address : str
+            Recipient address.
+        amount_wei : int
+            Amount in token's smallest unit.
+        reason : str
+            Why the agent is spending (stored on-chain). Must be non-empty.
+
+        Returns
+        -------
+        str
+            Transaction hash (hex).
+        """
+        if not reason:
+            raise YieldVaultError("Reason is required and must be non-empty")
+        token = Web3.to_checksum_address(token_address)
+        to_address = Web3.to_checksum_address(to_address)
         try:
-            s = self.vault.functions.getStats().call()
+            fn = self.vault.functions.spend(token, to_address, amount_wei, reason)
+            tx = _build_tx(self.w3, self.address, fn)
         except ContractLogicError as exc:
             raise _translate_revert(exc) from exc
-        return {
-            "balance": s[0],
-            "total_deposited": s[1],
-            "total_spent": s[2],
-            "available_budget": s[3],
-            "remaining_daily_budget": s[4],
-        }
+        return _send_tx(self.w3, self.account, tx)
+
+    def get_tokens(self) -> list[str]:
+        """Return list of all supported token addresses in the vault."""
+        return self.vault.functions.getTokens().call()
 
     def get_history(self, from_block: int = 0) -> list[dict[str, Any]]:
-        """Fetch all AgentSpent events."""
+        """Fetch all AgentSpent events.
+
+        The AgentSpent event has 3 indexed params: agent, token, to.
+        """
         try:
             events = self.vault.events.AgentSpent.get_logs(from_block=from_block)
         except Exception as exc:
@@ -155,6 +191,7 @@ class VaultClient:
         for entry in events:
             results.append({
                 "agent": entry.args.agent,
+                "token": entry.args.token,
                 "to": entry.args.to,
                 "amount": entry.args.amount,
                 "reason": entry.args.reason,
@@ -163,72 +200,32 @@ class VaultClient:
             })
         return results
 
-    def spend(self, to_address: str, amount_wei: int, reason: str = "") -> str:
-        """Spend tokens from the vault.
-
-        Parameters
-        ----------
-        to_address : str
-            Recipient address.
-        amount_wei : int
-            Amount in token's smallest unit (e.g. wei for WETH, 6-decimal units for USDC).
-        reason : str, optional
-            Why the agent is spending (stored on-chain).
+    def get_staking_info(self) -> dict[str, Any]:
+        """Return staking-related information.
 
         Returns
         -------
-        str
-            Transaction hash (hex).
+        dict with keys: staked_principal, pending_yield, spendable_yield, yield_only
         """
-        to_address = Web3.to_checksum_address(to_address)
         try:
-            if reason:
-                fn = self.vault.functions.spend(to_address, amount_wei, reason)
-            else:
-                fn = self.vault.functions.spend(to_address, amount_wei)
-            tx = _build_tx(self.w3, self.address, fn)
+            staked = self.vault.functions.stakedPrincipal().call()
+            pending = self.vault.functions.pendingYield().call()
+            spendable = self.vault.functions.spendableYield().call()
+            yield_only = self.vault.functions.yieldOnly().call()
         except ContractLogicError as exc:
             raise _translate_revert(exc) from exc
-        return _send_tx(self.w3, self.account, tx)
 
-    def spend_and_swap(
-        self,
-        token_out: str,
-        fee: int,
-        amount_in_wei: int,
-        amount_out_minimum: int,
-        to_address: str,
-        reason: str = "",
-    ) -> str:
-        """Swap vault token → another token via Uniswap V3."""
-        token_out = Web3.to_checksum_address(token_out)
-        to_address = Web3.to_checksum_address(to_address)
-        try:
-            if reason:
-                fn = self.vault.functions.spendAndSwap(
-                    token_out, fee, amount_in_wei, amount_out_minimum, to_address, reason
-                )
-            else:
-                fn = self.vault.functions.spendAndSwap(
-                    token_out, fee, amount_in_wei, amount_out_minimum, to_address
-                )
-            tx = _build_tx(self.w3, self.address, fn, gas=500_000)
-        except ContractLogicError as exc:
-            raise _translate_revert(exc) from exc
-        return _send_tx(self.w3, self.account, tx)
+        return {
+            "staked_principal": staked,
+            "pending_yield": pending,
+            "spendable_yield": spendable,
+            "yield_only": yield_only,
+        }
 
     # Properties
     @property
     def is_paused(self) -> bool:
         return self.vault.functions.paused().call()
-
-    @property
-    def daily_limit(self) -> int:
-        return self.vault.functions.dailyLimit().call()
-
-    @property
-    def per_tx_limit(self) -> int:
-        return self.vault.functions.perTxLimit().call()
 
     @property
     def vault_owner(self) -> str:
@@ -237,10 +234,6 @@ class VaultClient:
     @property
     def vault_agent(self) -> str:
         return self.vault.functions.agent().call()
-
-    @property
-    def vault_token(self) -> str:
-        return self.vault.functions.token().call()
 
 
 # ---------------------------------------------------------------------------
